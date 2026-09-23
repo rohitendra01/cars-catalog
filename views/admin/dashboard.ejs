@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel | AutoVault India</title>
+    <meta name="description" content="AutoVault India admin dashboard — manage car inventory, create listings, and update vehicle details." />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans:    ['Inter', 'system-ui', 'sans-serif'],
+                        display: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+                        mono:    ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+                    },
+                    colors: {
+                        brand: { DEFAULT: '#ea580c', light: '#f97316', dark: '#c2410c' }
+                    }
+                },
+            },
+        };
+    </script>
+    <!-- Apply theme instantly before paint to prevent flash -->
+    <script>
+        (function () {
+            var s = localStorage.getItem('av-admin-theme');
+            var q = window.matchMedia('(prefers-color-scheme: dark)');
+            if (s === 'dark' || (!s && q.matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <style>
+        /* ── Scrollbar ────────────────────────────────────────────── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ea580c; }
+        .dark ::-webkit-scrollbar-thumb { background: #3f3f46; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #ea580c; }
+
+        /* ── Slide Panel ──────────────────────────────────────────── */
+        .slide-panel {
+            transform: translateX(100%);
+            transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .slide-panel.open { transform: translateX(0); }
+
+        /* ── Overlay ──────────────────────────────────────────────── */
+        .overlay {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .overlay.active { opacity: 1; pointer-events: all; }
+
+        /* ── Toast Animations ─────────────────────────────────────── */
+        @keyframes toastIn {
+            from { transform: translateX(110%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to   { opacity: 0; transform: translateX(110%); }
+        }
+        .toast-enter { animation: toastIn  0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .toast-exit  { animation: toastOut 0.3s ease forwards; }
+
+        /* ── Stat card pulse on load ──────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.5s ease forwards; }
+        .fade-up-1 { animation-delay: 0.05s; }
+        .fade-up-2 { animation-delay: 0.1s;  }
+        .fade-up-3 { animation-delay: 0.15s; }
+        .fade-up-4 { animation-delay: 0.2s;  }
+
+        /* ── Image preview grid ───────────────────────────────────── */
+        .img-thumb {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            background: #f4f4f5;
+        }
+        .dark .img-thumb { background: #18181b; }
+        .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .img-thumb .remove-btn {
+            position: absolute; top: 4px; right: 4px;
+            background: rgba(9,9,11,.7); color: #fff;
+            border: none; width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border-radius: 2px;
+            font-size: 12px; line-height: 1;
+        }
+        .img-thumb .remove-btn:hover { background: #dc2626; }
+
+        /* ── Table row hover ──────────────────────────────────────── */
+        .car-row { transition: background 0.15s ease; }
+        .car-row:hover td { background: rgba(234,88,12,.04); }
+        .dark .car-row:hover td { background: rgba(234,88,12,.07); }
+
+        /* ── Form select styling ──────────────────────────────────── */
+        select option { background: #fff; color: #09090b; }
+        .dark select option { background: #18181b; color: #fafafa; }
+
+        /* ── Pagination button active ─────────────────────────────── */
+        .page-btn.active { background: #ea580c; color: #fff; border-color: #ea580c; }
+
+        /* ── Mobile: full-width panel ─────────────────────────────── */
+        @media (max-width: 640px) {
+            .slide-panel { width: 100% !important; }
+        }
+    </style>
+</head>
+
+<body class="bg-zinc-50 dark:bg-[#050505] text-zinc-950 dark:text-zinc-100 font-sans antialiased min-h-screen flex flex-col">
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════════════════════════════════════════════ -->
+<header id="topbar" class="fixed top-0 w-full z-40 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800 h-16">
+    <div class="flex items-center justify-between px-4 sm:px-6 h-full max-w-[1920px] mx-auto">
+
+        <!-- Logo + label -->
+        <div class="flex items-center gap-3">
+            <a href="/" class="flex items-center gap-3 group" title="Return to live site">
+                <div class="w-8 h-8 bg-zinc-950 dark:bg-white flex items-center justify-center group-hover:bg-brand transition-colors shrink-0">
+                    <!-- car icon -->
+                    <svg class="w-4 h-4 text-white dark:text-zinc-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 17H6a2 2 0 01-2-2v-4l2-5h12l2 5v4a2 2 0 01-2 2h-2m-8 0a2 2 0 104 0m-4 0a2 2 0 014 0M9 9h6"/>
+                    </svg>
+                </div>
+                <span class="font-display font-black text-lg tracking-tighter uppercase hidden sm:block">
+                    Auto<span class="text-brand">Vault</span>
+                </span>
+            </a>
+            <div class="w-px h-5 bg-zinc-200 dark:bg-zinc-800 hidden sm:block"></div>
+            <span class="font-mono font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest text-[10px] hidden sm:block">
+                Admin Panel
+            </span>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2 sm:gap-4">
+            <a href="/inventory" target="_blank"
+               class="text-zinc-500 hover:text-brand font-bold uppercase tracking-widest text-[10px] transition-colors hidden sm:block">
+                Live Site
+            </a>
+
+            <!-- Theme toggle -->
+            <button id="themeToggle" aria-label="Toggle theme"
+                class="p-2 text-zinc-500 hover:text-brand transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 rounded-sm">
+                <svg id="iconMoon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <svg id="iconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </button>
+
+            <!-- Add new car (mobile quick button) -->
+            <button onclick="openPanel()" id="addBtnMobile"
+                class="sm:hidden px-3 py-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold uppercase tracking-widest text-[10px] hover:bg-brand dark:hover:bg-brand dark:hover:text-white transition-colors">
+                + New
+            </button>
+        </div>
+
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════════════════════════════════════ -->
+<main class="flex-1 pt-16 pb-16 max-w-[1920px] mx-auto w-full">
+    <div class="px-4 sm:px-6 lg:px-10 py-8">
+
+        <!-- Page heading -->
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+                <h1 class="font-display font-black text-3xl sm:text-4xl text-zinc-950 dark:text-white uppercase tracking-tighter mb-1">
+                    Inventory Control
+                </h1>
+                <p id="inventorySubtitle" class="text-zinc-400 font-mono text-[11px] uppercase tracking-widest">
+                    Loading data…
+                </p>
+            </div>
+            <button onclick="openPanel()" id="addBtnDesktop"
+                class="hidden sm:flex items-center gap-2 px-6 py-3 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold uppercase tracking-widest text-xs hover:bg-brand dark:hover:bg-brand dark:hover:text-white transition-colors whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add New Car
+            </button>
+        </div>
+
+        <!-- ── Stats Strip ──────────────────────────────────────────────────── -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <!-- Total -->
+            <div class="fade-up fade-up-1 opacity-0 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 p-5">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Total Cars</p>
+                <p id="statTotal" class="font-display font-black text-3xl text-zinc-950 dark:text-white tracking-tight">—</p>
+                <div class="mt-3 h-px bg-zinc-100 dark:bg-zinc-900"></div>
+                <p class="font-mono text-[10px] text-zinc-400 mt-2 uppercase tracking-widest">In inventory</p>
+            </div>
+            <!-- Featured -->
+            <div class="fade-up fade-up-2 opacity-0 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 p-5">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Featured</p>
+                <p id="statFeatured" class="font-display font-black text-3xl text-brand tracking-tight">—</p>
+                <div class="mt-3 h-px bg-zinc-100 dark:bg-zinc-900"></div>
+                <p class="font-mono text-[10px] text-zinc-400 mt-2 uppercase tracking-widest">On homepage</p>
+            </div>
+            <!-- Avg Price -->
+            <div class="fade-up fade-up-3 opacity-0 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 p-5">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Avg. Price</p>
+                <p id="statAvgPrice" class="font-display font-black text-2xl text-zinc-950 dark:text-white tracking-tight">—</p>
+                <div class="mt-3 h-px bg-zinc-100 dark:bg-zinc-900"></div>
+                <p class="font-mono text-[10px] text-zinc-400 mt-2 uppercase tracking-widest">Across listing</p>
+            </div>
+            <!-- Body Types -->
+            <div class="fade-up fade-up-4 opacity-0 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 p-5">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mb-2">Top Body Type</p>
+                <p id="statTopBody" class="font-display font-black text-2xl text-zinc-950 dark:text-white tracking-tight">—</p>
+                <div class="mt-3 h-px bg-zinc-100 dark:bg-zinc-900"></div>
+                <p id="statTopBodyCount" class="font-mono text-[10px] text-zinc-400 mt-2 uppercase tracking-widest">vehicles</p>
+            </div>
+        </div>
+
+        <!-- ── Filters & Search Toolbar ────────────────────────────────────── -->
+        <div class="flex flex-col md:flex-row items-start md:items-center gap-3 mb-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
+            <!-- Search -->
+            <div class="relative flex-1 w-full md:max-w-sm">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Search brand, model, RTO…"
+                    class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white font-mono text-xs uppercase tracking-widest placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-colors rounded-none"/>
+            </div>
+
+            <!-- Fuel filter -->
+            <select id="filterFuel"
+                class="px-3 py-2.5 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white font-mono text-xs uppercase tracking-widest focus:outline-none focus:border-brand transition-colors rounded-none w-full md:w-auto">
+                <option value="">All Fuel Types</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="CNG">CNG</option>
+                <option value="Electric">Electric</option>
+            </select>
+
+            <!-- Body filter -->
+            <select id="filterBody"
+                class="px-3 py-2.5 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white font-mono text-xs uppercase tracking-widest focus:outline-none focus:border-brand transition-colors rounded-none w-full md:w-auto">
+                <option value="">All Body Types</option>
+                <option value="SUV">SUV</option>
+                <option value="Hatchback">Hatchback</option>
+                <option value="Sedan">Sedan</option>
+                <option value="EV">EV</option>
+                <option value="MUV">MUV</option>
+                <option value="Coupe">Coupe</option>
+                <option value="Convertible">Convertible</option>
+            </select>
+
+            <!-- Sort -->
+            <select id="filterSort"
+                class="px-3 py-2.5 bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white font-mono text-xs uppercase tracking-widest focus:outline-none focus:border-brand transition-colors rounded-none w-full md:w-auto">
+                <option value="newest">Newest First</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="price-desc">Price: High → Low</option>
+                <option value="year-desc">Year: Newest</option>
+            </select>
+        </div>
+
+        <!-- ── Car Table ────────────────────────────────────────────────────── -->
+        <div class="bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest">Photo</th>
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest">Brand</th>
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest">Model</th>
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest hidden md:table-cell">Year</th>
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest hidden lg:table-cell">Fuel</th>
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest hidden lg:table-cell">Body</th>
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest">Price</th>
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest hidden md:table-cell">Status</th>
+                            <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="carTableBody" class="divide-y divide-zinc-100 dark:divide-zinc-800/70">
+                        <tr>
+                            <td colspan="9" class="px-6 py-20 text-center text-zinc-400 font-mono text-xs uppercase tracking-widest">
+                                <div class="inline-flex flex-col items-center gap-3">
+                                    <svg class="w-8 h-8 text-zinc-300 dark:text-zinc-700 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                    </svg>
+                                    Establishing connection…
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div id="paginationBar" class="hidden items-center justify-between px-4 sm:px-6 py-4 border-t border-zinc-100 dark:border-zinc-800">
+                <p id="paginationInfo" class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest"></p>
+                <div id="paginationBtns" class="flex items-center gap-2"></div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     COPYRIGHT BAR (FOOTER)
+══════════════════════════════════════════════════════════════════════════════ -->
+<footer class="fixed bottom-0 w-full z-30 bg-white dark:bg-[#0a0a0a] border-t border-zinc-200 dark:border-zinc-800 h-10 flex items-center px-4 sm:px-6">
+    <div class="flex items-center justify-between w-full max-w-[1920px] mx-auto">
+        <p class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">
+            © 2025 AutoVault India. All rights reserved.
+        </p>
+        <div class="flex items-center gap-4">
+            <span class="font-mono text-[10px] text-zinc-300 dark:text-zinc-600 hidden sm:block">Admin Panel v1.0</span>
+            <!-- Gear icon — already on admin, links back to live site -->
+            <a href="/" title="Go to live site"
+               class="text-zinc-400 hover:text-brand transition-colors" aria-label="Live site">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     OVERLAY
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="overlay" class="overlay fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50" onclick="closePanel()"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SLIDE-OUT PANEL — Car Create / Edit
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="slidePanel"
+    class="slide-panel fixed top-0 right-0 h-full w-full sm:w-[620px] bg-white dark:bg-[#0a0a0a] border-l border-zinc-200 dark:border-zinc-800 z-50 overflow-y-auto flex flex-col">
+
+    <!-- Panel Header -->
+    <div class="sticky top-0 z-10 bg-white dark:bg-[#0a0a0a] flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+        <div>
+            <h2 id="panelTitle" class="font-display font-black text-xl text-zinc-950 dark:text-white uppercase tracking-tighter">
+                Add New Car
+            </h2>
+            <p id="panelSubtitle" class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest mt-0.5">
+                Fill in all required fields
+            </p>
+        </div>
+        <button onclick="closePanel()" aria-label="Close panel"
+            class="p-2 border border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:text-white hover:bg-zinc-950 dark:hover:bg-white dark:hover:text-zinc-950 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Panel Form -->
+    <form id="carForm" enctype="multipart/form-data" class="flex-1 px-6 py-6 space-y-0" novalidate>
+        <input type="hidden" id="editCarId" value="" />
+
+        <!-- ── Section: Vehicle Identity ────────────────────────────── -->
+        <div class="mb-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-5 bg-brand"></div>
+                <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Vehicle Identity</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Brand -->
+                <div class="col-span-2 sm:col-span-1">
+                    <label for="fBrand" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Brand / Make <span class="text-brand">*</span>
+                    </label>
+                    <input type="text" id="fBrand" name="make" placeholder="e.g. Mahindra" required
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+                <!-- Model -->
+                <div class="col-span-2 sm:col-span-1">
+                    <label for="fModel" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Model <span class="text-brand">*</span>
+                    </label>
+                    <input type="text" id="fModel" name="model" placeholder="e.g. Scorpio-N" required
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+                <!-- Year -->
+                <div>
+                    <label for="fYear" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Year <span class="text-brand">*</span>
+                    </label>
+                    <input type="number" id="fYear" name="year" placeholder="2023" min="1990" max="2030" required
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+                <!-- Body Style / Variant -->
+                <div>
+                    <label for="fBodyType" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Body Style / Variant
+                    </label>
+                    <select id="fBodyType" name="bodyType"
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors">
+                        <option value="SUV">SUV</option>
+                        <option value="Hatchback">Hatchback</option>
+                        <option value="Sedan" selected>Sedan</option>
+                        <option value="EV">Electric (EV)</option>
+                        <option value="MUV">MUV</option>
+                        <option value="Coupe">Coupe</option>
+                        <option value="Convertible">Convertible</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section: Specs ────────────────────────────────────────── -->
+        <div class="mb-6 pt-6 border-t border-zinc-100 dark:border-zinc-800/60">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-5 bg-brand"></div>
+                <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Specs &amp; Performance</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Fuel Type -->
+                <div>
+                    <label for="fFuelType" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Fuel Type <span class="text-brand">*</span>
+                    </label>
+                    <select id="fFuelType" name="fuelType" required
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors">
+                        <option value="Petrol">⛽ Petrol</option>
+                        <option value="Diesel">🛢 Diesel</option>
+                        <option value="CNG">🌿 CNG</option>
+                        <option value="Electric">⚡ Electric</option>
+                    </select>
+                </div>
+                <!-- Transmission -->
+                <div>
+                    <label for="fTransmission" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Transmission <span class="text-brand">*</span>
+                    </label>
+                    <select id="fTransmission" name="transmission" required
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors">
+                        <option value="Manual">Manual</option>
+                        <option value="Automatic">Automatic</option>
+                    </select>
+                </div>
+                <!-- Seats -->
+                <div>
+                    <label for="fSeats" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Seating Capacity
+                    </label>
+                    <input type="number" id="fSeats" name="seats" value="5" min="2" max="9"
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+                <!-- Mileage -->
+                <div>
+                    <label for="fMileage" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Mileage (km) <span class="text-brand">*</span>
+                    </label>
+                    <input type="number" id="fMileage" name="mileage" placeholder="e.g. 18500" min="0" required
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section: Pricing ──────────────────────────────────────── -->
+        <div class="mb-6 pt-6 border-t border-zinc-100 dark:border-zinc-800/60">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-5 bg-brand"></div>
+                <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Pricing</h3>
+            </div>
+            <div>
+                <label for="fPrice" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                    Price (₹) <span class="text-brand">*</span>
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm">₹</span>
+                    <input type="number" id="fPrice" name="price" placeholder="2150000" min="1" required
+                        class="w-full pl-7 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+                <p id="pricePreview" class="mt-1 font-mono text-[10px] text-zinc-400"></p>
+            </div>
+        </div>
+
+        <!-- ── Section: Indian Market Details ───────────────────────── -->
+        <div class="mb-6 pt-6 border-t border-zinc-100 dark:border-zinc-800/60">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-5 bg-brand"></div>
+                <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Indian Market Details</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Ownership -->
+                <div>
+                    <label for="fOwnership" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Ownership
+                    </label>
+                    <select id="fOwnership" name="ownership"
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors">
+                        <option value="1st Owner">1st Owner</option>
+                        <option value="2nd Owner">2nd Owner</option>
+                        <option value="3rd Owner">3rd Owner</option>
+                        <option value="4th Owner+">4th Owner+</option>
+                    </select>
+                </div>
+                <!-- RTO -->
+                <div>
+                    <label for="fRTO" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        RTO Registration
+                    </label>
+                    <input type="text" id="fRTO" name="rto" placeholder="e.g. MH-02"
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+                <!-- Exterior Color -->
+                <div>
+                    <label for="fExtColor" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Exterior Color
+                    </label>
+                    <input type="text" id="fExtColor" name="extColor" placeholder="e.g. Napoli Black"
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+                <!-- Interior Color -->
+                <div>
+                    <label for="fIntColor" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                        Interior Color
+                    </label>
+                    <input type="text" id="fIntColor" name="intColor" placeholder="e.g. Rich Tan"
+                        class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section: Description ──────────────────────────────────── -->
+        <div class="mb-6 pt-6 border-t border-zinc-100 dark:border-zinc-800/60">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-5 bg-brand"></div>
+                <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Description</h3>
+            </div>
+            <textarea id="fDescription" name="description" rows="4"
+                placeholder="Describe condition, service history, special features, accident history…"
+                class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm resize-none rounded-none transition-colors"></textarea>
+        </div>
+
+        <!-- ── Section: Images ───────────────────────────────────────── -->
+        <div class="mb-6 pt-6 border-t border-zinc-100 dark:border-zinc-800/60">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-1 h-5 bg-brand"></div>
+                    <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Car Images</h3>
+                </div>
+                <span id="imgCounter" class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">0 / 10 Max</span>
+            </div>
+
+            <!-- Existing images (shown in edit mode) -->
+            <div id="existingImgsSection" class="hidden mb-4">
+                <p class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-2">Current Images</p>
+                <div id="existingImgsGrid" class="grid grid-cols-5 gap-2"></div>
+            </div>
+
+            <!-- Upload area -->
+            <input type="file" id="fImages" name="images" multiple accept="image/jpeg,image/png,image/webp,image/avif" class="hidden"
+                onchange="handleImagePick(this)"/>
+            <button type="button" onclick="document.getElementById('fImages').click()"
+                class="w-full py-8 border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-brand hover:bg-brand/5 transition-colors text-center group mb-3">
+                <svg class="w-8 h-8 mx-auto mb-2 text-zinc-300 dark:text-zinc-600 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest group-hover:text-brand transition-colors">
+                    Click to upload — JPG, PNG, WebP up to 10MB each
+                </span>
+            </button>
+            <div id="newImgsGrid" class="grid grid-cols-5 gap-2"></div>
+        </div>
+
+        <!-- ── Section: Visibility ───────────────────────────────────── -->
+        <div class="mb-6 pt-6 border-t border-zinc-100 dark:border-zinc-800/60">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-1 h-5 bg-brand"></div>
+                <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Visibility</h3>
+            </div>
+            <label for="fFeatured" class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" id="fFeatured" name="isFeatured"
+                    class="w-5 h-5 rounded-none bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-brand focus:ring-brand focus:ring-offset-0 focus:ring-1"/>
+                <div>
+                    <span class="font-bold text-xs text-zinc-950 dark:text-white uppercase tracking-widest group-hover:text-brand transition-colors">
+                        Feature on Homepage
+                    </span>
+                    <p class="font-mono text-[10px] text-zinc-400 mt-0.5">Car will appear in the featured section</p>
+                </div>
+            </label>
+        </div>
+
+        <!-- ── Form Submit / Cancel ──────────────────────────────────── -->
+        <div class="sticky bottom-0 pt-4 mt-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0a0a0a] flex gap-3 pb-6">
+            <button type="submit" id="submitBtn"
+                class="flex-1 py-3.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold uppercase tracking-widest text-xs hover:bg-brand dark:hover:bg-brand dark:hover:text-white transition-colors flex items-center justify-center gap-2">
+                <svg id="submitSpinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                <span id="submitBtnText">Save Car Listing</span>
+            </button>
+            <button type="button" onclick="closePanel()"
+                class="px-6 py-3.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     DELETE CONFIRM MODAL
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="deleteModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-zinc-950/90 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 p-8 max-w-sm w-full shadow-2xl relative">
+        <div class="absolute top-0 left-0 w-full h-1 bg-red-600"></div>
+        <div class="text-center">
+            <div class="w-14 h-14 border border-red-600 flex items-center justify-center mx-auto mb-5 bg-red-600/5">
+                <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </div>
+            <h3 class="font-display font-black text-xl text-zinc-950 dark:text-white uppercase tracking-tighter mb-3">
+                Confirm Deletion
+            </h3>
+            <p class="text-zinc-500 font-mono text-[11px] uppercase tracking-widest mb-2 leading-relaxed">
+                Permanently delete:
+            </p>
+            <p id="deleteCarName" class="font-bold text-zinc-950 dark:text-white font-mono text-sm mb-6"></p>
+            <p class="text-zinc-400 font-mono text-[10px] mb-6 leading-relaxed">
+                All Cloudinary images will also be permanently removed. This cannot be undone.
+            </p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()"
+                    class="flex-1 py-3 border border-zinc-200 dark:border-zinc-800 text-zinc-500 font-bold uppercase tracking-widest text-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBtn"
+                    class="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+                    <svg id="deleteSpinner" class="w-3 h-3 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    Delete Forever
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TOAST CONTAINER
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="toastContainer" class="fixed bottom-14 right-4 sm:right-6 z-[70] flex flex-col-reverse gap-2 pointer-events-none max-w-xs w-full"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════════════════════════ -->
+<script src="/js/carAdmin.js"></script>
+<script>
+    // ── Theme toggle ──────────────────────────────────────────────────────────
+    var _html  = document.documentElement;
+    var _moon  = document.getElementById('iconMoon');
+    var _sun   = document.getElementById('iconSun');
+
+    function applyTheme(dark) {
+        _html.classList.toggle('dark', dark);
+        if (_moon) _moon.classList.toggle('hidden', dark);
+        if (_sun)  _sun.classList.toggle('hidden', !dark);
+    }
+
+    var _saved = localStorage.getItem('av-admin-theme');
+    var _sys   = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(_saved === 'dark' || (!_saved && _sys));
+
+    document.getElementById('themeToggle').addEventListener('click', function () {
+        var isDark = !_html.classList.contains('dark');
+        localStorage.setItem('av-admin-theme', isDark ? 'dark' : 'light');
+        applyTheme(isDark);
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+        if (!localStorage.getItem('av-admin-theme')) applyTheme(e.matches);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "autovault-india",
+  "version": "1.0.0",
+  "description": "AutoVault India — Certified Pre-Owned Car Dealership (Node.js / Express / MongoDB / EJS / Cloudinary)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "car-dealership",
+    "nodejs",
+    "express",
+    "mongodb",
+    "ejs",
+    "cloudinary"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cloudinary": "^1.41.3",
+    "dotenv": "^18.0.3",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "mongoose": "^9.10.2",
+    "multer": "^2.4.0",
+    "multer-storage-cloudinary": "^4.0.0"
+  }
+}

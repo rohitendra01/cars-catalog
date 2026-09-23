@@ -1,0 +1,13 @@
+<%- include('partials/header', { pageTitle: '404 Not Found | AutoVault India' }) %>
+<main>
+<div class="container" style="text-align:center; padding: 8rem 1rem;">
+    <div style="font-size:6rem; margin-bottom:1rem;">🚗</div>
+    <h1 style="font-size:4rem; color: var(--accent);">404</h1>
+    <h2 style="margin-bottom:1rem;">Page Not Found</h2>
+    <p style="color:var(--text-secondary); margin-bottom:2rem;">
+        <%= typeof message !== 'undefined' ? message : "The page you're looking for doesn't exist." %>
+    </p>
+    <a href="/" class="btn-primary" id="go-home-btn">← Back to Home</a>
+</div>
+</main>
+<%- include('partials/footer') %>

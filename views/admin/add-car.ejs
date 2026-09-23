@@ -1,0 +1,200 @@
+<%- include('../partials/header', { pageTitle: 'Add New Car | AutoVault Admin' }) %>
+
+<main>
+<div class="container admin-container" id="admin-section">
+    <div class="admin-card">
+        <div class="admin-header">
+            <h1>🚗 Add New Car Listing</h1>
+            <p class="admin-subtitle">Fill in all details. Images will be optimized and uploaded to Cloudinary automatically.</p>
+        </div>
+
+        <!-- Flash Messages -->
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="flash flash-error" id="flash-error" role="alert">⚠️ <%= error %></div>
+        <% } %>
+        <% if (typeof success !== 'undefined' && success) { %>
+            <div class="flash flash-success" id="flash-success" role="alert">✅ <%= success %></div>
+        <% } %>
+
+        <form
+            action="/admin/add"
+            method="POST"
+            enctype="multipart/form-data"
+            id="add-car-form"
+            class="admin-form"
+            novalidate
+        >
+
+            <!-- ── Section: Identity ─────────────────────── -->
+            <fieldset class="form-section">
+                <legend>Vehicle Identity</legend>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="make">Make / Brand <span class="required">*</span></label>
+                        <input type="text" id="make" name="make" placeholder="e.g. Mahindra" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="model">Model <span class="required">*</span></label>
+                        <input type="text" id="model" name="model" placeholder="e.g. Scorpio-N Z8 L 4WD" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Year <span class="required">*</span></label>
+                        <input type="number" id="year" name="year" placeholder="2023" min="1990" max="2030" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bodyType">Body Style</label>
+                        <select id="bodyType" name="bodyType">
+                            <option value="SUV">SUV</option>
+                            <option value="Hatchback">Hatchback</option>
+                            <option value="Sedan" selected>Sedan</option>
+                            <option value="EV">Electric (EV)</option>
+                            <option value="MUV">MUV</option>
+                            <option value="Coupe">Coupe</option>
+                            <option value="Convertible">Convertible</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ── Section: Pricing & Specs ──────────────── -->
+            <fieldset class="form-section">
+                <legend>Pricing &amp; Specifications</legend>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="price">Price (₹) <span class="required">*</span></label>
+                        <input type="number" id="price" name="price" placeholder="e.g. 2150000" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mileage">Mileage (km) <span class="required">*</span></label>
+                        <input type="number" id="mileage" name="mileage" placeholder="e.g. 18500" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fuelType">Fuel Type <span class="required">*</span></label>
+                        <select id="fuelType" name="fuelType" required>
+                            <option value="Petrol">Petrol</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="CNG">CNG</option>
+                            <option value="Electric">Electric</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transmission">Transmission <span class="required">*</span></label>
+                        <select id="transmission" name="transmission" required>
+                            <option value="Manual">Manual</option>
+                            <option value="Automatic">Automatic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="seats">Seats</label>
+                        <input type="number" id="seats" name="seats" value="5" min="2" max="9">
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ── Section: Indian Market Details ───────── -->
+            <fieldset class="form-section">
+                <legend>Indian Market Details</legend>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="ownership">Ownership</label>
+                        <select id="ownership" name="ownership">
+                            <option value="1st Owner">1st Owner</option>
+                            <option value="2nd Owner">2nd Owner</option>
+                            <option value="3rd Owner">3rd Owner</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rto">RTO Registration</label>
+                        <input type="text" id="rto" name="rto" placeholder="e.g. MH-02 (Mumbai)">
+                    </div>
+                    <div class="form-group">
+                        <label for="extColor">Exterior Color</label>
+                        <input type="text" id="extColor" name="extColor" placeholder="e.g. Napoli Black">
+                    </div>
+                    <div class="form-group">
+                        <label for="intColor">Interior Color</label>
+                        <input type="text" id="intColor" name="intColor" placeholder="e.g. Rich Tan & Coffee Black">
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ── Section: Description ──────────────────── -->
+            <fieldset class="form-section">
+                <legend>Description (Optional)</legend>
+                <div class="form-group">
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="4"
+                        placeholder="Describe the car condition, special features, service history, accident history, etc."
+                    ></textarea>
+                </div>
+            </fieldset>
+
+            <!-- ── Section: Images ───────────────────────── -->
+            <fieldset class="form-section">
+                <legend>Car Images</legend>
+                <div class="form-group">
+                    <label for="images">Upload Images (JPG, PNG, WebP — max 10)</label>
+                    <div class="file-upload-area" id="file-upload-area">
+                        <input
+                            type="file"
+                            id="images"
+                            name="images"
+                            multiple
+                            accept="image/jpeg,image/png,image/webp,image/avif"
+                            onchange="previewImages(event)"
+                            class="file-input"
+                        >
+                        <label for="images" class="file-upload-label">
+                            <span class="upload-icon">📸</span>
+                            <span>Click to upload or drag &amp; drop</span>
+                            <span class="upload-sub">PNG, JPG, WebP up to 10MB each</span>
+                        </label>
+                    </div>
+                    <div class="image-preview-grid" id="image-preview-grid"></div>
+                </div>
+            </fieldset>
+
+            <!-- ── Section: Featured Toggle ─────────────── -->
+            <fieldset class="form-section">
+                <legend>Visibility</legend>
+                <label class="toggle-label" for="isFeatured">
+                    <input type="checkbox" id="isFeatured" name="isFeatured" class="toggle-input">
+                    <span class="toggle-switch"></span>
+                    Feature this car on the homepage
+                </label>
+            </fieldset>
+
+            <!-- Submit -->
+            <div class="form-actions">
+                <a href="/inventory" class="btn-outline" id="cancel-add-btn">Cancel</a>
+                <button type="submit" class="btn-primary btn-large" id="submit-add-btn">
+                    🚀 Publish Car Listing
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+</main>
+
+<script>
+function previewImages(event) {
+    const grid = document.getElementById('image-preview-grid');
+    grid.innerHTML = '';
+    const files = Array.from(event.target.files).slice(0, 10);
+    files.forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const div = document.createElement('div');
+            div.className = 'preview-thumb';
+            div.innerHTML = `<img src="${e.target.result}" alt="Preview ${i+1}"><span>${file.name}</span>`;
+            grid.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+</script>
+
+<%- include('../partials/footer') %>

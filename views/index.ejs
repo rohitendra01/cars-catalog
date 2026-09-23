@@ -1,0 +1,172 @@
+<%- include('partials/header', { pageTitle: 'AutoVault India | Certified Pre-Owned Cars' }) %>
+
+<main id="app-container">
+
+    <!-- ═══════════════════════ HERO SECTION ═══════════════════════ -->
+    <section class="hero" id="hero-section">
+        <video id="hero-video" class="hero-video" autoplay loop muted playsinline
+            poster="https://images.unsplash.com/photo-1503376712614-7221469e0099?w=1600&q=80">
+            <source src="/driving_c.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+            <h1>Drive Your Dream Car.</h1>
+            <p>Verified pre-owned cars across India. 200-Point Inspection &amp; 1-Year Warranty Included.</p>
+
+            <!-- Quick Finder — links to /inventory with query params -->
+            <form class="quick-finder" action="/inventory" method="GET" id="quick-finder-form">
+                <select name="make" id="qf-make">
+                    <option value="">Any Make</option>
+                    <option value="Mahindra">Mahindra</option>
+                    <option value="Tata">Tata</option>
+                    <option value="Maruti Suzuki">Maruti Suzuki</option>
+                    <option value="Hyundai">Hyundai</option>
+                    <option value="Honda">Honda</option>
+                    <option value="Toyota">Toyota</option>
+                    <option value="Kia">Kia</option>
+                    <option value="MG">MG</option>
+                </select>
+                <select name="bodyType" id="qf-body">
+                    <option value="">Any Body Style</option>
+                    <option value="SUV">SUV</option>
+                    <option value="Hatchback">Hatchback</option>
+                    <option value="Sedan">Sedan</option>
+                    <option value="EV">Electric (EV)</option>
+                    <option value="MUV">MUV</option>
+                </select>
+                <select name="maxPrice" id="qf-price">
+                    <option value="">Any Budget</option>
+                    <option value="800000">Under ₹8 Lakh</option>
+                    <option value="1500000">Under ₹15 Lakh</option>
+                    <option value="2500000">Under ₹25 Lakh</option>
+                    <option value="3500000">Under ₹35 Lakh</option>
+                </select>
+                <button type="submit" class="btn-primary" id="qf-submit">Find Cars</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════ TRUST STRIP ═══════════════════════ -->
+    <div class="container trust-strip">
+        <div class="trust-item">
+            <span class="trust-icon">🔍</span>
+            <div>
+                <strong>200-Point Inspection</strong>
+                <p>Verified by certified engineers</p>
+            </div>
+        </div>
+        <div class="trust-item">
+            <span class="trust-icon">🛡️</span>
+            <div>
+                <strong>1-Year Warranty</strong>
+                <p>Engine &amp; gearbox coverage</p>
+            </div>
+        </div>
+        <div class="trust-item">
+            <span class="trust-icon">📄</span>
+            <div>
+                <strong>Free RC Transfer</strong>
+                <p>100% RTO documentation done</p>
+            </div>
+        </div>
+        <div class="trust-item">
+            <span class="trust-icon">💰</span>
+            <div>
+                <strong>7-Day Money Back</strong>
+                <p>Full money-back assurance</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ BROWSE BY CATEGORY ════════════════ -->
+    <div class="container section">
+        <h2>Browse by Category</h2>
+        <div class="categories-grid">
+            <a href="/inventory?bodyType=SUV" class="category-card" id="cat-suv">
+                <span class="category-icon">🚙</span>
+                <h3>SUV</h3>
+            </a>
+            <a href="/inventory?bodyType=Hatchback" class="category-card" id="cat-hatchback">
+                <span class="category-icon">🚗</span>
+                <h3>Hatchback</h3>
+            </a>
+            <a href="/inventory?bodyType=Sedan" class="category-card" id="cat-sedan">
+                <span class="category-icon">🚘</span>
+                <h3>Sedan</h3>
+            </a>
+            <a href="/inventory?bodyType=EV" class="category-card" id="cat-ev">
+                <span class="category-icon">⚡</span>
+                <h3>Electric (EV)</h3>
+            </a>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════ FEATURED CARS ═════════════════════ -->
+    <div class="container section" id="featured-section">
+        <h2>Featured Indian Cars</h2>
+        <% if (featuredCars && featuredCars.length > 0) { %>
+            <div class="car-grid" id="featured-grid">
+                <% featuredCars.forEach(car => { %>
+                    <%
+                        const imgSrc = (car.images && car.images.length > 0)
+                            ? car.images[0].url
+                            : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+                    %>
+                    <article class="car-card" id="car-card-<%= car._id %>">
+                        <a href="/inventory/<%= car._id %>" class="card-link">
+                            <div class="car-img-wrapper">
+                                <img src="<%= imgSrc %>" alt="<%= car.year %> <%= car.make %> <%= car.model %>" loading="lazy">
+                                <div class="cpo-tag">✓ AutoVault Certified</div>
+                            </div>
+                            <div class="car-details">
+                                <div class="car-title"><%= car.year %> <%= car.make %> <%= car.model %></div>
+                                <div class="car-specs">
+                                    <%= car.mileage.toLocaleString('en-IN') %> km &nbsp;|&nbsp;
+                                    <%= car.fuelType %> &nbsp;|&nbsp;
+                                    <%= car.transmission %>
+                                </div>
+                                <% if (car.rto) { %>
+                                    <div class="car-location">📍 <%= car.rto %><% if (car.ownership) { %> • <%= car.ownership %><% } %></div>
+                                <% } %>
+                                <div class="car-price"><%= formatPrice(car.price) %></div>
+                            </div>
+                        </a>
+                        <div class="card-actions">
+                            <button
+                                class="btn-save"
+                                id="save-btn-<%= car._id %>"
+                                data-car-id="<%= car._id %>"
+                                onclick="toggleShortlist('<%= car._id %>', this)"
+                                aria-label="Save to shortlist"
+                            >
+                                🤍 Save
+                            </button>
+                        </div>
+                    </article>
+                <% }) %>
+            </div>
+            <div class="section-cta">
+                <a href="/inventory" class="btn-outline" id="view-all-btn">View All Cars →</a>
+            </div>
+        <% } else { %>
+            <div class="empty-state">
+                <h3>No featured cars yet</h3>
+                <p>Add your first car from the admin panel.</p>
+                <a href="/admin/add" class="btn-primary">+ Add Car</a>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- ═══════════════════════ CTA BANNER ════════════════════════ -->
+    <div class="cta-banner container" id="cta-section">
+        <div class="cta-content">
+            <h2>Looking to Sell or Upgrade Your Car?</h2>
+            <p>Get an instant online valuation and same-day doorstep payment anywhere in India.</p>
+            <a href="tel:18002008285" class="btn-primary" id="cta-valuate-btn">📞 Get Instant Valuation</a>
+        </div>
+    </div>
+
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,51 @@
+    <!-- Global Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <!-- Brand Info -->
+            <div class="footer-brand">
+                <h3 class="logo">Auto<span>Vault</span> India</h3>
+                <p>Level 4, Cyber City, DLF Phase 2,<br>Gurugram, Haryana - 122002</p>
+                <p>Mon–Sun: 9:30 AM – 8:30 PM IST</p>
+                <p>Toll Free: <a href="tel:18002008285">1800-200-VAULT</a></p>
+            </div>
+
+            <!-- Trust Badges -->
+            <div>
+                <h4>Why Choose AutoVault?</h4>
+                <ul class="trust-badges">
+                    <li>✓ 200-Point Vehicle Quality Check</li>
+                    <li>✓ Free RTO Transfer &amp; Documentation</li>
+                    <li>✓ 7-Day Hassle-Free Return Policy</li>
+                    <li>✓ Pan-India Roadside Assistance</li>
+                    <li>✓ 1-Year Engine &amp; Gearbox Warranty</li>
+                </ul>
+            </div>
+
+            <!-- Subscribe -->
+            <div>
+                <h4>Stay Updated</h4>
+                <p>Get notified when verified pre-owned cars get listed.</p>
+                <form class="subscribe-form" onsubmit="handleSubscribe(event)" id="footer-subscribe-form">
+                    <input type="email" name="email" id="subscribe-email" placeholder="Enter your email" required>
+                    <button type="submit" class="btn-primary">Subscribe</button>
+                </form>
+                <p class="subscribe-msg" id="subscribe-msg"></p>
+            </div>
+        </div>
+
+        <div class="footer-bottom container">
+            <p>© <%= new Date().getFullYear() %> AutoVault India Pvt. Ltd. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Sitemap</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

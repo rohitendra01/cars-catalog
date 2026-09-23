@@ -1,0 +1,182 @@
+<%- include('partials/header', { pageTitle: 'Inventory | AutoVault India' }) %>
+
+<main>
+<div class="container inventory-layout" id="inventory-section">
+
+    <!-- ═══════════════ SIDEBAR FILTERS ═══════════════ -->
+    <aside class="sidebar-filters" id="sidebar-filters">
+        <div class="filter-header">
+            <h3>Filters</h3>
+            <a href="/inventory" class="btn-text" id="reset-filters-btn">Reset All</a>
+        </div>
+
+        <form id="filter-form" action="/inventory" method="GET">
+            <!-- Search -->
+            <div class="filter-group">
+                <label for="filter-search">Search Keyword</label>
+                <input
+                    type="text"
+                    id="filter-search"
+                    name="search"
+                    placeholder="Search by name, model..."
+                    value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>"
+                >
+            </div>
+
+            <!-- Make -->
+            <div class="filter-group">
+                <label for="filter-make">Brand / Make</label>
+                <select id="filter-make" name="make">
+                    <option value="">All Brands</option>
+                    <% ['Mahindra', 'Tata', 'Maruti Suzuki', 'Hyundai', 'Honda', 'Toyota', 'Kia', 'MG'].forEach(brand => { %>
+                        <option value="<%= brand %>"
+                            <%= (typeof query !== 'undefined' && query.make === brand) ? 'selected' : '' %>>
+                            <%= brand %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <!-- Body Style -->
+            <div class="filter-group">
+                <label for="filter-body">Body Style</label>
+                <select id="filter-body" name="bodyType">
+                    <option value="">All Body Styles</option>
+                    <% ['SUV', 'Hatchback', 'Sedan', 'EV', 'MUV'].forEach(type => { %>
+                        <option value="<%= type %>"
+                            <%= (typeof query !== 'undefined' && query.bodyType === type) ? 'selected' : '' %>>
+                            <%= type === 'EV' ? 'Electric (EV)' : type %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <!-- Fuel Type -->
+            <div class="filter-group">
+                <label for="filter-fuel">Fuel Type</label>
+                <select id="filter-fuel" name="fuelType">
+                    <option value="">All Fuel Types</option>
+                    <% ['Petrol', 'Diesel', 'CNG', 'Electric'].forEach(fuel => { %>
+                        <option value="<%= fuel %>"
+                            <%= (typeof query !== 'undefined' && query.fuelType === fuel) ? 'selected' : '' %>>
+                            <%= fuel %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <!-- Transmission -->
+            <div class="filter-group">
+                <label for="filter-transmission">Transmission</label>
+                <select id="filter-transmission" name="transmission">
+                    <option value="">All</option>
+                    <option value="Manual"    <%= (typeof query !== 'undefined' && query.transmission === 'Manual')    ? 'selected' : '' %>>Manual</option>
+                    <option value="Automatic" <%= (typeof query !== 'undefined' && query.transmission === 'Automatic') ? 'selected' : '' %>>Automatic</option>
+                </select>
+            </div>
+
+            <!-- Max Price Slider -->
+            <div class="filter-group">
+                <label for="filter-price">
+                    Max Budget: <span id="price-val">
+                        <%
+                            const maxPriceVal = (typeof query !== 'undefined' && query.maxPrice)
+                                ? Number(query.maxPrice)
+                                : 3500000;
+                        %>
+                        ₹<%= maxPriceVal.toLocaleString('en-IN') %>
+                    </span>
+                </label>
+                <input
+                    type="range"
+                    id="filter-price"
+                    name="maxPrice"
+                    min="500000"
+                    max="3500000"
+                    step="50000"
+                    value="<%= maxPriceVal %>"
+                    oninput="updatePriceLabel(this.value)"
+                >
+            </div>
+
+            <!-- Sort (hidden — controlled by sort-select above) -->
+            <input type="hidden" name="sort" id="hidden-sort" value="<%= (typeof query !== 'undefined' && query.sort) ? query.sort : 'newest' %>">
+
+            <button type="submit" class="btn-primary w-100" id="apply-filters-btn">Apply Filters</button>
+        </form>
+    </aside>
+
+    <!-- ═══════════════ INVENTORY MAIN ═══════════════ -->
+    <div class="inventory-main">
+        <!-- Sort Bar -->
+        <div class="sort-bar">
+            <span>Showing <strong id="result-count"><%= cars.length %></strong> available vehicles</span>
+            <div class="sort-actions">
+                <label for="sort-select">Sort by:</label>
+                <select id="sort-select" onchange="applySort(this.value)">
+                    <option value="newest"    <%= (typeof query !== 'undefined' && query.sort === 'newest')    ? 'selected' : '' %>>Newest First</option>
+                    <option value="price-asc" <%= (typeof query !== 'undefined' && query.sort === 'price-asc') ? 'selected' : '' %>>Price: Low to High</option>
+                    <option value="price-desc"<%= (typeof query !== 'undefined' && query.sort === 'price-desc')? 'selected' : '' %>>Price: High to Low</option>
+                    <option value="km-asc"   <%= (typeof query !== 'undefined' && query.sort === 'km-asc')    ? 'selected' : '' %>>Kilometers: Lowest</option>
+                    <option value="year-desc" <%= (typeof query !== 'undefined' && query.sort === 'year-desc') ? 'selected' : '' %>>Year: Newest</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Car Grid -->
+        <% if (cars && cars.length > 0) { %>
+            <div class="car-grid" id="inventory-grid">
+                <% cars.forEach(car => { %>
+                    <%
+                        const imgSrc = (car.images && car.images.length > 0)
+                            ? car.images[0].url
+                            : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+                    %>
+                    <article class="car-card" id="car-card-<%= car._id %>">
+                        <a href="/inventory/<%= car._id %>" class="card-link">
+                            <div class="car-img-wrapper">
+                                <img src="<%= imgSrc %>" alt="<%= car.year %> <%= car.make %> <%= car.model %>" loading="lazy">
+                                <div class="cpo-tag">✓ AutoVault Certified</div>
+                                <% if (car.fuelType === 'Electric') { %>
+                                    <div class="ev-badge">⚡ EV</div>
+                                <% } %>
+                            </div>
+                            <div class="car-details">
+                                <div class="car-title"><%= car.year %> <%= car.make %> <%= car.model %></div>
+                                <div class="car-specs">
+                                    <%= car.mileage.toLocaleString('en-IN') %> km &nbsp;|&nbsp;
+                                    <%= car.fuelType %> &nbsp;|&nbsp;
+                                    <%= car.transmission %>
+                                </div>
+                                <% if (car.rto) { %>
+                                    <div class="car-location">📍 <%= car.rto %><% if (car.ownership) { %> • <%= car.ownership %><% } %></div>
+                                <% } %>
+                                <div class="car-price"><%= formatPrice(car.price) %></div>
+                            </div>
+                        </a>
+                        <div class="card-actions">
+                            <a href="/inventory/<%= car._id %>" class="btn-details" id="details-btn-<%= car._id %>">View Details</a>
+                            <button
+                                class="btn-save"
+                                id="save-btn-<%= car._id %>"
+                                data-car-id="<%= car._id %>"
+                                onclick="toggleShortlist('<%= car._id %>', this)"
+                                aria-label="Save to shortlist"
+                            >🤍 Save</button>
+                        </div>
+                    </article>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="empty-state" id="empty-inventory">
+                <h3>No cars match your filters</h3>
+                <p>Try widening your budget, removing brand criteria, or resetting all filters.</p>
+                <a href="/inventory" class="btn-primary" id="clear-filters-btn">Clear Filters</a>
+            </div>
+        <% } %>
+    </div>
+
+</div>
+</main>
+
+<%- include('partials/footer') %>
