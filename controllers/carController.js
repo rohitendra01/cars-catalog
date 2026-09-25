@@ -11,6 +11,11 @@ function formatPrice(price) {
     }).format(price);
 }
 
+function parseEquipment(value) {
+    const values = Array.isArray(value) ? value : (value ? [value] : []);
+    return [...new Set(values.flatMap(item => String(item).split(/[,;\n]+/)).map(item => item.trim()).filter(Boolean))];
+}
+
 // ─── Public Route Handlers ─────────────────────────────────────────────────────
 
 exports.getHomePage = async (req, res) => {
@@ -48,8 +53,16 @@ exports.getInventory = async (req, res) => {
 
         if (isShortlist) filter._id = { $in: shortlistIds };
 
-        if (search && search.trim()) {
-            filter.$text = { $search: search.trim() };
+        const searchTerm = search ? search.trim() : '';
+        if (searchTerm.length >= 3) {
+            const regex = new RegExp(searchTerm, 'i');
+            filter.$or = [
+                { make: regex },
+                { model: regex },
+                { variant: regex },
+                { bodyType: regex },
+                { fuelType: regex }
+            ];
         }
         if (make) filter.make = new RegExp(`^${make.trim()}`, 'i');
         if (bodyType) filter.bodyType = bodyType;
@@ -137,13 +150,34 @@ exports.getCarDetail = async (req, res) => {
             isAdmin: Boolean(req.session && req.session.isAdmin)
         });
 
+        const similarityFilters = [];
+        if (car.make) similarityFilters.push({ make: car.make });
+        if (car.bodyType) similarityFilters.push({ bodyType: car.bodyType });
+        const similarBaseFilter = {
+            _id: { $ne: car._id },
+            status: 'Available',
+            ...(similarityFilters.length ? { $or: similarityFilters } : {})
+        };
+        let similarCars = await Car.find(similarBaseFilter)
+            .sort({ isFeatured: -1, createdAt: -1 })
+            .limit(4)
+            .lean();
+        if (!similarCars.length) {
+            similarCars = await Car.find({ _id: { $ne: car._id }, status: 'Available' })
+                .sort({ isFeatured: -1, createdAt: -1 })
+                .limit(4)
+                .lean();
+        }
+
         car.primaryImage = (car.images && car.images.length > 0) ? car.images[0].url : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
         car.formattedPrice = formatPrice(car.price);
         res.render('car-detail', {
             car,
+            similarCars,
             formatPrice,
             isAdmin: Boolean(req.session && req.session.isAdmin),
             canonicalUrl: `/inventory/${car.slug || car._id}`,
+            absoluteCarUrl: `${req.protocol}://${req.get('host')}/inventory/${car.slug || car._id}`,
             ogImage: car.primaryImage
         });
     } catch (err) {
@@ -168,6 +202,7 @@ exports.postAddCar = async (req, res) => {
             make, model, variant, year, price, mileage,
             fuelType, transmission, seats, bodyType,
             extColor, intColor, ownership, rtoLocation, description,
+            manufacturedDate, referenceId, engine, registrationState, insuranceType, equipment,
             status, isFeatured, featSunroof, featAlloyWheels, featTouchscreen, featReverseCamera
         } = req.body;
 
@@ -179,10 +214,14 @@ exports.postAddCar = async (req, res) => {
         const newCar = new Car({
             make: make.trim(), model: model.trim(), variant: variant ? variant.trim() : '',
             year: Number(year), price: Number(price), mileage: Number(mileage),
+            manufacturedDate: manufacturedDate ? new Date(manufacturedDate) : undefined,
+            referenceId: referenceId ? referenceId.trim() : undefined,
             fuelType, transmission, seats: Number(seats) || 5, bodyType: bodyType || 'Sedan',
+            engine: engine || '', registrationState: registrationState || '', insuranceType: insuranceType || '',
             extColor: extColor || '', intColor: intColor || '',
             ownership: ownership || '1st Owner', rtoLocation: rtoLocation || '',
             description: description || '',
+            equipment: parseEquipment(equipment),
             status: status || 'Available',
             isFeatured: isFeatured === 'on',
             features: {
@@ -214,26 +253,113 @@ exports.deleteCar = async (req, res) => {
 };
 
 // ─── SPA Dashboard API Handlers ───────────────────────────────────────────
-const { ADMIN_USER, ADMIN_PASS } = require('../middleware/auth');
+const {
+    validateCredentials,
+    createAdminSessionToken,
+    activateAdminSession,
+    isCurrentAdminSession,
+    revokeAdminSession,
+    getLoginRateLimit,
+    recordFailedLogin,
+    clearFailedLoginAttempts,
+    destroyStaleSession
+} = require('../middleware/auth');
 
-exports.getAdminLogin = (req, res) => {
-    if (req.session && req.session.isAdmin) {
-        return res.redirect('/admin');
+exports.getAdminLogin = async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        if (await isCurrentAdminSession(req)) {
+            return res.redirect('/admin');
+        }
+    } catch (err) {
+        console.error('Admin session verification failed:', err.message);
+        return res.status(503).send('Admin authentication is temporarily unavailable.');
     }
+
+    if (req.session && req.session.isAdmin) {
+        return destroyStaleSession(req, res, () => res.render('admin/login', { error: null }));
+    }
+
     res.render('admin/login', { error: null });
 };
 
-exports.postAdminLogin = (req, res) => {
+exports.postAdminLogin = async (req, res) => {
     const { username, password } = req.body;
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
-        req.session.isAdmin = true;
-        return res.redirect('/admin');
+    res.set('Cache-Control', 'no-store');
+
+    const rateLimit = getLoginRateLimit(req);
+    if (rateLimit.limited) {
+        res.set('Retry-After', String(rateLimit.retryAfterSeconds));
+        return res.status(429).render('admin/login', {
+            error: 'Too many unsuccessful sign-in attempts. Please try again later.'
+        });
     }
-    res.render('admin/login', { error: 'Invalid credentials.' });
+
+    if (!validateCredentials(username, password)) {
+        recordFailedLogin(req);
+        return res.render('admin/login', { error: 'Invalid credentials.' });
+    }
+
+    try {
+        clearFailedLoginAttempts(req);
+
+        // Rotate the session id and privilege token before granting admin access.
+        await new Promise((resolve, reject) => {
+            req.session.regenerate(err => err ? reject(err) : resolve());
+        });
+        const adminSessionToken = createAdminSessionToken();
+        req.session.isAdmin = true;
+        req.session.adminSessionToken = adminSessionToken;
+        req.session.loginAt = Date.now();
+
+        await new Promise((resolve, reject) => {
+            req.session.save(err => err ? reject(err) : resolve());
+        });
+
+        // One atomic MongoDB document update selects the only valid admin session.
+        // Requests from the previous device fail the active-token check immediately.
+        await activateAdminSession(adminSessionToken);
+        return res.redirect('/admin');
+    } catch (err) {
+        console.error('Admin login session setup failed:', err.message);
+        if (!req.session) {
+            return res.status(503).render('admin/login', { error: 'Login failed. Please try again.' });
+        }
+        req.session.destroy(destroyErr => {
+            if (destroyErr) console.error('Failed to clean up login session:', destroyErr.message);
+            res.clearCookie('av.sid', {
+                path: '/',
+                httpOnly: true,
+                sameSite: 'strict',
+                secure: process.env.NODE_ENV === 'production'
+            });
+            return res.status(503).render('admin/login', { error: 'Login failed. Please try again.' });
+        });
+    }
 };
 
-exports.postAdminLogout = (req, res) => {
+exports.postAdminLogout = async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        // A stale device must not revoke a newer device's active session.
+        await revokeAdminSession(req.session && req.session.adminSessionToken);
+    } catch (err) {
+        console.error('Admin session revocation failed:', err.message);
+    }
+
+    if (!req.session) {
+        res.clearCookie('av.sid', { path: '/' });
+        return res.redirect('/');
+    }
+
     req.session.destroy(err => {
+        if (err) console.error('Session destroy error:', err.message);
+        res.clearCookie('av.sid', {
+            path: '/',
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production'
+        });
         res.redirect('/');
     });
 };
@@ -254,8 +380,16 @@ exports.getAdminCars = async (req, res) => {
         if (bodyType) filter.bodyType = bodyType;
         if (status) filter.status = status;
 
-        if (search && search.trim()) {
-            filter.$text = { $search: search.trim() };
+        const searchTerm = search ? search.trim() : '';
+        if (searchTerm.length >= 3) {
+            const regex = new RegExp(searchTerm, 'i');
+            filter.$or = [
+                { make: regex },
+                { model: regex },
+                { variant: regex },
+                { bodyType: regex },
+                { fuelType: regex }
+            ];
         }
 
         let sortOption = { createdAt: -1 };
@@ -299,6 +433,7 @@ exports.postAdminCar = async (req, res) => {
         const {
             make, model, variant, year, price, mileage, fuelType, transmission, seats,
             bodyType, extColor, intColor, ownership, rtoLocation, description, status,
+            manufacturedDate, referenceId, engine, registrationState, insuranceType, equipment,
             isFeatured, featSunroof, featAlloyWheels, featTouchscreen, featReverseCamera
         } = req.body;
 
@@ -311,9 +446,12 @@ exports.postAdminCar = async (req, res) => {
         const newCar = new Car({
             make: make.trim(), model: model.trim(), variant: variant ? variant.trim() : '',
             year: Number(year), price: Number(price), mileage: Number(mileage),
+            manufacturedDate: manufacturedDate ? new Date(manufacturedDate) : undefined,
+            referenceId: referenceId ? referenceId.trim() : undefined,
             fuelType, transmission, seats: Number(seats) || 5, bodyType: bodyType || 'Sedan',
+            engine: engine || '', registrationState: registrationState || '', insuranceType: insuranceType || '',
             extColor: extColor || '', intColor: intColor || '', ownership: ownership || '1st Owner',
-            rtoLocation: rtoLocation || '', description: description || '',
+            rtoLocation: rtoLocation || '', description: description || '', equipment: parseEquipment(equipment),
             status: status || 'Available', isFeatured: isFeatured === 'true',
             features: {
                 sunroof: featSunroof === 'true',
@@ -345,16 +483,20 @@ exports.putAdminCar = async (req, res) => {
         const newImages = (req.files || []).map(file => ({ url: file.path, public_id: file.filename }));
         car.images.push(...newImages);
 
-        const scalarFields = ['make', 'model', 'variant', 'year', 'price', 'mileage', 'fuelType', 'transmission', 'seats', 'bodyType', 'extColor', 'intColor', 'ownership', 'rtoLocation', 'description', 'status'];
+        const scalarFields = ['make', 'model', 'variant', 'year', 'price', 'mileage', 'manufacturedDate', 'referenceId', 'engine', 'fuelType', 'transmission', 'seats', 'bodyType', 'extColor', 'intColor', 'ownership', 'registrationState', 'rtoLocation', 'insuranceType', 'description', 'status'];
         scalarFields.forEach(field => {
             if (req.body[field] !== undefined) {
                 if (['year', 'price', 'mileage', 'seats'].includes(field)) {
                     car[field] = Number(req.body[field]);
+                } else if (field === 'manufacturedDate') {
+                    car[field] = req.body[field] ? new Date(req.body[field]) : null;
                 } else {
                     car[field] = req.body[field];
                 }
             }
         });
+
+        if (req.body.equipment !== undefined) car.equipment = parseEquipment(req.body.equipment);
 
         if (req.body.isFeatured !== undefined) car.isFeatured = req.body.isFeatured === 'true';
 

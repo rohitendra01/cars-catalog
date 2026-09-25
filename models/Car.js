@@ -1,21 +1,22 @@
 const mongoose = require('mongoose');
 
 const imageSchema = new mongoose.Schema({
-    url: { type: String, required: true },
-    public_id: { type: String, required: true }
+    url: { type: String, required: true, trim: true },
+    public_id: { type: String, default: '' }
 }, { _id: false });
 
 const carSchema = new mongoose.Schema({
-    // Core Catalog Identity
     make: { type: String, required: true, trim: true, index: true },
     model: { type: String, required: true, trim: true, index: true },
-    variant: { type: String, trim: true }, // e.g., "Z8 L 4WD"
+    variant: { type: String, trim: true, default: '' },
     year: { type: Number, required: true, index: true },
-    price: { type: Number, required: true, index: true },
-    mileage: { type: Number, required: true, index: true },
+    manufacturedDate: { type: Date, default: null },
+    referenceId: { type: String, trim: true, uppercase: true, unique: true, sparse: true, index: true },
     slug: { type: String, unique: true, sparse: true, trim: true, lowercase: true, index: true },
 
-    // Specifications for Filtering
+    // Keep price as the exact INR amount. priceInLakhs is a presentation virtual.
+    price: { type: Number, required: true, index: true, min: 1 },
+    mileage: { type: Number, required: true, index: true, min: 0 },
     fuelType: {
         type: String,
         required: true,
@@ -28,27 +29,30 @@ const carSchema = new mongoose.Schema({
         enum: ['Manual', 'Automatic'],
         index: true
     },
-    bodyType: {
-        type: String,
-        required: true,
-        enum: ['SUV', 'Hatchback', 'Sedan', 'EV', 'MUV', 'Coupe', 'Convertible'],
-        default: 'Sedan',
-        index: true
-    },
-    seats: { type: Number, required: true, default: 5 },
-
+    seats: { type: Number, required: true, default: 5, min: 2, max: 12 },
     ownership: {
         type: String,
         enum: ['1st Owner', '2nd Owner', '3rd Owner', '4th+ Owner'],
         default: '1st Owner'
     },
-    rtoLocation: { type: String, trim: true, default: '' },
 
+    engine: { type: String, trim: true, default: '' },
+    bodyType: {
+        type: String,
+        enum: ['SUV', 'Hatchback', 'Sedan', 'EV', 'MUV', 'Coupe', 'Convertible'],
+        default: 'Sedan',
+        index: true
+    },
     extColor: { type: String, trim: true, default: '' },
     intColor: { type: String, trim: true, default: '' },
+    registrationState: { type: String, trim: true, default: '' },
+    rtoLocation: { type: String, trim: true, default: '' },
+    insuranceType: { type: String, trim: true, default: '' },
     description: { type: String, default: '' },
 
-    // Feature Highlights (Queryable for catalog UI)
+    // Canonical, free-form equipment list. `features` remains for compatibility
+    // with existing listings and the current admin feature toggles.
+    equipment: [{ type: String, trim: true }],
     features: {
         sunroof: { type: Boolean, default: false },
         alloyWheels: { type: Boolean, default: false },
@@ -56,7 +60,6 @@ const carSchema = new mongoose.Schema({
         reverseCamera: { type: Boolean, default: false }
     },
 
-    // Catalog State Management
     status: {
         type: String,
         enum: ['Available', 'Sold'],
@@ -64,14 +67,11 @@ const carSchema = new mongoose.Schema({
         index: true
     },
     isFeatured: { type: Boolean, default: false },
-
-    // Media
     images: [imageSchema]
 }, {
     timestamps: true
 });
 
-// Text index for unified catalog search bar
 carSchema.index({
     make: 'text',
     model: 'text',
@@ -83,15 +83,28 @@ carSchema.index({
     name: 'CatalogTextIndex'
 });
 
-// Virtual: primary image URL (first image or placeholder)
-carSchema.virtual('primaryImage').get(function () {
-    if (this.images && this.images.length > 0) {
-        return this.images[0].url;
-    }
-    return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+carSchema.virtual('odometer').get(function () {
+    return this.mileage;
+}).set(function (value) {
+    this.mileage = value;
 });
 
-// Virtual: formatted price for Indian Rupees
+carSchema.virtual('imageUrls').get(function () {
+    return (this.images || []).map(image => typeof image === 'string' ? image : image.url).filter(Boolean);
+});
+
+carSchema.virtual('primaryImage').get(function () {
+    if (this.images && this.images.length > 0) {
+        const image = this.images[0];
+        return typeof image === 'string' ? image : image.url;
+    }
+    return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=80';
+});
+
+carSchema.virtual('priceInLakhs').get(function () {
+    return Number(this.price || 0) / 100000;
+});
+
 carSchema.virtual('formattedPrice').get(function () {
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
@@ -100,17 +113,15 @@ carSchema.virtual('formattedPrice').get(function () {
     }).format(this.price);
 });
 
-// Helper function to convert car attributes into URL-friendly slug
 function slugify(text) {
     return text
         .toString()
         .toLowerCase()
         .trim()
-        .replace(/[\s\W-]+/g, '-') // Replace non-alphanumeric characters and whitespace with hyphens
-        .replace(/^-+|-+$/g, '');   // Trim leading and trailing hyphens
+        .replace(/[\s\W-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
 }
 
-// Generate guaranteed unique slug by checking for collisions
 async function generateUniqueSlug(doc) {
     const raw = [doc.year, doc.make, doc.model, doc.variant]
         .filter(Boolean)
@@ -126,10 +137,7 @@ async function generateUniqueSlug(doc) {
             _id: { $ne: doc._id }
         }).select('_id').lean();
 
-        if (!existing) {
-            break;
-        }
-
+        if (!existing) break;
         counter++;
         slug = `${baseSlug}-${counter}`;
     }
@@ -137,8 +145,11 @@ async function generateUniqueSlug(doc) {
     return slug;
 }
 
-// Generate unique SEO slug before saving
 carSchema.pre('save', async function () {
+    if (!this.referenceId) {
+        this.referenceId = `AC${this._id.toString().slice(-8).toUpperCase()}`;
+    }
+
     if (!this.slug || (!this.isModified('slug') && (this.isModified('make') || this.isModified('model') || this.isModified('year') || this.isModified('variant')))) {
         this.slug = await generateUniqueSlug(this);
     } else if (this.isModified('slug')) {
@@ -148,7 +159,6 @@ carSchema.pre('save', async function () {
 
 carSchema.statics.slugify = slugify;
 
-// Ensure virtuals appear in JSON payloads
 carSchema.set('toJSON', { virtuals: true });
 carSchema.set('toObject', { virtuals: true });
 

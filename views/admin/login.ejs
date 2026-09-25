@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AutoVault India admin dashboard sign in.">
-    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin Login | AutoVault India' %></title>
+    <meta name="description" content="The Auto Choice admin dashboard sign in.">
+    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin Login | The Auto Choice' %></title>
     <!-- Apply saved theme immediately before paint to prevent flicker -->
     <script>
         (function () {
@@ -28,9 +28,9 @@
     <main class="login-wrapper">
         <section class="login-card" aria-labelledby="login-title">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <a href="/" class="logo brand-lockup" aria-label="AutoVault India home">
-                    <span class="brand-mark" aria-hidden="true">AV</span>
-                    <span class="brand-name">AutoVault</span>
+                <a href="/" class="logo brand-lockup" aria-label="The Auto Choice home">
+                    <span class="brand-mark" aria-hidden="true">TAC</span>
+                    <span class="brand-name">The Auto Choice</span>
                     <span class="country-badge">INDIA</span>
                 </a>
                 <button id="themeToggleFooter" class="footer-icon-btn" type="button" aria-label="Toggle theme" title="Toggle theme">
@@ -46,7 +46,7 @@
             </div>
             <p class="section-eyebrow">TEAM ACCESS</p>
             <h1 id="login-title">Admin sign in</h1>
-            <p class="login-intro">Manage the AutoVault vehicle collection.</p>
+            <p class="login-intro">Manage the The Auto Choice vehicle collection.</p>
             <% if (locals.error) { %>
                 <div class="error-msg" role="alert"><%= error %></div>
             <% } %>

@@ -1,58 +1,361 @@
-    <!-- Global Sticky Header -->
-    <header class="navbar site-nav">
-        <div class="nav-inner">
-        <a href="/" class="logo brand-lockup" id="nav-logo" aria-label="AutoVault India home">
-            <span class="brand-mark" aria-hidden="true">AV</span>
-            <span class="brand-name">AutoVault</span>
-            <span class="country-badge">INDIA</span>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    /* Modern Boxy Navbar Styles */
+    :root {
+        --modern-nav-bg: rgba(255, 255, 255, 0.96);
+        --modern-nav-border: var(--border, #d8e1db);
+        --modern-nav-text: var(--text-primary, #17231d);
+        --modern-nav-text-muted: var(--text-secondary, #65736b);
+        --modern-accent: var(--accent, #087264);
+        --modern-accent-hover: var(--accent-hover, #075e53);
+        --modern-nav-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        --boxy-radius: var(--radius, 8px);
+    }
+
+    html.dark {
+        --modern-nav-bg: rgba(18, 22, 20, 0.96);
+        --modern-nav-border: rgba(255, 255, 255, 0.08);
+        --modern-nav-text: #f4f7f5;
+        --modern-nav-text-muted: #aab9af;
+        --modern-nav-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .modern-navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+        background: var(--modern-nav-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--modern-nav-border);
+        box-shadow: var(--modern-nav-shadow);
+        font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+        transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .modern-nav-inner {
+        max-width: 1300px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.9rem 2rem;
+        gap: 2rem;
+    }
+
+    .modern-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        text-decoration: none;
+    }
+
+    .modern-brand-logo {
+        width: 38px;
+        height: 38px;
+        background: linear-gradient(135deg, var(--accent, #087264), var(--green, #168a59));
+        border-radius: var(--boxy-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 1.15rem;
+        letter-spacing: -1px;
+        box-shadow: 0 4px 12px var(--accent-glow, rgba(8, 114, 100, 0.25));
+        transition: transform 0.2s ease;
+    }
+
+    .modern-brand:hover .modern-brand-logo {
+        transform: translateY(-2px);
+    }
+
+    .modern-brand-text {
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: var(--modern-nav-text);
+        letter-spacing: -0.5px;
+    }
+
+    .modern-brand-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        background: var(--accent-glow, rgba(8, 114, 100, 0.16));
+        color: var(--modern-accent);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+    }
+
+    .modern-search-container {
+        flex: 1;
+        max-width: 480px;
+    }
+
+    .modern-search-form {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--modern-nav-border);
+        border-radius: var(--boxy-radius);
+        padding: 0.5rem 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    html.dark .modern-search-form {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .modern-search-form:focus-within {
+        background: var(--modern-nav-bg);
+        border-color: var(--modern-accent);
+        box-shadow: 0 0 0 3px var(--accent-glow, rgba(8, 114, 100, 0.16));
+    }
+
+    .modern-search-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        padding: 0;
+        font-size: 0.95rem;
+        font-family: inherit;
+        color: var(--modern-nav-text);
+        width: 100%;
+    }
+
+    .modern-search-input:focus {
+        outline: none;
+    }
+
+    .modern-search-input::placeholder {
+        color: var(--modern-nav-text-muted);
+    }
+
+    .modern-search-icon {
+        width: 18px;
+        height: 18px;
+        color: var(--modern-nav-text-muted);
+        flex-shrink: 0;
+        transition: color 0.2s ease;
+    }
+
+    .modern-search-form:focus-within .modern-search-icon {
+        color: var(--modern-accent);
+    }
+
+    .modern-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1.8rem;
+    }
+
+    .modern-nav-item {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--modern-nav-text-muted);
+        text-decoration: none;
+        transition: color 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+    }
+
+    .modern-nav-item:hover {
+        color: var(--modern-nav-text);
+    }
+
+    .modern-nav-item::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -6px;
+        left: 0;
+        background-color: var(--modern-accent);
+        transition: width 0.3s ease;
+    }
+
+    .modern-nav-item:hover::after {
+        width: 100%;
+    }
+
+    .modern-btn-primary {
+        background: var(--modern-nav-text);
+        color: var(--modern-nav-bg);
+        padding: 0.7rem 1.4rem;
+        border-radius: var(--boxy-radius);
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .modern-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        background: var(--modern-accent);
+        color: white;
+    }
+
+    .modern-badge {
+        background: #ef4444;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+        min-width: 22px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+    }
+
+    .modern-hamburger {
+        display: none;
+        background: transparent;
+        border: 1px solid var(--modern-nav-border);
+        border-radius: var(--boxy-radius);
+        cursor: pointer;
+        color: var(--modern-nav-text);
+        width: 42px;
+        height: 42px;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+    }
+
+    .modern-hamburger:hover {
+        background: rgba(0, 0, 0, 0.04);
+    }
+
+    html.dark .modern-hamburger:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    @media (max-width: 900px) {
+        .modern-search-container {
+            display: none;
+        }
+
+        .modern-nav-links {
+            display: none;
+        }
+
+        .modern-hamburger {
+            display: flex;
+        }
+
+        .modern-nav-inner {
+            padding: 0.8rem 1.25rem;
+        }
+    }
+
+    /* Boxy Mobile Drawer */
+    #mobile-nav {
+        font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+        box-shadow: var(--modern-nav-shadow);
+        padding: 1rem 1.5rem 1.5rem;
+        background: var(--modern-nav-bg);
+        border-bottom: 1px solid var(--modern-nav-border);
+    }
+
+    #mobile-nav a {
+        font-weight: 500;
+        font-size: 1.05rem;
+        border-bottom: 1px solid var(--modern-nav-border);
+        padding: 0.85rem 0;
+        color: var(--modern-nav-text);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    #mobile-nav a:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<header class="modern-navbar">
+    <div class="modern-nav-inner">
+        <a href="/" class="modern-brand" id="nav-logo" aria-label="The Auto Choice home">
+            <div class="modern-brand-logo">TAC</div>
+            <div class="modern-brand-text">The Auto Choice<span class="modern-brand-badge">IN</span></div>
         </a>
 
-        <div class="nav-search" role="search">
-            <form action="/inventory" method="GET" id="nav-search-form">
-                <input
-                    type="text"
-                    name="search"
-                    id="nav-search-input"
-                    placeholder="Search Mahindra, Tata, Swift, EV..."
-                    autocomplete="off"
-                >
+        <div class="modern-search-container">
+            <form action="/inventory" method="GET" id="nav-search-form" class="modern-search-form" style="margin:0;">
+                <svg class="modern-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" name="search" id="nav-search-input" class="modern-search-input"
+                    placeholder="Search Mahindra, Tata, Swift, EV..." autocomplete="off">
             </form>
         </div>
 
-        <nav class="nav-links" aria-label="Main navigation">
-            <a href="/inventory" id="nav-explore">Explore Cars</a>
-            <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
-                <a href="/admin" id="nav-dashboard">Dashboard</a>
-            <% } else { %>
-                <a href="/inventory?shortlist=" id="nav-shortlist" onclick="openShortlist(event)">
-                    <svg class="nav-shortlist-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                    <span>Shortlisted</span>
-                    <span class="badge" id="shortlist-count">0</span>
-                </a>
-            <% } %>
+        <nav class="modern-nav-links" aria-label="Main navigation">
+            <a href="/inventory" id="nav-explore" class="modern-nav-item">Explore Cars</a>
+            <% if (typeof isAdmin !=='undefined' && isAdmin) { %>
+                <a href="/admin" id="nav-dashboard" class="modern-btn-primary">Dashboard</a>
+                <% } else { %>
+                    <a href="/inventory?shortlist=" id="nav-shortlist" class="modern-nav-item"
+                        onclick="openShortlist(event)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        <span>Shortlisted</span>
+                        <span class="modern-badge" id="shortlist-count">0</span>
+                    </a>
+                    <% } %>
         </nav>
 
-        <!-- Mobile hamburger -->
-        <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu" aria-controls="mobile-nav" aria-expanded="false">
-            <span></span><span></span><span></span>
+        <button class="modern-hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="18" x2="20" y2="18"></line>
+            </svg>
         </button>
-        </div>
-    </header>
+    </div>
+</header>
 
-    <!-- Mobile nav drawer -->
-    <div class="mobile-nav" id="mobile-nav">
-        <a href="/inventory">Explore Cars</a>
-        <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
-            <a href="/admin" id="mobile-nav-dashboard">Dashboard</a>
+<!-- Mobile nav drawer -->
+<div class="mobile-nav" id="mobile-nav">
+    <div style="padding: 0.5rem 0 1rem;">
+        <form action="/inventory" method="GET" class="modern-search-form" style="margin:0;">
+            <svg class="modern-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" name="search" class="modern-search-input" placeholder="Search cars..."
+                autocomplete="off">
+        </form>
+    </div>
+    <a href="/inventory">Explore Cars</a>
+    <% if (typeof isAdmin !=='undefined' && isAdmin) { %>
+        <a href="/admin" id="mobile-nav-dashboard">Dashboard</a>
         <% } else { %>
             <a href="/inventory?shortlist=" onclick="openShortlist(event)">
-                <svg class="nav-shortlist-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
                 <span>Shortlisted</span>
-                <span class="badge" id="mobile-shortlist-count">0</span>
+                <span class="modern-badge" id="mobile-shortlist-count">0</span>
             </a>
-        <% } %>
-    </div>
+            <% } %>
+</div>

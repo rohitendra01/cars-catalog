@@ -53,6 +53,7 @@ router.post('/admin/login', express.urlencoded({ extended: true }), postAdminLog
 router.post('/admin/logout', postAdminLogout);
 
 router.get('/admin', requireAdmin, getAdminDashboard);
+router.get('/admin/session', requireAdmin, (req, res) => res.sendStatus(204));
 
 // ─── Admin Car API Routes (JSON) ──────────────────────────────────────────────
 // All protected by requireAdmin middleware

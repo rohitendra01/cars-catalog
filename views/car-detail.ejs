@@ -1,261 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
+<%
+    const vehicleName = [car.year, car.make, car.model, car.variant].filter(Boolean).join(' ');
+    const mileageLabel = Number(car.mileage || car.odometer || 0).toLocaleString('en-IN');
+    const referenceLabel = car.referenceId || (car._id ? `AC${String(car._id).slice(-8).toUpperCase()}` : '—');
+    const registrationLabel = car.registrationState || car.rtoLocation || car.rto || '';
+    const galleryImages = (car.images || []).map(image => typeof image === 'string' ? image : image.url).filter(Boolean);
+    const lakhPrice = (Number(car.price || 0) / 100000).toFixed(2);
+    const rupeePrice = Number(car.price || 0).toLocaleString('en-IN');
+    const manufactureDate = car.manufacturedDate && !Number.isNaN(new Date(car.manufacturedDate).getTime())
+        ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(car.manufacturedDate))
+        : '';
+    const legacyFeatureNames = { sunroof: 'Sunroof', alloyWheels: 'Alloy wheels', touchscreen: 'Touchscreen', reverseCamera: 'Rear parking camera' };
+    const equipmentItems = Array.from(new Map([
+        ...(Array.isArray(car.equipment) ? car.equipment : []),
+        ...Object.entries(car.features || {}).filter(([key, enabled]) => enabled && legacyFeatureNames[key]).map(([key]) => legacyFeatureNames[key])
+    ].map(item => String(item || '').trim()).filter(Boolean).map(item => [item.toLowerCase(), item])).values());
+    const highlightItems = [
+        car.ownership || '',
+        car.seats ? `${car.seats} seats` : '',
+        car.insuranceType ? `${car.insuranceType} insurance` : '',
+        car.engine || '',
+        ...equipmentItems.slice(0, 2)
+    ].filter(Boolean).slice(0, 4);
+    const specificationItems = [
+        ['Make', car.make],
+        ['Model', car.model],
+        ['Variant', car.variant],
+        ['Model year', car.year],
+        ['Manufactured', manufactureDate],
+        ['Odometer', `${mileageLabel} km`],
+        ['Fuel', car.fuelType],
+        ['Transmission', car.transmission],
+        ['Engine', car.engine],
+        ['Body type', car.bodyType],
+        ['Seats', car.seats],
+        ['Colour', car.extColor],
+        ['Interior colour', car.intColor],
+        ['Ownership', car.ownership],
+        ['Registration', registrationLabel],
+        ['Insurance', car.insuranceType],
+        ['Photographs', galleryImages.length || ''],
+        ['Reference', referenceLabel]
+    ].filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '');
+    const whatsappMessage = encodeURIComponent(`Hi The Auto Choice, I’m interested in the ${vehicleName} listed for ₹${rupeePrice} (ref ${referenceLabel}). Could you please share more details? ${typeof absoluteCarUrl !== 'undefined' ? absoluteCarUrl : ''}`);
+    const whatsappUrl = `https://wa.me/919516486666?text=${whatsappMessage}`;
+    const structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'Car',
+        name: vehicleName,
+        image: galleryImages,
+        description: car.description || `${vehicleName} listed by The Auto Choice. Contact the showroom to confirm current availability and arrange a viewing.`,
+        brand: { '@type': 'Brand', name: car.make },
+        model: car.model,
+        vehicleModelDate: String(car.year),
+        mileageFromOdometer: { '@type': 'QuantitativeValue', value: Number(car.mileage || 0), unitCode: 'KMT' },
+        fuelType: car.fuelType,
+        vehicleTransmission: car.transmission,
+        offers: {
+            '@type': 'Offer',
+            price: Number(car.price),
+            priceCurrency: 'INR',
+            availability: car.status === 'Sold' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+            url: typeof canonicalUrl !== 'undefined' ? canonicalUrl : `/inventory/${car.slug || car._id}`
+        }
+    };
+%>
 <%- include('partials/head-public', {
-    pageTitle: car.year + ' ' + car.make + ' ' + car.model + (car.variant ? ' ' + car.variant : '') + ' | AutoVault India',
-    metaDescription: 'Buy Certified ' + car.year + ' ' + car.make + ' ' + car.model + (car.variant ? ' ' + car.variant : '') + ' at AutoVault India. ' + car.mileage.toLocaleString('en-IN') + ' km, ' + car.fuelType + ', ' + car.transmission + '. 200-Point Inspected & 1-Year Warranty.',
-    canonicalUrl: '/inventory/' + (car.slug || car._id),
-    ogImage: car.primaryImage
+    pageTitle: `${vehicleName} | The Auto Choice`,
+    metaDescription: `Explore this ${vehicleName}: ${mileageLabel} km, ${car.fuelType || 'fuel details on request'}, ${car.transmission || 'transmission details on request'}. View photos, specifications and equipment.`,
+    canonicalUrl: `/inventory/${car.slug || car._id}`,
+    ogImage: galleryImages[0] || car.primaryImage,
+    pageStylesheet: '/css/car-detail.css'
 }) %>
 <body>
 <%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
 
-<main>
-<div class="container pdp-layout" id="pdp-section">
+<main class="vehicle-detail-page" id="main">
+    <div class="container vehicle-detail-container">
+        <nav class="vehicle-breadcrumbs" aria-label="Breadcrumb">
+            <ol>
+                <li><a href="/">Home</a></li>
+                <li aria-hidden="true">/</li>
+                <li><a href="/inventory">Cars for sale</a></li>
+                <% if (car.bodyType) { %>
+                    <li aria-hidden="true">/</li>
+                    <li><a href="/inventory?body=<%= encodeURIComponent(car.bodyType) %>"><%= car.bodyType %>s</a></li>
+                <% } %>
+                <li aria-hidden="true">/</li>
+                <li aria-current="page"><%= car.make %> <%= car.model %></li>
+            </ol>
+        </nav>
 
-    <!-- ═══════════════ LEFT: MEDIA + SPECS ════════════════ -->
-    <div class="pdp-main">
-
-        <!-- Image Gallery -->
-        <div class="media-gallery" id="pdp-gallery">
-            <img
-                id="pdp-main-img"
-                src="<%= car.primaryImage %>"
-                alt="<%= car.year %> <%= car.make %> <%= car.model %>"
-            >
-            <% if (car.images && car.images.length > 1) { %>
-            <div class="thumbnail-strip" id="thumbnail-strip">
-                <% car.images.forEach((img, i) => { %>
-                    <img
-                        src="<%= img.url %>"
-                        alt="<%= car.make %> <%= car.model %> view <%= i + 1 %>"
-                        class="thumbnail <%= i === 0 ? 'active' : '' %>"
-                        id="thumb-<%= i %>"
-                        onclick="switchImage('<%= img.url %>', this)"
-                        loading="lazy"
-                    >
-                <% }) %>
+        <header class="vehicle-heading">
+            <div class="vehicle-heading-copy">
+                <div class="vehicle-kicker-row">
+                    <span class="vehicle-make"><%= car.make %></span>
+                    <span class="vehicle-year"><%= car.year %></span>
+                    <span class="vehicle-reference">Ref <strong><%= referenceLabel %></strong></span>
+                </div>
+                <h1><%= vehicleName %></h1>
+                <p class="vehicle-subline">
+                    <span><%= mileageLabel %> km</span><span><%= car.fuelType %></span><span><%= car.transmission %></span>
+                    <% if (car.seats) { %><span><%= car.seats %> seats</span><% } %>
+                    <% if (car.ownership) { %><span><%= car.ownership %></span><% } %>
+                </p>
             </div>
-            <% } %>
-        </div>
-
-        <!-- Tabs -->
-        <div class="pdp-tabs" id="pdp-tabs">
-            <button class="tab active" onclick="switchTab(this, 'overview-panel')" id="tab-overview">Vehicle Overview</button>
-            <button class="tab" onclick="switchTab(this, 'inspection-panel')" id="tab-inspection">200-Point Inspection Report</button>
-        </div>
-
-        <!-- Overview Panel -->
-        <div id="overview-panel" class="tab-panel active">
-            <div class="pdp-specs-grid" id="pdp-specs">
-                <div class="spec-item"><span>Kilometers Run</span><%= car.mileage.toLocaleString('en-IN') %> km</div>
-                <div class="spec-item"><span>Fuel Type</span><%= car.fuelType %></div>
-                <div class="spec-item"><span>Transmission</span><%= car.transmission %></div>
-                <div class="spec-item"><span>Seats</span><%= car.seats %></div>
-                <% if (car.bodyType) { %><div class="spec-item"><span>Body Style</span><%= car.bodyType %></div><% } %>
-                <% if (car.ownership) { %><div class="spec-item"><span>Ownership</span><%= car.ownership %></div><% } %>
-                <% if (car.rtoLocation) { %><div class="spec-item"><span>RTO Location</span><%= car.rtoLocation %></div><% } %>
-                <% if (car.extColor) { %><div class="spec-item"><span>Exterior Color</span><%= car.extColor %></div><% } %>
-                <% if (car.intColor) { %><div class="spec-item"><span>Interior Color</span><%= car.intColor %></div><% } %>
-                <div class="spec-item"><span>Year of Manufacture</span><%= car.year %></div>
+            <div class="vehicle-heading-price" aria-label="Vehicle price">
+                <span class="price-caption">Asking price</span>
+                <strong>₹<%= lakhPrice %> <small>Lakh</small></strong>
+                <span class="exact-price">₹<%= rupeePrice %></span>
             </div>
+        </header>
 
-            <% if (car.features && Object.values(car.features).some(Boolean)) { %>
-                <section class="vehicle-features" aria-labelledby="vehicle-features-title">
-                    <h3 id="vehicle-features-title">Included equipment</h3>
-                    <ul>
-                        <% Object.entries({ sunroof: 'Sunroof', alloyWheels: 'Alloy wheels', touchscreen: 'Touchscreen', reverseCamera: 'Reverse camera' }).forEach(([key, label]) => { %>
-                            <% if (car.features[key]) { %>
-                                <li>
-                                    <svg class="feature-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
-                                    <span><%= label %></span>
-                                </li>
-                            <% } %>
-                        <% }) %>
-                    </ul>
-                </section>
-            <% } %>
-
-            <% if (car.description) { %>
-            <div class="pdp-description">
-                <h3>About This Car</h3>
-                <p><%= car.description %></p>
-            </div>
-            <% } %>
-        </div>
-
-        <!-- Inspection Panel -->
-        <div id="inspection-panel" class="tab-panel" style="display:none;">
-            <div class="inspection-grid">
-                <% const checks = [
-                    { area: 'Engine', status: 'Pass' },
-                    { area: 'Transmission & Gearbox', status: 'Pass' },
-                    { area: 'Suspension & Steering', status: 'Pass' },
-                    { area: 'Brakes (ABS/EBD)', status: 'Pass' },
-                    { area: 'Electricals & Battery', status: 'Pass' },
-                    { area: 'AC & Heating System', status: 'Pass' },
-                    { area: 'Body & Paint', status: 'Pass' },
-                    { area: 'Interior Condition', status: 'Pass' },
-                    { area: 'Tyres & Wheels', status: 'Pass' },
-                    { area: 'Odometer Integrity', status: 'Pass' }
-                ]; %>
-                <% checks.forEach(check => { %>
-                    <div class="inspection-item">
-                        <span class="insp-icon">
-                            <svg class="insp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                        </span>
-                        <div>
-                            <strong><%= check.area %></strong>
-                            <span class="insp-status pass"><%= check.status %></span>
+        <div class="vehicle-page-grid">
+            <div class="vehicle-main-column">
+                <section class="vehicle-gallery card-surface" aria-label="Vehicle photographs">
+                    <% if (galleryImages.length) { %>
+                        <div class="gallery-stage">
+                            <img id="pdp-main-img" class="gallery-main-image" src="<%= galleryImages[0] %>" alt="<%= vehicleName %> — photo 1 of <%= galleryImages.length %>" fetchpriority="high">
+                            <span class="gallery-count"><%= String(1).padStart(2, '0') %> / <%= String(galleryImages.length).padStart(2, '0') %></span>
                         </div>
+                        <% if (galleryImages.length > 1) { %>
+                            <div class="gallery-thumbnails" aria-label="Choose a vehicle photo">
+                                <% galleryImages.forEach((imageUrl, index) => { %>
+                                    <button type="button" class="thumbnail <%= index === 0 ? 'active' : '' %>" onclick="selectVehiclePhoto(this)" data-full-src="<%= imageUrl %>" aria-label="Show photo <%= index + 1 %> of <%= galleryImages.length %>">
+                                        <img src="<%= imageUrl %>" alt="" loading="lazy">
+                                    </button>
+                                <% }) %>
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <div class="gallery-empty" role="img" aria-label="Vehicle photos coming soon">
+                            <span class="gallery-empty-icon" aria-hidden="true">▧</span>
+                            <strong>Vehicle photos coming soon</strong>
+                            <span>Contact us to arrange a viewing.</span>
+                        </div>
+                    <% } %>
+                </section>
+
+                <section class="quick-overview card-surface" aria-label="Key vehicle details">
+                    <% const quickItems = [
+                        ['Odometer', `${mileageLabel} km`],
+                        ['Year', car.year],
+                        ['Fuel', car.fuelType],
+                        ['Gearbox', car.transmission],
+                        ['Seats', car.seats],
+                        ['Owner', car.ownership]
+                    ]; %>
+                    <% quickItems.forEach(([label, value]) => { %>
+                        <div class="quick-item">
+                            <span class="quick-label"><%= label %></span>
+                            <strong><%= value || '—' %></strong>
+                        </div>
+                    <% }) %>
+                </section>
+
+                <section class="detail-section card-surface" aria-labelledby="about-title">
+                    <div class="section-heading">
+                        <span class="section-eyebrow">Vehicle overview</span>
+                        <h2 id="about-title">About this car</h2>
                     </div>
-                <% }) %>
+                    <p class="vehicle-description"><%= car.description || `Explore the listed details for this ${vehicleName}. Speak with The Auto Choice to confirm current availability and arrange a viewing.` %></p>
+                    <% if (highlightItems.length) { %>
+                        <ul class="highlight-list" aria-label="Vehicle highlights">
+                            <% highlightItems.forEach(item => { %>
+                                <li><span class="highlight-check" aria-hidden="true">✓</span><%= item %></li>
+                            <% }) %>
+                        </ul>
+                    <% } %>
+                </section>
+
+                <section class="detail-section card-surface" aria-labelledby="specifications-title">
+                    <div class="section-heading">
+                        <span class="section-eyebrow">At a glance</span>
+                        <h2 id="specifications-title">Specifications</h2>
+                    </div>
+                    <dl class="specification-grid">
+                        <% specificationItems.forEach(([label, value]) => { %>
+                            <div class="specification-item">
+                                <dt><%= label %></dt>
+                                <dd><%= value %><%= label === 'Photographs' ? ' photos' : '' %></dd>
+                            </div>
+                        <% }) %>
+                    </dl>
+                    <p class="specification-note">Details are provided as listed by The Auto Choice. Please confirm anything important when you see the car.</p>
+                </section>
+
+                <section class="detail-section card-surface" aria-labelledby="equipment-title">
+                    <div class="section-heading">
+                        <span class="section-eyebrow">Included with this vehicle</span>
+                        <h2 id="equipment-title">Equipment</h2>
+                    </div>
+                    <% if (equipmentItems.length) { %>
+                        <ul class="equipment-grid">
+                            <% equipmentItems.forEach(item => { %>
+                                <li><span class="equipment-check" aria-hidden="true">✓</span><%= item %></li>
+                            <% }) %>
+                        </ul>
+                    <% } else { %>
+                        <p class="empty-equipment">Equipment details haven’t been added yet. Contact us and we’ll be happy to confirm.</p>
+                    <% } %>
+                </section>
+
+                <section class="detail-section test-drive-section card-surface" id="test-drive-form" aria-labelledby="test-drive-title">
+                    <div class="section-heading">
+                        <span class="section-eyebrow">Come see it in person</span>
+                        <h2 id="test-drive-title">Book a test drive</h2>
+                    </div>
+                    <p>Leave your details and our team will help arrange a visit.</p>
+                    <form class="test-drive-form" onsubmit="handleTestDrive(event)">
+                        <label for="td-name">Your name</label>
+                        <input type="text" id="td-name" name="name" placeholder="Full name" autocomplete="name" required>
+                        <label for="td-phone">Mobile number</label>
+                        <input type="tel" id="td-phone" name="phone" placeholder="+91 mobile number" autocomplete="tel" required>
+                        <label for="td-city">City or pincode</label>
+                        <input type="text" id="td-city" name="city" placeholder="City / Pincode" autocomplete="postal-code" required>
+                        <button class="button button-primary" type="submit" id="schedule-btn">
+                            <svg class="test-drive-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M7 3v3M17 3v3M4 9h16" />
+                                <rect x="4" y="5" width="16" height="16" rx="2" />
+                                <path d="m9 15 2 2 4-4" />
+                            </svg>
+                            <span class="test-drive-button-label">Request a test drive</span>
+                        </button>
+                    </form>
+                </section>
             </div>
+
+            <aside class="vehicle-sidebar" aria-label="Price and enquiry">
+                <div class="vehicle-action-card card-surface">
+                    <div class="sidebar-status <%= car.status === 'Sold' ? 'is-sold' : '' %>"><span></span><%= car.status === 'Sold' ? 'Recently sold' : 'Enquire about this car' %></div>
+                    <div class="sidebar-price">
+                        <span>Price</span>
+                        <strong>₹<%= lakhPrice %> <small>Lakh</small></strong>
+                        <span class="exact-price">₹<%= rupeePrice %></span>
+                    </div>
+                    <p class="sidebar-reference">Quote reference <strong><%= referenceLabel %></strong> when you call.</p>
+                    <div class="sidebar-actions">
+                        <a class="button button-whatsapp" href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer" id="whatsapp-btn">
+                            <span aria-hidden="true">◉</span> WhatsApp
+                        </a>
+                        <a class="button button-call" href="tel:+919516486666"><span aria-hidden="true">☎</span> Call us</a>
+                        <a class="button button-drive" href="#test-drive-form"><span aria-hidden="true">↗</span> Book a test drive</a>
+                    </div>
+                    <button class="shortlist-button" type="button" data-car-id="<%= car._id %>" data-full-label="true" onclick="toggleShortlist('<%= car._id %>', this)" aria-label="Save <%= vehicleName %> to shortlist">
+                        <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        <span class="save-text">Save to shortlist</span>
+                    </button>
+                    <p class="showroom-note">The Auto Choice · Wright Town, Jabalpur</p>
+                </div>
+                <details class="finance-calc card-surface">
+                    <summary>Plan a down payment</summary>
+                    <div class="finance-calc-content">
+                        <label for="calc-down">Down payment (₹)</label>
+                        <input type="number" id="calc-down" value="<%= Math.min(200000, Math.round(Number(car.price || 0) * 0.1)) %>" step="25000" min="0" max="<%= car.price %>" oninput="calculateEMI()">
+                        <label for="calc-term">Loan tenure</label>
+                        <select id="calc-term" onchange="calculateEMI()">
+                            <option value="36">3 years</option>
+                            <option value="48">4 years</option>
+                            <option value="60" selected>5 years</option>
+                            <option value="84">7 years</option>
+                        </select>
+                        <p class="finance-estimate"><strong id="calc-result">₹0</strong><span>Estimated monthly EMI</span></p>
+                        <p class="finance-note">Estimate at 9% annual interest. Final terms depend on lender approval.</p>
+                    </div>
+                </details>
+            </aside>
         </div>
 
+        <section class="similar-cars-section" aria-labelledby="similar-cars-title">
+            <div class="similar-cars-heading">
+                <div>
+                    <span class="section-eyebrow">More to explore</span>
+                    <h2 id="similar-cars-title">Similar cars</h2>
+                    <p>Other cars you may want to take a look at.</p>
+                </div>
+                <a class="similar-more-link" href="/inventory">View more cars <span aria-hidden="true">→</span></a>
+            </div>
+
+            <% if (similarCars && similarCars.length) { %>
+                <div class="similar-cars-grid">
+                    <% similarCars.forEach(similarCar => { %>
+                        <%
+                            const similarImage = similarCar.images && similarCar.images.length
+                                ? (typeof similarCar.images[0] === 'string' ? similarCar.images[0] : similarCar.images[0].url)
+                                : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+                            const similarTitle = [similarCar.year, similarCar.make, similarCar.model].filter(Boolean).join(' ');
+                        %>
+                        <article class="similar-car-card">
+                            <a class="similar-car-link" href="/inventory/<%= similarCar.slug || similarCar._id %>">
+                                <div class="similar-car-image-wrap">
+                                    <img src="<%= similarImage %>" alt="<%= similarTitle %>" loading="lazy">
+                                    <% if (similarCar.bodyType) { %><span class="similar-car-type"><%= similarCar.bodyType %></span><% } %>
+                                </div>
+                                <div class="similar-car-copy">
+                                    <span class="similar-car-make"><%= similarCar.make %></span>
+                                    <h3><%= similarTitle %></h3>
+                                    <% if (similarCar.variant) { %><p class="similar-car-variant"><%= similarCar.variant %></p><% } %>
+                                    <p class="similar-car-specs"><%= Number(similarCar.mileage || 0).toLocaleString('en-IN') %> km <span>·</span> <%= similarCar.fuelType || 'Fuel details on request' %> <span>·</span> <%= similarCar.transmission || 'Transmission details on request' %></p>
+                                    <strong class="similar-car-price"><%= formatPrice(similarCar.price) %></strong>
+                                </div>
+                            </a>
+                            <div class="similar-car-actions">
+                                <a href="/inventory/<%= similarCar.slug || similarCar._id %>" class="similar-details-link">View details</a>
+                                <button class="similar-save-button" type="button" data-car-id="<%= similarCar._id %>" onclick="toggleShortlist('<%= similarCar._id %>', this)" aria-label="Save <%= similarTitle %> to shortlist">
+                                    <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                    </svg>
+                                    <span class="save-text">Save</span>
+                                </button>
+                            </div>
+                        </article>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p class="similar-cars-empty">There are no other available cars to show right now.</p>
+            <% } %>
+            <a class="similar-more-link similar-more-link-mobile" href="/inventory">View more cars <span aria-hidden="true">→</span></a>
+        </section>
     </div>
 
-    <!-- ═══════════════ RIGHT: SIDEBAR ════════════════ -->
-    <aside class="pdp-sidebar" id="pdp-sidebar">
-
-        <!-- Title & Price -->
-        <div class="pdp-title-block">
-            <h1 id="pdp-title"><%= car.year %> <%= car.make %> <%= car.model %></h1>
-            <% if (car.variant) { %><p class="car-variant"><%= car.variant %></p><% } %>
-            <div class="pdp-price" id="pdp-price"><%= car.formattedPrice %></div>
-            <p class="cpo-tag" id="pdp-cpo">
-                <svg class="badge-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>AutoVault Certified</span>
-            </p>
-        </div>
-
-        <!-- WhatsApp CTA -->
-        <%
-            const waNumber = '919589451649';
-            const carPageSlug = car.slug || car._id;
-            const waText = encodeURIComponent(
-                'Hi AutoVault, I am interested in the ' + car.year + ' ' + car.make + ' ' + car.model +
-                (car.variant ? ' ' + car.variant : '') +
-                ' listed for ₹' + car.price.toLocaleString('en-IN') +
-                '. View link: /inventory/' + carPageSlug +
-                '. Please share more details.'
-            );
-            const waLink = 'https://wa.me/' + waNumber + '?text=' + waText;
-        %>
-        <a href="<%= waLink %>" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" id="whatsapp-btn">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            Chat on WhatsApp
-        </a>
-
-        <!-- Test Drive Lead Form -->
-        <div class="lead-form" id="test-drive-form">
-            <h3>Book Free Home Test Drive</h3>
-            <form onsubmit="handleTestDrive(event)" id="test-drive-submit-form">
-                <input type="text"   id="td-name"  placeholder="Your Full Name"        required>
-                <input type="tel"    id="td-phone" placeholder="Mobile Number (+91)"   required>
-                <input type="text"   id="td-city"  placeholder="City / Pincode"        required>
-                <button type="submit" class="btn-primary w-100" id="schedule-btn">Schedule Test Drive</button>
-            </form>
-        </div>
-
-        <!-- EMI Calculator -->
-        <div class="finance-calc" id="emi-calc">
-            <h3>EMI Loan Calculator</h3>
-            <div class="filter-group">
-                <label for="calc-down">Down Payment (₹)</label>
-                <input type="number" id="calc-down" value="200000" step="25000" min="0"
-                    max="<%= car.price %>" oninput="calculateEMI()">
-            </div>
-            <div class="filter-group">
-                <label for="calc-term">Loan Tenure</label>
-                <select id="calc-term" onchange="calculateEMI()">
-                    <option value="36">3 Years (36 Months)</option>
-                    <option value="48">4 Years (48 Months)</option>
-                    <option value="60" selected>5 Years (60 Months)</option>
-                    <option value="84">7 Years (84 Months)</option>
-                </select>
-            </div>
-            <div class="est-payment">
-                <span id="calc-result">₹0</span> / month
-            </div>
-            <p class="calc-subtext">Estimated at standard 9.0% interest p.a.</p>
-        </div>
-
-        <!-- Shortlist Button -->
-        <button
-            class="btn-save w-100"
-            id="save-btn-<%= car._id %>"
-            data-car-id="<%= car._id %>"
-            data-full-label="true"
-            onclick="toggleShortlist('<%= car._id %>', this)"
-        >
-            <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            <span class="save-text">Save to Shortlist</span>
-        </button>
-
-
-    </aside>
-</div>
-
-<!-- Back Link -->
-<div class="container detail-back-row">
-    <a href="/inventory" class="btn-text" id="back-to-inventory">
-        <svg class="back-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        <span>Back to Inventory</span>
-    </a>
-</div>
-
+    <nav class="mobile-vehicle-actions" aria-label="Quick actions">
+        <div class="mobile-price"><strong>₹<%= lakhPrice %> Lakh</strong><span><%= car.year %> · <%= car.model %></span></div>
+        <a href="tel:+919516486666" aria-label="Call The Auto Choice">Call</a>
+        <a class="mobile-whatsapp" href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+    </nav>
 </main>
 
-<!-- Pass car price to JS for EMI calculator -->
 <script>
-    const CAR_PRICE = <%= car.price %>;
+    const CAR_PRICE = <%= Number(car.price || 0) %>;
+    function selectVehiclePhoto(button) {
+        const thumbnails = Array.from(document.querySelectorAll('.gallery-thumbnails .thumbnail'));
+        const index = thumbnails.indexOf(button);
+        switchImage(button.dataset.fullSrc, button);
+        const counter = document.querySelector('.gallery-count');
+        if (counter && index >= 0) {
+            counter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(thumbnails.length).padStart(2, '0')}`;
+        }
+        const mainImage = document.getElementById('pdp-main-img');
+        const title = document.querySelector('.vehicle-heading h1')?.textContent || '';
+        if (mainImage && index >= 0) mainImage.alt = `${title} — photo ${index + 1} of ${thumbnails.length}`;
+    }
     document.addEventListener('DOMContentLoaded', () => {
         calculateEMI();
         initShortlistButtons();
     });
 </script>
-
-<!-- Schema.org Structured Data for SEO -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Car",
-  "name": "<%= car.year %> <%= car.make %> <%= car.model %><%= car.variant ? ' ' + car.variant : '' %>",
-  "image": "<%= car.primaryImage %>",
-  "description": "<%= (car.description || '').replace(/"/g, '\\"') %>",
-  "brand": {
-    "@type": "Brand",
-    "name": "<%= car.make %>"
-  },
-  "model": "<%= car.model %>",
-  "vehicleModelDate": "<%= car.year %>",
-  "mileageFromOdometer": {
-    "@type": "QuantitativeValue",
-    "value": <%= car.mileage %>,
-    "unitCode": "KMT"
-  },
-  "fuelType": "<%= car.fuelType %>",
-  "vehicleTransmission": "<%= car.transmission %>",
-  "offers": {
-    "@type": "Offer",
-    "price": <%= car.price %>,
-    "priceCurrency": "INR",
-    "availability": "<%= car.status === 'Sold' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock' %>",
-    "url": "/inventory/<%= car.slug || car._id %>"
-  }
-}
-</script>
+<script type="application/ld+json"><%- JSON.stringify(structuredData).replace(/</g, '\\u003c') %></script>
 
 <%- include('partials/footer') %>

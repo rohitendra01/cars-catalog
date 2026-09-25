@@ -283,12 +283,14 @@ async function handleTestDrive(e) {
     const city = document.getElementById('td-city')?.value.trim();
     const carId = document.querySelector('[data-car-id]')?.getAttribute('data-car-id');
     const submitBtn = document.getElementById('schedule-btn');
+    const submitBtnLabel = submitBtn?.querySelector('.test-drive-button-label');
 
     if (!name || !phone || !city) return;
 
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Scheduling…';
+        if (submitBtnLabel) submitBtnLabel.textContent = 'Scheduling…';
+        else submitBtn.textContent = 'Scheduling…';
     }
 
     try {
@@ -311,7 +313,8 @@ async function handleTestDrive(e) {
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Schedule Test Drive';
+            if (submitBtnLabel) submitBtnLabel.textContent = 'Request a test drive';
+            else submitBtn.textContent = 'Schedule Test Drive';
         }
     }
 }

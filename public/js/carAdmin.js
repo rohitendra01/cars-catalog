@@ -124,8 +124,7 @@ async function loadCars(page) {
         });
 
         if (res.status === 401) {
-            showToast('Session expired — please refresh and log in again.', 'error');
-            showTableEmpty('Unauthorised — please log in.');
+            window.location.replace('/admin/login');
             return;
         }
         if (!res.ok) {
@@ -410,17 +409,23 @@ function populateForm(car) {
     if (el('fModel')) el('fModel').value = car.model || '';
     if (el('fVariant')) el('fVariant').value = car.variant || '';
     if (el('fYear')) el('fYear').value = car.year || '';
+    if (el('fManufacturedDate')) el('fManufacturedDate').value = car.manufacturedDate ? String(car.manufacturedDate).slice(0, 10) : '';
+    if (el('fReferenceId')) el('fReferenceId').value = car.referenceId || '';
     if (el('fBodyType')) el('fBodyType').value = car.bodyType || 'Sedan';
     if (el('fFuelType')) el('fFuelType').value = car.fuelType || 'Petrol';
     if (el('fTransmission')) el('fTransmission').value = car.transmission || 'Manual';
     if (el('fSeats')) el('fSeats').value = car.seats || 5;
     if (el('fMileage')) el('fMileage').value = car.mileage || '';
+    if (el('fEngine')) el('fEngine').value = car.engine || '';
     if (el('fPrice')) el('fPrice').value = car.price || '';
     if (el('fOwnership')) el('fOwnership').value = car.ownership || '1st Owner';
     if (el('fRTO')) el('fRTO').value = car.rtoLocation || car.rto || '';
+    if (el('fRegistrationState')) el('fRegistrationState').value = car.registrationState || '';
+    if (el('fInsuranceType')) el('fInsuranceType').value = car.insuranceType || '';
     if (el('fExtColor')) el('fExtColor').value = car.extColor || '';
     if (el('fIntColor')) el('fIntColor').value = car.intColor || '';
     if (el('fDescription')) el('fDescription').value = car.description || '';
+    if (el('fEquipment')) el('fEquipment').value = Array.isArray(car.equipment) ? car.equipment.join(', ') : '';
     if (el('fFeatured')) el('fFeatured').checked = !!car.isFeatured;
 
     // Features
@@ -552,17 +557,23 @@ if (_carForm) {
                 model: el('fModel') ? el('fModel').value.trim() : '',
                 variant: el('fVariant') ? el('fVariant').value.trim() : '',
                 year: el('fYear') ? el('fYear').value : '',
+                manufacturedDate: el('fManufacturedDate') ? el('fManufacturedDate').value : '',
+                referenceId: el('fReferenceId') ? el('fReferenceId').value.trim() : '',
                 bodyType: el('fBodyType') ? el('fBodyType').value : 'Sedan',
                 fuelType: el('fFuelType') ? el('fFuelType').value : 'Petrol',
                 transmission: el('fTransmission') ? el('fTransmission').value : 'Manual',
                 seats: el('fSeats') ? el('fSeats').value : 5,
                 mileage: el('fMileage') ? el('fMileage').value : '',
+                engine: el('fEngine') ? el('fEngine').value.trim() : '',
                 price: el('fPrice') ? el('fPrice').value : '',
                 ownership: el('fOwnership') ? el('fOwnership').value : '1st Owner',
                 rtoLocation: el('fRTO') ? el('fRTO').value.trim() : '',
+                registrationState: el('fRegistrationState') ? el('fRegistrationState').value.trim() : '',
+                insuranceType: el('fInsuranceType') ? el('fInsuranceType').value.trim() : '',
                 extColor: el('fExtColor') ? el('fExtColor').value.trim() : '',
                 intColor: el('fIntColor') ? el('fIntColor').value.trim() : '',
                 description: el('fDescription') ? el('fDescription').value.trim() : '',
+                equipment: el('fEquipment') ? el('fEquipment').value.trim() : '',
                 isFeatured: el('fFeatured') && el('fFeatured').checked ? 'true' : 'false',
                 featSunroof: el('fFeatSunroof') && el('fFeatSunroof').checked ? 'true' : 'false',
                 featAlloyWheels: el('fFeatAlloys') && el('fFeatAlloys').checked ? 'true' : 'false',
@@ -691,3 +702,26 @@ document.addEventListener('DOMContentLoaded', function () {
         loadCars(1);
     }
 });
+
+/* ─── Keep the admin UI in sync when another device signs in ─────────────── */
+(function watchAdminSession() {
+    var checkInProgress = false;
+
+    async function checkSession() {
+        if (checkInProgress) return;
+        checkInProgress = true;
+        try {
+            var res = await fetch('/admin/session', {
+                headers: { Accept: 'application/json' },
+                cache: 'no-store'
+            });
+            if (res.status === 401) window.location.replace('/admin/login');
+        } catch (err) {
+            // A transient network issue should not sign the admin out.
+        } finally {
+            checkInProgress = false;
+        }
+    }
+
+    window.setInterval(checkSession, 30000);
+})();

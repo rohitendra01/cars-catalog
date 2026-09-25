@@ -2,10 +2,35 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const session = require('express-session');
+const MongoStore = require('connect-mongo').default || require('connect-mongo');
 const carRoutes = require('./routes/carRoutes');
+
+// ─── Guard: fail fast if SESSION_SECRET is missing ────────────────────────────
+if (!process.env.SESSION_SECRET) {
+    console.error('❌  SESSION_SECRET is not set in your .env file. Refusing to start.');
+    process.exit(1);
+}
+if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+    console.error('❌  ADMIN_USERNAME and ADMIN_PASSWORD must be set. Default admin credentials are disabled.');
+    process.exit(1);
+}
+if (process.env.NODE_ENV === 'production' && process.env.ADMIN_PASSWORD.length < 12) {
+    console.error('❌  ADMIN_PASSWORD must be at least 12 characters in production.');
+    process.exit(1);
+}
+if (process.env.NODE_ENV === 'production' && Buffer.byteLength(process.env.SESSION_SECRET) < 32) {
+    console.error('❌  SESSION_SECRET must be at least 32 characters in production.');
+    process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.disable('x-powered-by');
+if (process.env.NODE_ENV === 'production') {
+    // The deployment should terminate HTTPS at a single trusted reverse proxy.
+    app.set('trust proxy', 1);
+}
 
 // ─── View Engine ───────────────────────────────────────────────────────────────
 app.set('view engine', 'ejs');
@@ -24,14 +49,30 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const session = require('express-session');
+// ─── Session Store (MongoDB-backed, persisted across restarts) ────────────────
+const SESSION_TTL_SECONDS = 60 * 60 * 2; // 2-hour idle timeout
+
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'autovault-secret-key',
+    secret: process.env.SESSION_SECRET,
+    name: 'av.sid',                   // non-default name hides the tech stack
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }
+    rolling: true,                    // reset TTL on every request (idle timeout)
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        collectionName: 'sessions',
+        ttl: SESSION_TTL_SECONDS,     // auto-expire old sessions in MongoDB
+        autoRemove: 'native'          // use MongoDB TTL index for cleanup
+    }),
+    cookie: {
+        httpOnly: true,               // JS cannot read the cookie (XSS protection)
+        sameSite: 'strict',           // CSRF protection
+        secure: process.env.NODE_ENV === 'production', // HTTPS-only in production
+        maxAge: SESSION_TTL_SECONDS * 1000
+    }
 }));
 
+// ─── Expose session auth state to every view ──────────────────────────────────
 app.use((req, res, next) => {
     res.locals.isAdmin = Boolean(req.session && req.session.isAdmin);
     next();
@@ -50,7 +91,8 @@ app.use((req, res) => {
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-    res.status(500).send(`<h1>500 - Server Error</h1><pre>${err.message}</pre>`);
+    console.error('Request failed:', err);
+    res.status(500).send('<h1>500 - Server Error</h1><p>Please try again later.</p>');
 });
 
 // ─── MongoDB + Server Startup ─────────────────────────────────────────────────

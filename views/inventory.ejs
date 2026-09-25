@@ -4,7 +4,7 @@
     const isShortlistView = typeof isShortlist !== 'undefined' && Boolean(isShortlist);
     const savedShortlistIds = typeof shortlistIds !== 'undefined' && Array.isArray(shortlistIds) ? shortlistIds : [];
 %>
-<%- include('partials/head-public', { pageTitle: isShortlistView ? 'Your Shortlist | AutoVault India' : 'Inventory | AutoVault India' }) %>
+<%- include('partials/head-public', { pageTitle: isShortlistView ? 'Your Shortlist | The Auto Choice' : 'Inventory | The Auto Choice' }) %>
 <body>
 <%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
 
@@ -163,7 +163,7 @@
                                     <svg class="badge-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
-                                    <span>AutoVault Certified</span>
+                                    <span>The Auto Choice Certified</span>
                                 </div>
                                 <% if (car.fuelType === 'Electric') { %>
                                     <div class="ev-badge">

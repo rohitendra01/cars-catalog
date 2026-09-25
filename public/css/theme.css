@@ -1276,7 +1276,7 @@ footer.site-footer {
 }
 
 .footer-grid {
-    grid-template-columns: 1.1fr 1fr 1fr;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
     gap: 48px;
     padding-top: 44px;
     padding-bottom: 44px;
