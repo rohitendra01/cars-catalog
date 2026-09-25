@@ -35,31 +35,20 @@ function validateBasicAuth(authHeader) {
 }
 
 /**
- * Express middleware — challenge the browser if no valid credentials are
- * present. On success, calls next().
+ * Express middleware — checks for valid admin session.
+ * On success, calls next().
  */
 function requireAdmin(req, res, next) {
-    const authHeader = req.headers['authorization'];
-
-    if (validateBasicAuth(authHeader)) {
+    if (req.session && req.session.isAdmin) {
         return next();
     }
 
-    // Respond with 401 and WWW-Authenticate to trigger browser dialog
-    res.set('WWW-Authenticate', `Basic realm="${REALM}"`);
-
     // JSON response for API routes so the frontend can handle it cleanly
-    if (req.headers['accept'] && req.headers['accept'].includes('application/json')) {
+    if (req.originalUrl.startsWith('/admin/cars') || (req.headers['accept'] && req.headers['accept'].includes('application/json'))) {
         return res.status(401).json({ error: 'Unauthorised — admin credentials required.' });
     }
 
-    return res.status(401).send(
-        `<!DOCTYPE html><html><head><title>401 Unauthorised</title>
-        <style>body{font-family:monospace;background:#09090b;color:#fafafa;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;flex-direction:column;gap:12px;}
-        h1{color:#ea580c;letter-spacing:-.05em;}p{color:#71717a;font-size:.875rem;}</style></head>
-        <body><h1>401 — Unauthorised</h1><p>Valid admin credentials required.</p>
-        <a href="/admin" style="color:#ea580c;text-decoration:none;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;">Try Again</a></body></html>`
-    );
+    return res.redirect('/admin/login');
 }
 
-module.exports = { requireAdmin };
+module.exports = { requireAdmin, ADMIN_USER, ADMIN_PASS };

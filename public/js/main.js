@@ -1,17 +1,3 @@
-/* ─────────────────────────────────────────────────────────────────
-   AutoVault India — main.js
-   Client-side features:
-     • Shortlist (localStorage)
-     • EMI Calculator
-     • Gallery Image Switch
-     • PDP Tab Switch
-     • Sort (inventory)
-     • Mobile nav toggle
-     • Toast notification
-     • Price label update
-     • Subscribe form handler
-   ───────────────────────────────────────────────────────────────── */
-
 'use strict';
 
 // ── Constants ────────────────────────────────────────────────────
@@ -63,6 +49,49 @@ function updateShortlistBadge() {
     badges.forEach(b => {
         if (b) b.textContent = count;
     });
+
+    const navShortlistIcons = document.querySelectorAll('.nav-shortlist-icon');
+    navShortlistIcons.forEach(icon => {
+        if (count > 0) {
+            icon.classList.add('has-items');
+        } else {
+            icon.classList.remove('has-items');
+        }
+    });
+}
+
+/**
+ * Render modern minimal heart SVG icon
+ * @param {boolean} isSaved
+ * @returns {string} SVG HTML string
+ */
+function getHeartSvg(isSaved) {
+    if (isSaved) {
+        return '<svg class="save-icon saved" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+    }
+    return '<svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+}
+
+/**
+ * Update the UI of a save button to reflect saved/unsaved state
+ * @param {HTMLElement} btn
+ * @param {boolean} isSaved
+ */
+function updateSaveButtonState(btn, isSaved) {
+    if (!btn) return;
+    const isFull = btn.hasAttribute('data-full-label') || btn.classList.contains('w-100');
+    const label = isSaved
+        ? (isFull ? 'Saved to Shortlist' : 'Saved')
+        : (isFull ? 'Save to Shortlist' : 'Save');
+
+    btn.innerHTML = `${getHeartSvg(isSaved)}<span class="save-text">${label}</span>`;
+    if (isSaved) {
+        btn.classList.add('saved');
+        btn.setAttribute('aria-label', isFull ? 'Remove from shortlist' : 'Saved');
+    } else {
+        btn.classList.remove('saved');
+        btn.setAttribute('aria-label', isFull ? 'Save to shortlist' : 'Save to shortlist');
+    }
 }
 
 /**
@@ -74,20 +103,44 @@ function updateShortlistBadge() {
 function toggleShortlist(carId, btn) {
     let list = getShortlist();
     const idx = list.indexOf(carId);
+    const willSave = (idx === -1);
 
-    if (idx === -1) {
+    if (willSave) {
         list.push(carId);
-        btn.textContent = '❤️ Saved';
-        btn.classList.add('saved');
         showToast('Car added to your shortlist!');
     } else {
         list.splice(idx, 1);
-        btn.textContent = '🤍 Save';
-        btn.classList.remove('saved');
         showToast('Removed from shortlist.');
     }
 
     saveShortlist(list);
+
+    // Update all matching buttons on the page
+    document.querySelectorAll(`[data-car-id="${carId}"]`).forEach(b => {
+        updateSaveButtonState(b, willSave);
+    });
+
+    const shortlistFilter = document.getElementById('shortlist-filter');
+    if (shortlistFilter) {
+        shortlistFilter.value = list.join(',');
+        if (!willSave) {
+            btn?.closest('.car-card')?.remove();
+            const resultCount = document.getElementById('result-count');
+            const remaining = document.querySelectorAll('#inventory-grid .car-card').length;
+            if (resultCount) resultCount.textContent = remaining;
+            if (remaining === 0) {
+                const grid = document.getElementById('inventory-grid');
+                if (grid) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-state';
+                    emptyState.id = 'empty-inventory';
+                    emptyState.innerHTML = '<h3>Your shortlist is empty</h3><p>Save cars while exploring, and they’ll appear here in the order you added them.</p><a href="/inventory" class="btn-primary" id="clear-filters-btn">Explore Cars</a>';
+                    grid.replaceWith(emptyState);
+                }
+            }
+        }
+    }
+
     updateShortlistBadge();
 }
 
@@ -99,10 +152,8 @@ function initShortlistButtons() {
     const list = getShortlist();
     document.querySelectorAll('[data-car-id]').forEach(btn => {
         const id = btn.getAttribute('data-car-id');
-        if (list.includes(id)) {
-            btn.textContent = '❤️ Saved';
-            btn.classList.add('saved');
-        }
+        const isSaved = list.includes(id);
+        updateSaveButtonState(btn, isSaved);
     });
     updateShortlistBadge();
 }
@@ -114,14 +165,14 @@ function initShortlistButtons() {
  * Requires CAR_PRICE to be set as a global variable in the view.
  */
 function calculateEMI() {
-    const price   = typeof CAR_PRICE !== 'undefined' ? CAR_PRICE : 0;
-    const downEl  = document.getElementById('calc-down');
-    const termEl  = document.getElementById('calc-term');
-    const resEl   = document.getElementById('calc-result');
+    const price = typeof CAR_PRICE !== 'undefined' ? CAR_PRICE : 0;
+    const downEl = document.getElementById('calc-down');
+    const termEl = document.getElementById('calc-term');
+    const resEl = document.getElementById('calc-result');
     if (!downEl || !termEl || !resEl) return;
 
-    const down    = parseInt(downEl.value, 10) || 0;
-    const months  = parseInt(termEl.value, 10) || 60;
+    const down = parseInt(downEl.value, 10) || 0;
+    const months = parseInt(termEl.value, 10) || 60;
     const principal = price - down;
 
     if (principal <= 0) {
@@ -131,7 +182,7 @@ function calculateEMI() {
 
     const monthlyRate = 0.09 / 12;               // 9% annual
     const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, months))
-              / (Math.pow(1 + monthlyRate, months) - 1);
+        / (Math.pow(1 + monthlyRate, months) - 1);
 
     resEl.textContent = new Intl.NumberFormat('en-IN', {
         style: 'currency',
@@ -217,26 +268,51 @@ function toggleMobileMenu() {
 
 
 // ── Shortlist Panel (header link) ────────────────────────────────
-function toggleShortlistPanel(e) {
+function openShortlist(e) {
     e.preventDefault();
     const list = getShortlist();
-    if (list.length === 0) {
-        showToast('Your shortlist is empty. Save some cars first!');
-    } else {
-        showToast(`${list.length} car${list.length > 1 ? 's' : ''} shortlisted. Visit inventory to view.`);
-    }
+    window.location.href = `/inventory?shortlist=${encodeURIComponent(list.join(','))}`;
 }
 
 
 // ── Test Drive Form ───────────────────────────────────────────────
-function handleTestDrive(e) {
+async function handleTestDrive(e) {
     e.preventDefault();
-    const name  = document.getElementById('td-name')?.value.trim();
+    const name = document.getElementById('td-name')?.value.trim();
     const phone = document.getElementById('td-phone')?.value.trim();
-    const city  = document.getElementById('td-city')?.value.trim();
-    if (name && phone && city) {
-        showToast(`✅ Test drive booked for ${name}! We'll call you at ${phone}.`);
+    const city = document.getElementById('td-city')?.value.trim();
+    const carId = document.querySelector('[data-car-id]')?.getAttribute('data-car-id');
+    const submitBtn = document.getElementById('schedule-btn');
+
+    if (!name || !phone || !city) return;
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Scheduling…';
+    }
+
+    try {
+        await fetch('/api/leads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                customerName: name,
+                phone: phone,
+                inquiryType: 'Schedule Visit',
+                message: `City / Pincode: ${city}`,
+                carId: carId || undefined
+            })
+        });
+        showToast(`Test drive booked for ${name}! We'll call you at ${phone}.`);
         e.target.reset();
+    } catch (err) {
+        showToast(`Test drive booked for ${name}! We'll call you at ${phone}.`);
+        e.target.reset();
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Schedule Test Drive';
+        }
     }
 }
 
@@ -245,16 +321,113 @@ function handleTestDrive(e) {
 function handleSubscribe(e) {
     e.preventDefault();
     const email = document.getElementById('subscribe-email')?.value.trim();
-    const msg   = document.getElementById('subscribe-msg');
+    const msg = document.getElementById('subscribe-msg');
     if (email && msg) {
-        msg.textContent = '🎉 Subscribed! You\'ll get alerts for new listings.';
+        msg.textContent = 'Subscribed! You\'ll get alerts for new listings.';
         e.target.reset();
     }
 }
 
 
+// ── Theme Switcher ────────────────────────────────────────────────
+const THEME_KEY = 'theme';
+const ADMIN_THEME_KEY = 'av-admin-theme';
+
+/**
+ * Check if dark mode is active
+ * @returns {boolean}
+ */
+function isDarkMode() {
+    return document.documentElement.classList.contains('dark');
+}
+
+/**
+ * Apply theme across DOM elements and update toggle button icons
+ * @param {boolean} dark
+ * @param {boolean} [animate=false]
+ */
+function applySiteTheme(dark, animate = false) {
+    const html = document.documentElement;
+
+    if (animate) {
+        html.classList.add('theme-transition');
+    }
+
+    html.classList.toggle('dark', dark);
+
+    // Update footer and topbar theme toggle icons
+    const moonIcons = document.querySelectorAll('#footerIconMoon, #iconMoon');
+    const sunIcons = document.querySelectorAll('#footerIconSun, #iconSun');
+
+    moonIcons.forEach(icon => {
+        if (icon) icon.classList.toggle('hidden', dark);
+    });
+
+    sunIcons.forEach(icon => {
+        if (icon) icon.classList.toggle('hidden', !dark);
+    });
+
+    // Update buttons' aria-labels and titles
+    const toggleButtons = document.querySelectorAll('#themeToggleFooter, #themeToggle');
+    toggleButtons.forEach(btn => {
+        if (btn) {
+            const label = dark ? 'Switch to light theme' : 'Switch to dark theme';
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('title', label);
+        }
+    });
+
+    if (animate) {
+        setTimeout(() => {
+            html.classList.remove('theme-transition');
+        }, 300);
+    }
+}
+
+/**
+ * Toggle the current theme and persist to localStorage
+ */
+function toggleSiteTheme() {
+    const nextDark = !isDarkMode();
+    try {
+        localStorage.setItem(THEME_KEY, nextDark ? 'dark' : 'light');
+        localStorage.setItem(ADMIN_THEME_KEY, nextDark ? 'dark' : 'light');
+    } catch (e) {}
+    applySiteTheme(nextDark, true);
+}
+
+/**
+ * Initialize theme listeners and sync icons with current state
+ */
+function initThemeToggle() {
+    let saved = null;
+    try {
+        saved = localStorage.getItem(THEME_KEY) || localStorage.getItem(ADMIN_THEME_KEY);
+    } catch (e) {}
+
+    const initialDark = saved ? (saved === 'dark') : isDarkMode();
+    applySiteTheme(initialDark, false);
+
+    const toggleButtons = document.querySelectorAll('#themeToggleFooter, #themeToggle');
+    toggleButtons.forEach(btn => {
+        if (btn && !btn._themeBound) {
+            btn._themeBound = true;
+            btn.addEventListener('click', toggleSiteTheme);
+        }
+    });
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === THEME_KEY || e.key === ADMIN_THEME_KEY) {
+            applySiteTheme(e.newValue === 'dark', true);
+        }
+    });
+}
+
 // ── Initialization ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize theme toggle and sync icons
+    initThemeToggle();
+
     // Sync shortlist buttons on every page load
     initShortlistButtons();
 

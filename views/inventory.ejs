@@ -1,6 +1,21 @@
-<%- include('partials/header', { pageTitle: 'Inventory | AutoVault India' }) %>
+<!DOCTYPE html>
+<html lang="en">
+<%
+    const isShortlistView = typeof isShortlist !== 'undefined' && Boolean(isShortlist);
+    const savedShortlistIds = typeof shortlistIds !== 'undefined' && Array.isArray(shortlistIds) ? shortlistIds : [];
+%>
+<%- include('partials/head-public', { pageTitle: isShortlistView ? 'Your Shortlist | AutoVault India' : 'Inventory | AutoVault India' }) %>
+<body>
+<%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
 
-<main>
+<main class="inventory-page">
+<div class="container">
+    <header class="page-heading">
+        <p class="section-eyebrow"><%= isShortlistView ? 'YOUR SHORTLIST' : 'THE AUTOVAULT COLLECTION' %></p>
+        <h1><%= isShortlistView ? 'Your saved cars' : 'Find your next car' %></h1>
+        <p><%= isShortlistView ? 'Your cars, shown in the order you saved them.' : 'Every listing is inspected, verified, and ready for its next chapter.' %></p>
+    </header>
+</div>
 <div class="container inventory-layout" id="inventory-section">
 
     <!-- ═══════════════ SIDEBAR FILTERS ═══════════════ -->
@@ -42,7 +57,7 @@
                 <label for="filter-body">Body Style</label>
                 <select id="filter-body" name="bodyType">
                     <option value="">All Body Styles</option>
-                    <% ['SUV', 'Hatchback', 'Sedan', 'EV', 'MUV'].forEach(type => { %>
+                    <% ['SUV', 'Hatchback', 'Sedan', 'EV', 'MUV', 'Coupe', 'Convertible'].forEach(type => { %>
                         <option value="<%= type %>"
                             <%= (typeof query !== 'undefined' && query.bodyType === type) ? 'selected' : '' %>>
                             <%= type === 'EV' ? 'Electric (EV)' : type %>
@@ -56,7 +71,7 @@
                 <label for="filter-fuel">Fuel Type</label>
                 <select id="filter-fuel" name="fuelType">
                     <option value="">All Fuel Types</option>
-                    <% ['Petrol', 'Diesel', 'CNG', 'Electric'].forEach(fuel => { %>
+                    <% ['Petrol', 'Diesel', 'CNG', 'Electric', 'Hybrid'].forEach(fuel => { %>
                         <option value="<%= fuel %>"
                             <%= (typeof query !== 'undefined' && query.fuelType === fuel) ? 'selected' : '' %>>
                             <%= fuel %>
@@ -99,27 +114,35 @@
                 >
             </div>
 
-            <!-- Sort (hidden — controlled by sort-select above) -->
-            <input type="hidden" name="sort" id="hidden-sort" value="<%= (typeof query !== 'undefined' && query.sort) ? query.sort : 'newest' %>">
+            <% if (isShortlistView) { %>
+                <input type="hidden" name="shortlist" id="shortlist-filter" value="<%= savedShortlistIds.join(',') %>">
+            <% } else { %>
+                <!-- Sort (hidden — controlled by sort-select above) -->
+                <input type="hidden" name="sort" id="hidden-sort" value="<%= (typeof query !== 'undefined' && query.sort) ? query.sort : 'newest' %>">
+            <% } %>
 
             <button type="submit" class="btn-primary w-100" id="apply-filters-btn">Apply Filters</button>
         </form>
     </aside>
 
     <!-- ═══════════════ INVENTORY MAIN ═══════════════ -->
-    <div class="inventory-main">
+    <section class="inventory-main" aria-label="Available cars">
         <!-- Sort Bar -->
         <div class="sort-bar">
-            <span>Showing <strong id="result-count"><%= cars.length %></strong> available vehicles</span>
+                <p class="results-count"><span id="result-count"><%= cars.length %></span> <%= isShortlistView ? 'cars in your shortlist' : 'cars available' %></p>
             <div class="sort-actions">
-                <label for="sort-select">Sort by:</label>
-                <select id="sort-select" onchange="applySort(this.value)">
-                    <option value="newest"    <%= (typeof query !== 'undefined' && query.sort === 'newest')    ? 'selected' : '' %>>Newest First</option>
-                    <option value="price-asc" <%= (typeof query !== 'undefined' && query.sort === 'price-asc') ? 'selected' : '' %>>Price: Low to High</option>
-                    <option value="price-desc"<%= (typeof query !== 'undefined' && query.sort === 'price-desc')? 'selected' : '' %>>Price: High to Low</option>
-                    <option value="km-asc"   <%= (typeof query !== 'undefined' && query.sort === 'km-asc')    ? 'selected' : '' %>>Kilometers: Lowest</option>
-                    <option value="year-desc" <%= (typeof query !== 'undefined' && query.sort === 'year-desc') ? 'selected' : '' %>>Year: Newest</option>
-                </select>
+                <% if (isShortlistView) { %>
+                    <span>Sorted by save order</span>
+                <% } else { %>
+                    <label for="sort-select">Sort by:</label>
+                    <select id="sort-select" onchange="applySort(this.value)">
+                        <option value="newest"    <%= (typeof query !== 'undefined' && query.sort === 'newest')    ? 'selected' : '' %>>Newest First</option>
+                        <option value="price-asc" <%= (typeof query !== 'undefined' && query.sort === 'price-asc') ? 'selected' : '' %>>Price: Low to High</option>
+                        <option value="price-desc" <%= (typeof query !== 'undefined' && query.sort === 'price-desc') ? 'selected' : '' %>>Price: High to Low</option>
+                        <option value="km-asc"   <%= (typeof query !== 'undefined' && query.sort === 'km-asc')    ? 'selected' : '' %>>Kilometers: Lowest</option>
+                        <option value="year-desc" <%= (typeof query !== 'undefined' && query.sort === 'year-desc') ? 'selected' : '' %>>Year: Newest</option>
+                    </select>
+                <% } %>
             </div>
         </div>
 
@@ -133,12 +156,22 @@
                             : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
                     %>
                     <article class="car-card" id="car-card-<%= car._id %>">
-                        <a href="/inventory/<%= car._id %>" class="card-link">
+                        <a href="/inventory/<%= car.slug || car._id %>" class="card-link">
                             <div class="car-img-wrapper">
                                 <img src="<%= imgSrc %>" alt="<%= car.year %> <%= car.make %> <%= car.model %>" loading="lazy">
-                                <div class="cpo-tag">✓ AutoVault Certified</div>
+                                <div class="cpo-tag">
+                                    <svg class="badge-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    <span>AutoVault Certified</span>
+                                </div>
                                 <% if (car.fuelType === 'Electric') { %>
-                                    <div class="ev-badge">⚡ EV</div>
+                                    <div class="ev-badge">
+                                        <svg class="ev-bolt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                        </svg>
+                                        <span>EV</span>
+                                    </div>
                                 <% } %>
                             </div>
                             <div class="car-details">
@@ -148,33 +181,77 @@
                                     <%= car.fuelType %> &nbsp;|&nbsp;
                                     <%= car.transmission %>
                                 </div>
-                                <% if (car.rto) { %>
-                                    <div class="car-location">📍 <%= car.rto %><% if (car.ownership) { %> • <%= car.ownership %><% } %></div>
+                                <% if (car.variant) { %><div class="car-variant"><%= car.variant %></div><% } %>
+                                <% if (car.rtoLocation) { %>
+                                    <div class="car-location"><%= car.rtoLocation %><% if (car.ownership) { %> · <%= car.ownership %><% } %></div>
                                 <% } %>
                                 <div class="car-price"><%= formatPrice(car.price) %></div>
                             </div>
                         </a>
                         <div class="card-actions">
-                            <a href="/inventory/<%= car._id %>" class="btn-details" id="details-btn-<%= car._id %>">View Details</a>
+                            <a href="/inventory/<%= car.slug || car._id %>" class="btn-details" id="details-btn-<%= car._id %>">View Details</a>
                             <button
                                 class="btn-save"
                                 id="save-btn-<%= car._id %>"
                                 data-car-id="<%= car._id %>"
                                 onclick="toggleShortlist('<%= car._id %>', this)"
                                 aria-label="Save to shortlist"
-                            >🤍 Save</button>
+                            >
+                                <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                <span class="save-text">Save</span>
+                            </button>
                         </div>
                     </article>
                 <% }) %>
             </div>
+            <% if (typeof totalPages !== 'undefined' && totalPages > 1 && !isShortlistView) { %>
+                <div class="pagination-bar" id="inventory-pagination">
+                    <%
+                        const buildPageUrl = (p) => {
+                            const params = new URLSearchParams(query || {});
+                            params.set('page', p);
+                            return '/inventory?' + params.toString();
+                        };
+                    %>
+                    <% if (currentPage > 1) { %>
+                        <a href="<%= buildPageUrl(currentPage - 1) %>" class="btn-outline page-nav-btn">← Prev</a>
+                    <% } %>
+                    <div class="page-numbers">
+                        <% for (let p = 1; p <= totalPages; p++) { %>
+                            <% if (p === currentPage) { %>
+                                <span class="page-num active"><%= p %></span>
+                            <% } else if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) { %>
+                                <a href="<%= buildPageUrl(p) %>" class="page-num"><%= p %></a>
+                            <% } else if (p === currentPage - 3 || p === currentPage + 3) { %>
+                                <span class="page-dots">…</span>
+                            <% } %>
+                        <% } %>
+                    </div>
+                    <% if (currentPage < totalPages) { %>
+                        <a href="<%= buildPageUrl(currentPage + 1) %>" class="btn-outline page-nav-btn">Next →</a>
+                    <% } %>
+                </div>
+            <% } %>
         <% } else { %>
             <div class="empty-state" id="empty-inventory">
-                <h3>No cars match your filters</h3>
-                <p>Try widening your budget, removing brand criteria, or resetting all filters.</p>
-                <a href="/inventory" class="btn-primary" id="clear-filters-btn">Clear Filters</a>
+                <% if (isShortlistView && savedShortlistIds.length === 0) { %>
+                    <h3>Your shortlist is empty</h3>
+                    <p>Save cars while exploring, and they’ll appear here in the order you added them.</p>
+                    <a href="/inventory" class="btn-primary" id="clear-filters-btn">Explore Cars</a>
+                <% } else if (isShortlistView) { %>
+                    <h3>No saved cars are available</h3>
+                    <p>Some cars in your shortlist may no longer be listed.</p>
+                    <a href="/inventory" class="btn-primary" id="clear-filters-btn">Explore Cars</a>
+                <% } else { %>
+                    <h3>No cars match your filters</h3>
+                    <p>Try widening your budget, removing brand criteria, or resetting all filters.</p>
+                    <a href="/inventory" class="btn-primary" id="clear-filters-btn">Clear Filters</a>
+                <% } %>
             </div>
         <% } %>
-    </div>
+    </section>
 
 </div>
 </main>

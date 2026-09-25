@@ -1,0 +1,190 @@
+﻿::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d4d4d8;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #087264;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #087264;
+}
+
+/* ── Slide Panel ───────────────────────────────────────────── */
+.slide-panel {
+    transform: translateX(100%);
+    transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-panel.open {
+    transform: translateX(0);
+}
+
+/* ── Overlay ───────────────────────────────────────────────── */
+.overlay {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ── Toast Animations ──────────────────────────────────────── */
+@keyframes toastIn {
+    from {
+        transform: translateX(110%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(110%);
+    }
+}
+
+.toast-enter {
+    animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast-exit {
+    animation: toastOut 0.3s ease forwards;
+}
+
+/* ── Stat card fade-up on load ─────────────────────────────── */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-up {
+    animation: fadeUp 0.5s ease forwards;
+}
+
+.fade-up-1 {
+    animation-delay: 0.05s;
+}
+
+.fade-up-2 {
+    animation-delay: 0.1s;
+}
+
+.fade-up-3 {
+    animation-delay: 0.15s;
+}
+
+.fade-up-4 {
+    animation-delay: 0.2s;
+}
+
+/* ── Image preview thumbnails ──────────────────────────────── */
+.img-thumb {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #f4f4f5;
+}
+
+.dark .img-thumb {
+    background: #18181b;
+}
+
+.img-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.img-thumb .remove-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: rgba(9, 9, 11, .7);
+    color: #fff;
+    border: none;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.img-thumb .remove-btn:hover {
+    background: #bd4b47;
+}
+
+/* ── Table row hover ───────────────────────────────────────── */
+.car-row {
+    transition: background 0.15s ease;
+}
+
+.car-row:hover td {
+    background: rgba(234, 88, 12, .04);
+}
+
+.dark .car-row:hover td {
+    background: rgba(234, 88, 12, .07);
+}
+
+/* ── Form select option colors ─────────────────────────────── */
+select option {
+    background: #fff;
+    color: #09090b;
+}
+
+.dark select option {
+    background: #18181b;
+    color: #fafafa;
+}
+
+/* ── Pagination active button ──────────────────────────────── */
+.page-btn.active {
+    background: #087264;
+    color: #fff;
+    border-color: #087264;
+}
+
+/* ── Mobile: full-width slide panel ───────────────────────── */
+@media (max-width: 640px) {
+    .slide-panel {
+        width: 100% !important;
+    }
+}

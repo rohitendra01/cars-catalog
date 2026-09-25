@@ -1,0 +1,59 @@
+            <!-- Vehicle Identity -->
+            <div class="mb-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-1 h-5 bg-brand"></div>
+                    <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Vehicle Identity</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 sm:col-span-1">
+                        <label for="fBrand" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                            Brand / Make <span class="text-brand">*</span>
+                        </label>
+                        <input type="text" id="fBrand" name="make" placeholder="e.g. Mahindra" required
+                            class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors" />
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label for="fModel" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                            Model <span class="text-brand">*</span>
+                        </label>
+                        <input type="text" id="fModel" name="model" placeholder="e.g. Scorpio-N" required
+                            class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors" />
+                    </div>
+                    <div class="col-span-2">
+                        <label for="fVariant" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                            Variant / Trim
+                        </label>
+                        <input type="text" id="fVariant" name="variant" placeholder="e.g. Z8 L 4WD"
+                            class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors" />
+                    </div>
+                    <div>
+                        <label for="fYear" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                            Year <span class="text-brand">*</span>
+                        </label>
+                        <input type="number" id="fYear" name="year" placeholder="2023" min="1990" max="2030" required
+                            class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors" />
+                    </div>
+                    <div>
+                        <label for="fBodyType" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">
+                            Body Type <span class="text-brand">*</span>
+                        </label>
+                        <select id="fBodyType" name="bodyType"
+                            class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors">
+                            <option value="SUV">SUV</option>
+                            <option value="Hatchback">Hatchback</option>
+                            <option value="Sedan" selected>Sedan</option>
+                            <option value="EV">Electric (EV)</option>
+                            <option value="MUV">MUV</option>
+                            <option value="Coupe">Coupe</option>
+                            <option value="Convertible">Convertible</option>
+                        </select>
+                    </div>
+                    <div id="liveSlugContainer" class="hidden col-span-2 p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+                        <span class="font-mono text-zinc-400 text-[10px] uppercase tracking-wider block mb-1">Live SEO URL</span>
+                        <a id="liveSlugLink" href="#" target="_blank" class="font-mono text-brand font-semibold text-xs hover:underline break-all inline-flex items-center gap-1.5">
+                            <span id="liveSlugText"></span>
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>

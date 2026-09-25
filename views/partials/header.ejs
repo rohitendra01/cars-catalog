@@ -1,49 +1,19 @@
+﻿<%#
+  DEPRECATED — views/partials/header.ejs
+  This compatibility wrapper is no longer used by any view.
+  All views now include head-public + navbar directly:
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <%- include('partials/head-public', { pageTitle: '...' }) %>
+    <body>
+    <%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
+
+  Kept in place in case a controller render() still references it.
+  Safe to delete once confirmed no references remain.
+%>
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AutoVault India — Verified certified pre-owned cars. 200-Point Inspection, 1-Year Warranty, Free RC Transfer. Buy your dream car today.">
-    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'AutoVault India | Certified Pre-Owned Cars' %></title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
-</head>
+<%- include('head-public', locals) %>
 <body>
-    <!-- Global Sticky Header -->
-    <header class="navbar">
-        <a href="/" class="logo" id="nav-logo">Auto<span>Vault</span> <span class="country-badge">IN</span></a>
-
-        <div class="nav-search">
-            <form action="/inventory" method="GET" id="nav-search-form">
-                <input
-                    type="text"
-                    name="search"
-                    id="nav-search-input"
-                    placeholder="Search Mahindra, Tata, Swift, EV..."
-                    autocomplete="off"
-                >
-            </form>
-        </div>
-
-        <nav class="nav-links" aria-label="Main navigation">
-            <a href="/inventory" id="nav-explore">Explore Cars</a>
-            <a href="#" id="nav-shortlist" onclick="toggleShortlistPanel(event)">
-                Shortlisted <span class="badge" id="shortlist-count">0</span>
-            </a>
-            <a href="/admin/add" class="btn-primary" id="nav-admin">+ Add Car</a>
-        </nav>
-
-        <!-- Mobile hamburger -->
-        <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
-            <span></span><span></span><span></span>
-        </button>
-    </header>
-
-    <!-- Mobile nav drawer -->
-    <div class="mobile-nav" id="mobile-nav">
-        <a href="/inventory">Explore Cars</a>
-        <a href="#">Shortlisted <span class="badge" id="mobile-shortlist-count">0</span></a>
-        <a href="/admin/add">+ Add Car</a>
-    </div>
+<%- include('navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>

@@ -1,0 +1,71 @@
+    <!-- ═══════════════════════════════════════════════════════════
+     ADMIN TOP BAR
+    ══════════════════════════════════════════════════════════════ -->
+    <header id="topbar"
+        class="fixed top-0 w-full z-40 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800 h-16">
+        <div class="flex items-center justify-between px-4 sm:px-6 h-full max-w-[1920px] mx-auto">
+
+            <!-- Logo + label -->
+            <div class="flex items-center gap-3">
+                <a href="/" class="flex items-center gap-3 group" title="Return to live site">
+                    <div
+                        class="w-8 h-8 bg-zinc-950 dark:bg-white flex items-center justify-center group-hover:bg-brand transition-colors shrink-0">
+                        <svg class="w-4 h-4 text-white dark:text-zinc-950" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 17H6a2 2 0 01-2-2v-4l2-5h12l2 5v4a2 2 0 01-2 2h-2m-8 0a2 2 0 104 0m-4 0a2 2 0 014 0M9 9h6" />
+                        </svg>
+                    </div>
+                    <span class="font-display font-black text-lg tracking-tighter uppercase hidden sm:block">
+                        Auto<span class="text-brand">Vault</span>
+                    </span>
+                </a>
+                <div class="w-px h-5 bg-zinc-200 dark:bg-zinc-800 hidden sm:block"></div>
+                <span
+                    class="font-mono font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest text-[10px] hidden sm:block">
+                    Admin Panel
+                </span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <a href="/inventory" target="_blank"
+                    class="text-zinc-500 hover:text-brand font-bold uppercase tracking-widest text-[10px] transition-colors hidden sm:block">
+                    Live Site
+                </a>
+
+                <form action="/admin/logout" method="POST" class="m-0 p-0 hidden sm:block">
+                    <button type="submit" class="text-zinc-500 hover:text-red-500 font-bold uppercase tracking-widest text-[10px] transition-colors">
+                        Logout
+                    </button>
+                </form>
+
+                <!-- Theme toggle -->
+                <button id="themeToggle" aria-label="Toggle theme"
+                    class="p-2 text-zinc-500 hover:text-brand transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 rounded-sm">
+                    <svg id="iconMoon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <svg id="iconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+
+                <!-- Add new car (mobile quick button) -->
+                <% if (typeof showAddBtn !== 'undefined' && showAddBtn) { %>
+                <button onclick="openPanel()" id="addBtnMobile"
+                    class="sm:hidden px-3 py-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold uppercase tracking-widest text-[10px] hover:bg-brand dark:hover:bg-brand dark:hover:text-white transition-colors">
+                    + New
+                </button>
+                <% } %>
+                <form action="/admin/logout" method="POST" class="m-0 p-0 sm:hidden">
+                    <button type="submit" class="px-2 py-2 text-zinc-500 hover:text-red-500 font-bold uppercase tracking-widest text-[10px]">
+                        Exit
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </header>

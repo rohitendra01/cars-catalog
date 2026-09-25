@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin Panel | AutoVault India' %></title>
+    <meta name="description" content="AutoVault India admin dashboard — manage car inventory, create listings, and update vehicle details." />
+    <!-- Apply the saved theme before paint. -->
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('theme') || localStorage.getItem('av-admin-theme');
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+                        display: ['Manrope', 'DM Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+                    },
+                    colors: {
+                        brand: { DEFAULT: '#087264', light: '#15927F', dark: '#075E53' }
+                    }
+                },
+            },
+        };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/theme.css" />
+</head>
+<body class="admin-shell bg-zinc-50 dark:bg-[#050505] text-zinc-950 dark:text-zinc-100 font-sans antialiased min-h-screen flex flex-col">

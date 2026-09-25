@@ -1,0 +1,36 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : 'AutoVault India — Verified certified pre-owned cars. 200-Point Inspection, 1-Year Warranty, Free RC Transfer. Buy your dream car today.' %>">
+    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'AutoVault India | Certified Pre-Owned Cars' %></title>
+    <% if (typeof canonicalUrl !== 'undefined') { %>
+    <link rel="canonical" href="<%= canonicalUrl %>">
+    <meta property="og:url" content="<%= canonicalUrl %>">
+    <% } %>
+    <meta property="og:title" content="<%= typeof pageTitle !== 'undefined' ? pageTitle : 'AutoVault India | Certified Pre-Owned Cars' %>">
+    <meta property="og:description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : 'AutoVault India — Verified certified pre-owned cars. 200-Point Inspection, 1-Year Warranty, Free RC Transfer. Buy your dream car today.' %>">
+    <% if (typeof ogImage !== 'undefined') { %>
+    <meta property="og:image" content="<%= ogImage %>">
+    <meta name="twitter:image" content="<%= ogImage %>">
+    <% } %>
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- Apply saved theme immediately before paint to prevent flicker -->
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('theme') || localStorage.getItem('av-admin-theme');
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/theme.css">
+</head>

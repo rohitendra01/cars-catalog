@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AutoVault India admin dashboard sign in.">
+    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Admin Login | AutoVault India' %></title>
+    <!-- Apply saved theme immediately before paint to prevent flicker -->
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('theme') || localStorage.getItem('av-admin-theme');
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body class="admin-login">
+    <main class="login-wrapper">
+        <section class="login-card" aria-labelledby="login-title">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <a href="/" class="logo brand-lockup" aria-label="AutoVault India home">
+                    <span class="brand-mark" aria-hidden="true">AV</span>
+                    <span class="brand-name">AutoVault</span>
+                    <span class="country-badge">INDIA</span>
+                </a>
+                <button id="themeToggleFooter" class="footer-icon-btn" type="button" aria-label="Toggle theme" title="Toggle theme">
+                    <svg id="footerIconMoon" class="footer-control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <svg id="footerIconSun" class="footer-control-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+            </div>
+            <p class="section-eyebrow">TEAM ACCESS</p>
+            <h1 id="login-title">Admin sign in</h1>
+            <p class="login-intro">Manage the AutoVault vehicle collection.</p>
+            <% if (locals.error) { %>
+                <div class="error-msg" role="alert"><%= error %></div>
+            <% } %>
+            <form action="/admin/login" method="POST">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-primary btn-login">Sign in <span aria-hidden="true">→</span></button>
+            </form>
+            <a href="/" class="login-back">Return to the website</a>
+        </section>
+    </main>
+    <script src="/js/main.js"></script>
+</body>
+</html>

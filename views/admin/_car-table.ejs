@@ -1,0 +1,42 @@
+﻿    <!-- ═══════════════════════════════════════════════════════════
+     CAR TABLE
+    ══════════════════════════════════════════════════════════════ -->
+    <div class="bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest">Photo</th>
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest">Make</th>
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest">Model</th>
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest hidden md:table-cell">Year</th>
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest hidden lg:table-cell">Fuel Type</th>
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest hidden lg:table-cell">Body Type</th>
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest">Price</th>
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest hidden md:table-cell">Featured</th>
+                        <th class="px-4 py-3.5 font-bold text-[10px] text-zinc-500 uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="carTableBody" class="divide-y divide-zinc-100 dark:divide-zinc-800/70">
+                    <!-- Loading state — replaced by carAdmin.js -->
+                    <tr>
+                        <td colspan="9" class="px-6 py-20 text-center text-zinc-400 font-mono text-xs uppercase tracking-widest">
+                            <div class="inline-flex flex-col items-center gap-3">
+                                <svg class="w-8 h-8 text-zinc-300 dark:text-zinc-700 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                Establishing connection...
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div id="paginationBar" class="hidden items-center justify-between px-4 sm:px-6 py-4 border-t border-zinc-100 dark:border-zinc-800">
+            <p id="paginationInfo" class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest"></p>
+            <div id="paginationBtns" class="flex items-center gap-2"></div>
+        </div>
+    </div>

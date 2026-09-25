@@ -1,13 +1,28 @@
-<%- include('partials/header', { pageTitle: '404 Not Found | AutoVault India' }) %>
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head-public', { pageTitle: '404 Not Found | AutoVault India' }) %>
+<body>
+<%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
 <main>
-<div class="container" style="text-align:center; padding: 8rem 1rem;">
-    <div style="font-size:6rem; margin-bottom:1rem;">🚗</div>
-    <h1 style="font-size:4rem; color: var(--accent);">404</h1>
-    <h2 style="margin-bottom:1rem;">Page Not Found</h2>
-    <p style="color:var(--text-secondary); margin-bottom:2rem;">
+<section class="container not-found-page">
+    <p class="section-eyebrow">NOT ON THIS ROUTE</p>
+    <h1>404</h1>
+    <h2>Page not found</h2>
+    <p>
         <%= typeof message !== 'undefined' ? message : "The page you're looking for doesn't exist." %>
     </p>
-    <a href="/" class="btn-primary" id="go-home-btn">← Back to Home</a>
-</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center;">
+        <a href="/" class="btn-primary" id="go-home-btn">
+            <span>Return home</span>
+            <svg class="btn-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </a>
+        <a href="/inventory" class="btn-outline" id="go-inventory-btn">
+            <span>Explore Cars</span>
+        </a>
+    </div>
+</section>
 </main>
 <%- include('partials/footer') %>

@@ -5,27 +5,26 @@ const multer = require('multer');
 // Configure Cloudinary SDK from environment variables
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
-    secure:     true
+    secure: true
 });
 
 // Configure Multer-Cloudinary storage
 const storage = new CloudinaryStorage({
     cloudinary,
     params: {
-        folder:         'autovault-cars',          // Organized folder in your Cloudinary account
+        folder: 'cars-catalog',
         allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'avif'],
         transformation: [
             {
-                width:   1200,
-                height:  800,
-                crop:    'limit',                  // Resize down if larger, never upscale
-                quality: 80,                       // 80% quality — good compression/clarity balance
-                format:  'webp'                    // Always serve as WebP for optimal loading
+                width: 1200,
+                height: 800,
+                crop: 'limit',
+                quality: 80,
+                format: 'webp'
             }
         ],
-        // Generate a unique public_id so filenames don't collide
         public_id: (req, file) => {
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
             const originalName = file.originalname.replace(/\.[^/.]+$/, '').replace(/\s+/g, '-');
@@ -47,7 +46,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 10 * 1024 * 1024 }  // 10 MB max per file
+    limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 module.exports = upload;

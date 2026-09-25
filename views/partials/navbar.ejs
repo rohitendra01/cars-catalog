@@ -1,0 +1,58 @@
+    <!-- Global Sticky Header -->
+    <header class="navbar site-nav">
+        <div class="nav-inner">
+        <a href="/" class="logo brand-lockup" id="nav-logo" aria-label="AutoVault India home">
+            <span class="brand-mark" aria-hidden="true">AV</span>
+            <span class="brand-name">AutoVault</span>
+            <span class="country-badge">INDIA</span>
+        </a>
+
+        <div class="nav-search" role="search">
+            <form action="/inventory" method="GET" id="nav-search-form">
+                <input
+                    type="text"
+                    name="search"
+                    id="nav-search-input"
+                    placeholder="Search Mahindra, Tata, Swift, EV..."
+                    autocomplete="off"
+                >
+            </form>
+        </div>
+
+        <nav class="nav-links" aria-label="Main navigation">
+            <a href="/inventory" id="nav-explore">Explore Cars</a>
+            <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+                <a href="/admin" id="nav-dashboard">Dashboard</a>
+            <% } else { %>
+                <a href="/inventory?shortlist=" id="nav-shortlist" onclick="openShortlist(event)">
+                    <svg class="nav-shortlist-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <span>Shortlisted</span>
+                    <span class="badge" id="shortlist-count">0</span>
+                </a>
+            <% } %>
+        </nav>
+
+        <!-- Mobile hamburger -->
+        <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu" aria-controls="mobile-nav" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+        </div>
+    </header>
+
+    <!-- Mobile nav drawer -->
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="/inventory">Explore Cars</a>
+        <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+            <a href="/admin" id="mobile-nav-dashboard">Dashboard</a>
+        <% } else { %>
+            <a href="/inventory?shortlist=" onclick="openShortlist(event)">
+                <svg class="nav-shortlist-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span>Shortlisted</span>
+                <span class="badge" id="mobile-shortlist-count">0</span>
+            </a>
+        <% } %>
+    </div>

@@ -1,4 +1,13 @@
-<%- include('partials/header', { pageTitle: car.year + ' ' + car.make + ' ' + car.model + ' | AutoVault India' }) %>
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head-public', {
+    pageTitle: car.year + ' ' + car.make + ' ' + car.model + (car.variant ? ' ' + car.variant : '') + ' | AutoVault India',
+    metaDescription: 'Buy Certified ' + car.year + ' ' + car.make + ' ' + car.model + (car.variant ? ' ' + car.variant : '') + ' at AutoVault India. ' + car.mileage.toLocaleString('en-IN') + ' km, ' + car.fuelType + ', ' + car.transmission + '. 200-Point Inspected & 1-Year Warranty.',
+    canonicalUrl: '/inventory/' + (car.slug || car._id),
+    ogImage: car.primaryImage
+}) %>
+<body>
+<%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
 
 <main>
 <div class="container pdp-layout" id="pdp-section">
@@ -44,11 +53,29 @@
                 <div class="spec-item"><span>Seats</span><%= car.seats %></div>
                 <% if (car.bodyType) { %><div class="spec-item"><span>Body Style</span><%= car.bodyType %></div><% } %>
                 <% if (car.ownership) { %><div class="spec-item"><span>Ownership</span><%= car.ownership %></div><% } %>
-                <% if (car.rto) { %><div class="spec-item"><span>RTO Registration</span><%= car.rto %></div><% } %>
+                <% if (car.rtoLocation) { %><div class="spec-item"><span>RTO Location</span><%= car.rtoLocation %></div><% } %>
                 <% if (car.extColor) { %><div class="spec-item"><span>Exterior Color</span><%= car.extColor %></div><% } %>
                 <% if (car.intColor) { %><div class="spec-item"><span>Interior Color</span><%= car.intColor %></div><% } %>
                 <div class="spec-item"><span>Year of Manufacture</span><%= car.year %></div>
             </div>
+
+            <% if (car.features && Object.values(car.features).some(Boolean)) { %>
+                <section class="vehicle-features" aria-labelledby="vehicle-features-title">
+                    <h3 id="vehicle-features-title">Included equipment</h3>
+                    <ul>
+                        <% Object.entries({ sunroof: 'Sunroof', alloyWheels: 'Alloy wheels', touchscreen: 'Touchscreen', reverseCamera: 'Reverse camera' }).forEach(([key, label]) => { %>
+                            <% if (car.features[key]) { %>
+                                <li>
+                                    <svg class="feature-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                    <span><%= label %></span>
+                                </li>
+                            <% } %>
+                        <% }) %>
+                    </ul>
+                </section>
+            <% } %>
 
             <% if (car.description) { %>
             <div class="pdp-description">
@@ -62,20 +89,25 @@
         <div id="inspection-panel" class="tab-panel" style="display:none;">
             <div class="inspection-grid">
                 <% const checks = [
-                    { area: 'Engine', status: 'Pass', icon: '✅' },
-                    { area: 'Transmission & Gearbox', status: 'Pass', icon: '✅' },
-                    { area: 'Suspension & Steering', status: 'Pass', icon: '✅' },
-                    { area: 'Brakes (ABS/EBD)', status: 'Pass', icon: '✅' },
-                    { area: 'Electricals & Battery', status: 'Pass', icon: '✅' },
-                    { area: 'AC & Heating System', status: 'Pass', icon: '✅' },
-                    { area: 'Body & Paint', status: 'Pass', icon: '✅' },
-                    { area: 'Interior Condition', status: 'Pass', icon: '✅' },
-                    { area: 'Tyres & Wheels', status: 'Pass', icon: '✅' },
-                    { area: 'Odometer Integrity', status: 'Pass', icon: '✅' }
+                    { area: 'Engine', status: 'Pass' },
+                    { area: 'Transmission & Gearbox', status: 'Pass' },
+                    { area: 'Suspension & Steering', status: 'Pass' },
+                    { area: 'Brakes (ABS/EBD)', status: 'Pass' },
+                    { area: 'Electricals & Battery', status: 'Pass' },
+                    { area: 'AC & Heating System', status: 'Pass' },
+                    { area: 'Body & Paint', status: 'Pass' },
+                    { area: 'Interior Condition', status: 'Pass' },
+                    { area: 'Tyres & Wheels', status: 'Pass' },
+                    { area: 'Odometer Integrity', status: 'Pass' }
                 ]; %>
                 <% checks.forEach(check => { %>
                     <div class="inspection-item">
-                        <span class="insp-icon"><%= check.icon %></span>
+                        <span class="insp-icon">
+                            <svg class="insp-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </span>
                         <div>
                             <strong><%= check.area %></strong>
                             <span class="insp-status pass"><%= check.status %></span>
@@ -93,16 +125,26 @@
         <!-- Title & Price -->
         <div class="pdp-title-block">
             <h1 id="pdp-title"><%= car.year %> <%= car.make %> <%= car.model %></h1>
+            <% if (car.variant) { %><p class="car-variant"><%= car.variant %></p><% } %>
             <div class="pdp-price" id="pdp-price"><%= car.formattedPrice %></div>
-            <p class="cpo-tag" id="pdp-cpo">✓ AutoVault Certified</p>
+            <p class="cpo-tag" id="pdp-cpo">
+                <svg class="badge-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>AutoVault Certified</span>
+            </p>
         </div>
 
         <!-- WhatsApp CTA -->
         <%
-            const waNumber = '919999999999'; // ← Replace with your WhatsApp Business number
+            const waNumber = '919589451649';
+            const carPageSlug = car.slug || car._id;
             const waText = encodeURIComponent(
-                'Hi, I am interested in the ' + car.year + ' ' + car.make + ' ' + car.model +
-                ' listed for ₹' + car.price.toLocaleString('en-IN') + '. Please share more details.'
+                'Hi AutoVault, I am interested in the ' + car.year + ' ' + car.make + ' ' + car.model +
+                (car.variant ? ' ' + car.variant : '') +
+                ' listed for ₹' + car.price.toLocaleString('en-IN') +
+                '. View link: /inventory/' + carPageSlug +
+                '. Please share more details.'
             );
             const waLink = 'https://wa.me/' + waNumber + '?text=' + waText;
         %>
@@ -150,26 +192,28 @@
             class="btn-save w-100"
             id="save-btn-<%= car._id %>"
             data-car-id="<%= car._id %>"
+            data-full-label="true"
             onclick="toggleShortlist('<%= car._id %>', this)"
         >
-            🤍 Save to Shortlist
+            <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span class="save-text">Save to Shortlist</span>
         </button>
 
-        <!-- Admin Delete (simple, no auth guard in this demo) -->
-        <details class="admin-actions">
-            <summary>Admin Actions</summary>
-            <form action="/admin/delete/<%= car._id %>" method="POST"
-                onsubmit="return confirm('Delete this car permanently?')">
-                <button type="submit" class="btn-delete w-100" id="delete-btn-<%= car._id %>">🗑 Delete Listing</button>
-            </form>
-        </details>
 
     </aside>
 </div>
 
 <!-- Back Link -->
-<div class="container" style="margin-top:2rem; margin-bottom:3rem;">
-    <a href="/inventory" class="btn-text" id="back-to-inventory">← Back to Inventory</a>
+<div class="container detail-back-row">
+    <a href="/inventory" class="btn-text" id="back-to-inventory">
+        <svg class="back-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Inventory</span>
+    </a>
 </div>
 
 </main>
@@ -181,6 +225,37 @@
         calculateEMI();
         initShortlistButtons();
     });
+</script>
+
+<!-- Schema.org Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Car",
+  "name": "<%= car.year %> <%= car.make %> <%= car.model %><%= car.variant ? ' ' + car.variant : '' %>",
+  "image": "<%= car.primaryImage %>",
+  "description": "<%= (car.description || '').replace(/"/g, '\\"') %>",
+  "brand": {
+    "@type": "Brand",
+    "name": "<%= car.make %>"
+  },
+  "model": "<%= car.model %>",
+  "vehicleModelDate": "<%= car.year %>",
+  "mileageFromOdometer": {
+    "@type": "QuantitativeValue",
+    "value": <%= car.mileage %>,
+    "unitCode": "KMT"
+  },
+  "fuelType": "<%= car.fuelType %>",
+  "vehicleTransmission": "<%= car.transmission %>",
+  "offers": {
+    "@type": "Offer",
+    "price": <%= car.price %>,
+    "priceCurrency": "INR",
+    "availability": "<%= car.status === 'Sold' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock' %>",
+    "url": "/inventory/<%= car.slug || car._id %>"
+  }
+}
 </script>
 
 <%- include('partials/footer') %>

@@ -17,13 +17,13 @@
 
 /* ─── State ──────────────────────────────────────────────────────────────── */
 var _state = {
-    cars:         [],
-    pagination:   { page: 1, limit: 20, total: 0, totalPages: 0 },
-    isLoading:    false,
-    editCarId:    null,         // null = create mode
-    newFiles:     [],           // File objects staged for upload
+    cars: [],
+    pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+    isLoading: false,
+    editCarId: null,         // null = create mode
+    newFiles: [],           // File objects staged for upload
     imagesToDelete: [],         // Cloudinary public_ids marked for removal
-    searchTimer:  null,
+    searchTimer: null,
     deleteTargetId: null,
 };
 
@@ -44,19 +44,19 @@ function el(id) { return document.getElementById(id); }
 var _toastId = 0;
 function showToast(message, type) {
     // type: 'success' | 'error' | 'info'
-    var id   = 'toast-' + (++_toastId);
+    var id = 'toast-' + (++_toastId);
     var container = el('toastContainer');
     if (!container) return;
 
     var colors = {
         success: 'border-emerald-500 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950',
-        error:   'border-red-500   bg-zinc-950 dark:bg-white text-white dark:text-zinc-950',
-        info:    'border-brand     bg-zinc-950 dark:bg-white text-white dark:text-zinc-950',
+        error: 'border-red-500   bg-zinc-950 dark:bg-white text-white dark:text-zinc-950',
+        info: 'border-brand     bg-zinc-950 dark:bg-white text-white dark:text-zinc-950',
     };
     var dots = {
         success: 'bg-emerald-500',
-        error:   'bg-red-500',
-        info:    'bg-brand',
+        error: 'bg-red-500',
+        info: 'bg-brand',
     };
 
     var div = document.createElement('div');
@@ -85,10 +85,10 @@ function removeToast(id) {
 /* ─── Load Cars (API) ────────────────────────────────────────────────────── */
 function getFilters() {
     return {
-        search:   (el('searchInput')  || {}).value  || '',
-        fuelType: (el('filterFuel')   || {}).value  || '',
-        bodyType: (el('filterBody')   || {}).value  || '',
-        sort:     (el('filterSort')   || {}).value  || 'newest',
+        search: (el('searchInput') || {}).value || '',
+        fuelType: (el('filterFuel') || {}).value || '',
+        bodyType: (el('filterBody') || {}).value || '',
+        sort: (el('filterSort') || {}).value || 'newest',
     };
 }
 
@@ -96,12 +96,12 @@ function buildQuery(extra) {
     var f = getFilters();
     var p = _state.pagination;
     var params = new URLSearchParams({
-        page:    extra && extra.page ? extra.page : p.page,
-        limit:   p.limit,
-        search:  f.search,
+        page: extra && extra.page ? extra.page : p.page,
+        limit: p.limit,
+        search: f.search,
         fuelType: f.fuelType,
         bodyType: f.bodyType,
-        sort:    f.sort,
+        sort: f.sort,
     });
     // Remove empty params to keep URL clean
     Array.from(params.keys()).forEach(function (k) {
@@ -119,7 +119,7 @@ async function loadCars(page) {
     showTableLoading();
 
     try {
-        var res  = await fetch('/admin/cars?' + buildQuery(), {
+        var res = await fetch('/admin/cars?' + buildQuery(), {
             headers: { 'Accept': 'application/json' }
         });
 
@@ -134,7 +134,7 @@ async function loadCars(page) {
         }
 
         var data = await res.json();
-        _state.cars       = data.cars       || [];
+        _state.cars = data.cars || [];
         _state.pagination = data.pagination || _state.pagination;
 
         renderTable();
@@ -182,8 +182,9 @@ function renderTable() {
     }
 
     tb.innerHTML = _state.cars.map(function (car) {
-        var img    = car.primaryImage || '';
-        var price  = formatINR(car.price);
+        var img = car.primaryImage || '';
+        var price = formatINR(car.price);
+        var carUrl = '/inventory/' + (car.slug || car._id);
         var featured = car.isFeatured
             ? '<span class="inline-block px-2 py-0.5 bg-brand/10 text-brand font-mono text-[9px] uppercase tracking-widest border border-brand/30">Featured</span>'
             : '<span class="inline-block px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-mono text-[9px] uppercase tracking-widest">Standard</span>';
@@ -191,16 +192,16 @@ function renderTable() {
         return '<tr class="car-row" data-id="' + car._id + '">' +
             // Photo
             '<td class="px-4 py-3">' +
-            '<div class="w-14 h-10 bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0">' +
-            (img ? '<img src="' + img + '" alt="' + car.make + ' ' + car.model + '" class="w-full h-full object-cover"/>' :
+            '<a href="' + carUrl + '" target="_blank" class="block w-14 h-10 bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0 group">' +
+            (img ? '<img src="' + img + '" alt="' + car.make + ' ' + car.model + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform"/>' :
                 '<div class="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700">' +
                 '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
                 '</div>') +
-            '</div></td>' +
+            '</a></td>' +
             // Brand
-            '<td class="px-4 py-3"><span class="font-bold text-zinc-950 dark:text-white text-sm">' + (car.make || '—') + '</span></td>' +
+            '<td class="px-4 py-3"><a href="' + carUrl + '" target="_blank" class="font-bold text-zinc-950 dark:text-white text-sm hover:text-brand transition-colors">' + (car.make || '—') + '</a></td>' +
             // Model
-            '<td class="px-4 py-3"><span class="font-mono text-zinc-700 dark:text-zinc-300 text-xs">' + (car.model || '—') + '</span></td>' +
+            '<td class="px-4 py-3"><a href="' + carUrl + '" target="_blank" class="font-mono text-zinc-700 dark:text-zinc-300 text-xs hover:text-brand transition-colors">' + (car.model || '—') + '</a></td>' +
             // Year
             '<td class="px-4 py-3 hidden md:table-cell"><span class="font-mono text-zinc-500 text-xs">' + (car.year || '—') + '</span></td>' +
             // Fuel
@@ -214,6 +215,10 @@ function renderTable() {
             // Actions
             '<td class="px-4 py-3 text-right">' +
             '<div class="flex items-center justify-end gap-2">' +
+            '<a href="' + carUrl + '" target="_blank" title="View Listing" ' +
+            'class="p-2 text-zinc-500 hover:text-brand border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-colors">' +
+            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
+            '</a>' +
             '<button onclick="openPanel(\'' + car._id + '\')" title="Edit" ' +
             'class="p-2 text-zinc-500 hover:text-brand border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-colors">' +
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' +
@@ -223,7 +228,7 @@ function renderTable() {
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
             '</button>' +
             '</div></td>' +
-        '</tr>';
+            '</tr>';
     }).join('');
 }
 
@@ -235,11 +240,11 @@ function escapeHtml(s) {
 
 /* ─── Pagination ─────────────────────────────────────────────────────────── */
 function renderPagination() {
-    var bar      = el('paginationBar');
-    var info     = el('paginationInfo');
-    var btnsEl   = el('paginationBtns');
-    var p        = _state.pagination;
-    var sub      = el('inventorySubtitle');
+    var bar = el('paginationBar');
+    var info = el('paginationInfo');
+    var btnsEl = el('paginationBtns');
+    var p = _state.pagination;
+    var sub = el('inventorySubtitle');
 
     if (sub) {
         sub.textContent = p.total + ' vehicle' + (p.total !== 1 ? 's' : '') + ' in inventory — page ' + p.page + ' of ' + (p.totalPages || 1);
@@ -257,7 +262,7 @@ function renderPagination() {
     bar.classList.add('flex');
 
     var from = (p.page - 1) * p.limit + 1;
-    var to   = Math.min(p.page * p.limit, p.total);
+    var to = Math.min(p.page * p.limit, p.total);
     info.textContent = 'Showing ' + from + '–' + to + ' of ' + p.total;
 
     // Build page buttons (show prev, numbered window, next)
@@ -271,8 +276,8 @@ function renderPagination() {
 
     // Page numbers (show at most 5)
     var start = Math.max(1, p.page - 2);
-    var end   = Math.min(p.totalPages, start + 4);
-    start     = Math.max(1, end - 4);
+    var end = Math.min(p.totalPages, start + 4);
+    start = Math.max(1, end - 4);
 
     for (var i = start; i <= end; i++) {
         html += '<button class="' + btnBase + (i === p.page ? 'active ' : '') + '" onclick="loadCars(' + i + ')">' + i + '</button>';
@@ -289,7 +294,7 @@ function renderPagination() {
 /* ─── Stats Strip ────────────────────────────────────────────────────────── */
 function updateStats() {
     var cars = _state.cars;
-    var p    = _state.pagination;
+    var p = _state.pagination;
 
     // Total (from server pagination)
     var statTotal = el('statTotal');
@@ -306,10 +311,10 @@ async function fetchAllStatsOnce() {
     _statsFetched = true;
 
     try {
-        var res  = await fetch('/admin/cars?limit=100&page=1', { headers: { Accept: 'application/json' } });
+        var res = await fetch('/admin/cars?limit=100&page=1', { headers: { Accept: 'application/json' } });
         if (!res.ok) return;
         var data = await res.json();
-        var all  = data.cars || [];
+        var all = data.cars || [];
 
         // Total from pagination
         var statTotal = el('statTotal');
@@ -344,43 +349,45 @@ async function fetchAllStatsOnce() {
 
 /* ─── Panel Open / Close ─────────────────────────────────────────────────── */
 function openPanel(carId) {
-    _state.editCarId      = carId || null;
-    _state.newFiles       = [];
+    _state.editCarId = carId || null;
+    _state.newFiles = [];
     _state.imagesToDelete = [];
 
     // Reset form
     var form = el('carForm');
     if (form) form.reset();
-    el('editCarId').value = '';
-    el('newImgsGrid').innerHTML      = '';
-    el('existingImgsSection').classList.add('hidden');
-    el('existingImgsGrid').innerHTML = '';
+    if (el('editCarId')) el('editCarId').value = '';
+    if (el('newImgsGrid')) el('newImgsGrid').innerHTML = '';
+    if (el('existingImgsSection')) el('existingImgsSection').classList.add('hidden');
+    if (el('existingImgsGrid')) el('existingImgsGrid').innerHTML = '';
+    var slugBox = el('liveSlugContainer');
+    if (slugBox) slugBox.classList.add('hidden');
     updateImgCounter();
 
     if (carId) {
         // Edit mode — fetch car data
-        el('panelTitle').textContent    = 'Edit Car';
-        el('panelSubtitle').textContent = 'Update existing listing';
-        el('submitBtnText').textContent = 'Update Listing';
+        if (el('panelTitle')) el('panelTitle').textContent = 'Edit Car';
+        if (el('panelSubtitle')) el('panelSubtitle').textContent = 'Update existing listing';
+        if (el('submitBtnText')) el('submitBtnText').textContent = 'Update Listing';
         fetchAndPopulateForm(carId);
     } else {
         // Create mode
-        el('panelTitle').textContent    = 'Add New Car';
-        el('panelSubtitle').textContent = 'Fill in all required fields';
-        el('submitBtnText').textContent = 'Save Car Listing';
+        if (el('panelTitle')) el('panelTitle').textContent = 'Add New Car';
+        if (el('panelSubtitle')) el('panelSubtitle').textContent = 'Fill in all required fields';
+        if (el('submitBtnText')) el('submitBtnText').textContent = 'Save Car Listing';
     }
 
-    el('slidePanel').classList.add('open');
-    el('overlay').classList.add('active');
+    if (el('slidePanel')) el('slidePanel').classList.add('open');
+    if (el('overlay')) el('overlay').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 function closePanel() {
-    el('slidePanel').classList.remove('open');
-    el('overlay').classList.remove('active');
+    if (el('slidePanel')) el('slidePanel').classList.remove('open');
+    if (el('overlay')) el('overlay').classList.remove('active');
     document.body.style.overflow = '';
-    _state.editCarId      = null;
-    _state.newFiles       = [];
+    _state.editCarId = null;
+    _state.newFiles = [];
     _state.imagesToDelete = [];
 }
 
@@ -389,7 +396,7 @@ async function fetchAndPopulateForm(carId) {
         var res = await fetch('/admin/cars/' + carId, { headers: { Accept: 'application/json' } });
         if (!res.ok) throw new Error('Failed to fetch car data');
         var data = await res.json();
-        var car  = data.car;
+        var car = data.car;
         populateForm(car);
     } catch (err) {
         showToast('Could not load car details: ' + err.message, 'error');
@@ -397,28 +404,48 @@ async function fetchAndPopulateForm(carId) {
 }
 
 function populateForm(car) {
-    el('editCarId').value     = car._id;
-    el('fBrand').value        = car.make         || '';
-    el('fModel').value        = car.model        || '';
-    el('fYear').value         = car.year         || '';
-    el('fBodyType').value     = car.bodyType     || 'Sedan';
-    el('fFuelType').value     = car.fuelType     || 'Petrol';
-    el('fTransmission').value = car.transmission || 'Manual';
-    el('fSeats').value        = car.seats        || 5;
-    el('fMileage').value      = car.mileage      || '';
-    el('fPrice').value        = car.price        || '';
-    el('fOwnership').value    = car.ownership    || '1st Owner';
-    el('fRTO').value          = car.rto          || '';
-    el('fExtColor').value     = car.extColor     || '';
-    el('fIntColor').value     = car.intColor     || '';
-    el('fDescription').value  = car.description  || '';
-    el('fFeatured').checked   = !!car.isFeatured;
+    if (!car) return;
+    if (el('editCarId')) el('editCarId').value = car._id;
+    if (el('fBrand')) el('fBrand').value = car.make || '';
+    if (el('fModel')) el('fModel').value = car.model || '';
+    if (el('fVariant')) el('fVariant').value = car.variant || '';
+    if (el('fYear')) el('fYear').value = car.year || '';
+    if (el('fBodyType')) el('fBodyType').value = car.bodyType || 'Sedan';
+    if (el('fFuelType')) el('fFuelType').value = car.fuelType || 'Petrol';
+    if (el('fTransmission')) el('fTransmission').value = car.transmission || 'Manual';
+    if (el('fSeats')) el('fSeats').value = car.seats || 5;
+    if (el('fMileage')) el('fMileage').value = car.mileage || '';
+    if (el('fPrice')) el('fPrice').value = car.price || '';
+    if (el('fOwnership')) el('fOwnership').value = car.ownership || '1st Owner';
+    if (el('fRTO')) el('fRTO').value = car.rtoLocation || car.rto || '';
+    if (el('fExtColor')) el('fExtColor').value = car.extColor || '';
+    if (el('fIntColor')) el('fIntColor').value = car.intColor || '';
+    if (el('fDescription')) el('fDescription').value = car.description || '';
+    if (el('fFeatured')) el('fFeatured').checked = !!car.isFeatured;
+
+    // Features
+    var feats = car.features || {};
+    if (el('fFeatSunroof')) el('fFeatSunroof').checked = !!feats.sunroof;
+    if (el('fFeatAlloys')) el('fFeatAlloys').checked = !!feats.alloyWheels;
+    if (el('fFeatTouchscreen')) el('fFeatTouchscreen').checked = !!feats.touchscreen;
+    if (el('fFeatCamera')) el('fFeatCamera').checked = !!feats.reverseCamera;
+
+    // Show live SEO URL preview
+    var slugBox = el('liveSlugContainer');
+    var slugLink = el('liveSlugLink');
+    var slugText = el('liveSlugText');
+    if (slugBox && slugLink && slugText && (car.slug || car._id)) {
+        var slugVal = car.slug || car._id;
+        slugBox.classList.remove('hidden');
+        slugLink.href = '/inventory/' + slugVal;
+        slugText.textContent = '/inventory/' + slugVal;
+    }
 
     // Trigger price preview
     updatePricePreview();
 
     // Render existing images
-    if (car.images && car.images.length > 0) {
+    if (car.images && car.images.length > 0 && el('existingImgsSection') && el('existingImgsGrid')) {
         el('existingImgsSection').classList.remove('hidden');
         var grid = el('existingImgsGrid');
         grid.innerHTML = car.images.map(function (img) {
@@ -434,9 +461,9 @@ function populateForm(car) {
 
 /* ─── Image Handling ─────────────────────────────────────────────────────── */
 function handleImagePick(input) {
-    var existing  = el('existingImgsGrid').children.length - _state.imagesToDelete.length;
-    var maxNew    = 10 - existing - _state.newFiles.length;
-    var picked    = Array.from(input.files).slice(0, Math.max(0, maxNew));
+    var existing = el('existingImgsGrid').children.length - _state.imagesToDelete.length;
+    var maxNew = 10 - existing - _state.newFiles.length;
+    var picked = Array.from(input.files).slice(0, Math.max(0, maxNew));
 
     picked.forEach(function (file) {
         _state.newFiles.push(file);
@@ -496,131 +523,145 @@ function updateImgCounter() {
 
 /* ─── Price Preview ──────────────────────────────────────────────────────── */
 function updatePricePreview() {
-    var v   = parseFloat(el('fPrice').value);
-    var pp  = el('pricePreview');
+    var v = parseFloat(el('fPrice').value);
+    var pp = el('pricePreview');
     if (!pp) return;
     pp.textContent = v && !isNaN(v) ? '≈ ' + formatINR(v) : '';
 }
 
 /* ─── Form Submit ────────────────────────────────────────────────────────── */
-el('carForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var btn = el('submitBtn');
-    var txt = el('submitBtnText');
-    var spn = el('submitSpinner');
+var _carForm = el('carForm');
+if (_carForm) {
+    _carForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var btn = el('submitBtn');
+        var txt = el('submitBtnText');
+        var spn = el('submitSpinner');
 
-    // Disable + show spinner
-    btn.disabled = true;
-    if (spn) spn.classList.remove('hidden');
-    if (txt) txt.textContent = _state.editCarId ? 'Updating…' : 'Saving…';
+        // Disable + show spinner
+        if (btn) btn.disabled = true;
+        if (spn) spn.classList.remove('hidden');
+        if (txt) txt.textContent = _state.editCarId ? 'Updating…' : 'Saving…';
 
-    try {
-        var fd = new FormData();
+        try {
+            var fd = new FormData();
 
-        // Scalar fields
-        var fields = {
-            make:         el('fBrand').value.trim(),
-            model:        el('fModel').value.trim(),
-            year:         el('fYear').value,
-            bodyType:     el('fBodyType').value,
-            fuelType:     el('fFuelType').value,
-            transmission: el('fTransmission').value,
-            seats:        el('fSeats').value,
-            mileage:      el('fMileage').value,
-            price:        el('fPrice').value,
-            ownership:    el('fOwnership').value,
-            rto:          el('fRTO').value.trim(),
-            extColor:     el('fExtColor').value.trim(),
-            intColor:     el('fIntColor').value.trim(),
-            description:  el('fDescription').value.trim(),
-            isFeatured:   el('fFeatured').checked ? 'true' : 'false',
-        };
+            // Scalar fields
+            var fields = {
+                make: el('fBrand') ? el('fBrand').value.trim() : '',
+                model: el('fModel') ? el('fModel').value.trim() : '',
+                variant: el('fVariant') ? el('fVariant').value.trim() : '',
+                year: el('fYear') ? el('fYear').value : '',
+                bodyType: el('fBodyType') ? el('fBodyType').value : 'Sedan',
+                fuelType: el('fFuelType') ? el('fFuelType').value : 'Petrol',
+                transmission: el('fTransmission') ? el('fTransmission').value : 'Manual',
+                seats: el('fSeats') ? el('fSeats').value : 5,
+                mileage: el('fMileage') ? el('fMileage').value : '',
+                price: el('fPrice') ? el('fPrice').value : '',
+                ownership: el('fOwnership') ? el('fOwnership').value : '1st Owner',
+                rtoLocation: el('fRTO') ? el('fRTO').value.trim() : '',
+                extColor: el('fExtColor') ? el('fExtColor').value.trim() : '',
+                intColor: el('fIntColor') ? el('fIntColor').value.trim() : '',
+                description: el('fDescription') ? el('fDescription').value.trim() : '',
+                isFeatured: el('fFeatured') && el('fFeatured').checked ? 'true' : 'false',
+                featSunroof: el('fFeatSunroof') && el('fFeatSunroof').checked ? 'true' : 'false',
+                featAlloyWheels: el('fFeatAlloys') && el('fFeatAlloys').checked ? 'true' : 'false',
+                featTouchscreen: el('fFeatTouchscreen') && el('fFeatTouchscreen').checked ? 'true' : 'false',
+                featReverseCamera: el('fFeatCamera') && el('fFeatCamera').checked ? 'true' : 'false',
+            };
 
-        Object.keys(fields).forEach(function (k) { fd.append(k, fields[k]); });
+            Object.keys(fields).forEach(function (k) { fd.append(k, fields[k]); });
 
-        // Images to delete (edit mode)
-        if (_state.imagesToDelete.length > 0) {
-            fd.append('imagesToDelete', JSON.stringify(_state.imagesToDelete));
+            // Images to delete (edit mode)
+            if (_state.imagesToDelete.length > 0) {
+                fd.append('imagesToDelete', JSON.stringify(_state.imagesToDelete));
+            }
+
+            // New image files
+            _state.newFiles.forEach(function (file) { fd.append('images', file); });
+
+            var url = _state.editCarId ? '/admin/cars/' + _state.editCarId : '/admin/cars';
+            var method = _state.editCarId ? 'PUT' : 'POST';
+
+            var res = await fetch(url, { method: method, body: fd });
+            var data = await res.json();
+
+            if (!res.ok) {
+                var errMsg = data.error || 'Request failed.';
+                if (data.missing) errMsg += ' Missing: ' + data.missing.join(', ');
+                if (data.fields) errMsg += ' ' + data.fields.map(function (f) { return f.field + ': ' + f.message; }).join('. ');
+                throw new Error(errMsg);
+            }
+
+            showToast(
+                _state.editCarId ? 'Car updated successfully.' : 'New car added to inventory.',
+                'success'
+            );
+            closePanel();
+            _state.pagination.page = 1;
+            _statsFetched = false;
+            await loadCars(1);
+
+        } catch (err) {
+            console.error('Form submit error:', err);
+            showToast('Error: ' + err.message, 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+            if (spn) spn.classList.add('hidden');
+            if (txt) txt.textContent = _state.editCarId ? 'Update Listing' : 'Save Car Listing';
         }
-
-        // New image files
-        _state.newFiles.forEach(function (file) { fd.append('images', file); });
-
-        var url    = _state.editCarId ? '/admin/cars/' + _state.editCarId : '/admin/cars';
-        var method = _state.editCarId ? 'PUT' : 'POST';
-
-        var res = await fetch(url, { method: method, body: fd });
-        var data = await res.json();
-
-        if (!res.ok) {
-            // Build error message from server response
-            var errMsg = data.error || 'Request failed.';
-            if (data.missing) errMsg += ' Missing: ' + data.missing.join(', ');
-            if (data.fields)  errMsg += ' ' + data.fields.map(function (f) { return f.field + ': ' + f.message; }).join('. ');
-            throw new Error(errMsg);
-        }
-
-        showToast(
-            _state.editCarId ? 'Car updated successfully.' : 'New car added to inventory.',
-            'success'
-        );
-        closePanel();
-        _state.pagination.page = 1;
-        _statsFetched = false;
-        await loadCars(1);
-
-    } catch (err) {
-        console.error('Form submit error:', err);
-        showToast('Error: ' + err.message, 'error');
-    } finally {
-        btn.disabled = false;
-        if (spn) spn.classList.add('hidden');
-        if (txt) txt.textContent = _state.editCarId ? 'Update Listing' : 'Save Car Listing';
-    }
-});
+    });
+}
 
 /* ─── Delete Flow ────────────────────────────────────────────────────────── */
 function openDeleteModal(carId, carLabel) {
     _state.deleteTargetId = carId;
-    el('deleteCarName').textContent = carLabel;
+    if (el('deleteCarName')) el('deleteCarName').textContent = carLabel;
     var modal = el('deleteModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
 }
 
 function closeDeleteModal() {
     _state.deleteTargetId = null;
     var modal = el('deleteModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 }
 
-el('confirmDeleteBtn').addEventListener('click', async function () {
-    if (!_state.deleteTargetId) return;
+var _confirmDeleteBtn = el('confirmDeleteBtn');
+if (_confirmDeleteBtn) {
+    _confirmDeleteBtn.addEventListener('click', async function () {
+        if (!_state.deleteTargetId) return;
 
-    var spn = el('deleteSpinner');
-    var btn = el('confirmDeleteBtn');
-    btn.disabled = true;
-    if (spn) spn.classList.remove('hidden');
+        var spn = el('deleteSpinner');
+        var btn = el('confirmDeleteBtn');
+        if (btn) btn.disabled = true;
+        if (spn) spn.classList.remove('hidden');
 
-    try {
-        var res  = await fetch('/admin/cars/' + _state.deleteTargetId, { method: 'DELETE', headers: { Accept: 'application/json' } });
-        var data = await res.json();
+        try {
+            var res = await fetch('/admin/cars/' + _state.deleteTargetId, { method: 'DELETE', headers: { Accept: 'application/json' } });
+            var data = await res.json();
 
-        if (!res.ok) throw new Error(data.error || 'Deletion failed.');
+            if (!res.ok) throw new Error(data.error || 'Deletion failed.');
 
-        showToast('Car deleted and Cloudinary media scrubbed.', 'success');
-        closeDeleteModal();
-        _statsFetched = false;
-        await loadCars(1);
-    } catch (err) {
-        console.error('Delete error:', err);
-        showToast('Delete failed: ' + err.message, 'error');
-    } finally {
-        btn.disabled = false;
-        if (spn) spn.classList.add('hidden');
-    }
-});
+            showToast('Car deleted and Cloudinary media scrubbed.', 'success');
+            closeDeleteModal();
+            _statsFetched = false;
+            await loadCars(1);
+        } catch (err) {
+            console.error('Delete error:', err);
+            showToast('Delete failed: ' + err.message, 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+            if (spn) spn.classList.add('hidden');
+        }
+    });
+}
 
 /* ─── Search / Filter debounce ───────────────────────────────────────────── */
 function onFilterChange() {
@@ -646,5 +687,7 @@ function onFilterChange() {
 
 /* ─── Init ───────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
-    loadCars(1);
+    if (el('carTableBody')) {
+        loadCars(1);
+    }
 });

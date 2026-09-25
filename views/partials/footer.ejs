@@ -1,51 +1,93 @@
-    <!-- Global Footer -->
-    <footer>
-        <div class="container footer-grid">
-            <!-- Brand Info -->
-            <div class="footer-brand">
-                <h3 class="logo">Auto<span>Vault</span> India</h3>
-                <p>Level 4, Cyber City, DLF Phase 2,<br>Gurugram, Haryana - 122002</p>
-                <p>Mon–Sun: 9:30 AM – 8:30 PM IST</p>
-                <p>Toll Free: <a href="tel:18002008285">1800-200-VAULT</a></p>
-            </div>
-
-            <!-- Trust Badges -->
-            <div>
-                <h4>Why Choose AutoVault?</h4>
-                <ul class="trust-badges">
-                    <li>✓ 200-Point Vehicle Quality Check</li>
-                    <li>✓ Free RTO Transfer &amp; Documentation</li>
-                    <li>✓ 7-Day Hassle-Free Return Policy</li>
-                    <li>✓ Pan-India Roadside Assistance</li>
-                    <li>✓ 1-Year Engine &amp; Gearbox Warranty</li>
-                </ul>
-            </div>
-
-            <!-- Subscribe -->
-            <div>
-                <h4>Stay Updated</h4>
-                <p>Get notified when verified pre-owned cars get listed.</p>
-                <form class="subscribe-form" onsubmit="handleSubscribe(event)" id="footer-subscribe-form">
-                    <input type="email" name="email" id="subscribe-email" placeholder="Enter your email" required>
-                    <button type="submit" class="btn-primary">Subscribe</button>
-                </form>
-                <p class="subscribe-msg" id="subscribe-msg"></p>
-            </div>
+<!-- Global Footer -->
+<footer class="site-footer">
+    <div class="container footer-grid">
+        <!-- Brand Info -->
+        <div class="footer-brand">
+            <a href="/" class="logo brand-lockup" aria-label="AutoVault India home">
+                <span class="brand-mark" aria-hidden="true">AV</span>
+                <span class="brand-name">AutoVault</span>
+                <span class="country-badge">INDIA</span>
+            </a>
+            <p class="footer-positioning">Certified pre-owned, confidently chosen.</p>
+            <p>Wright Town<br>Jabalpur, Madhya Pradesh - 482002</p>
+            <p>Mon–Sun: 9:30 AM – 8:30 PM IST</p>
+            <p><a href="tel:+919589451649">+91 9589451649</a></p>
         </div>
 
-        <div class="footer-bottom container">
-            <p>© <%= new Date().getFullYear() %> AutoVault India Pvt. Ltd. All rights reserved.</p>
-            <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Sitemap</a>
+        <!-- Trust Badges -->
+        <div>
+            <h4>Why AutoVault?</h4>
+            <ul class="trust-badges">
+                <li>
+                    <svg class="footer-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>200-Point Vehicle Quality Check</span>
+                </li>
+                <li>
+                    <svg class="footer-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Free RTO Transfer &amp; Documentation</span>
+                </li>
+                <li>
+                    <svg class="footer-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>7-Day Hassle-Free Return Policy</span>
+                </li>
+                <li>
+                    <svg class="footer-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Pan-India Roadside Assistance</span>
+                </li>
+                <li>
+                    <svg class="footer-check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>1-Year Engine &amp; Gearbox Warranty</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Subscribe -->
+        <div>
+            <h4>Stay Updated</h4>
+            <p>Get notified when verified pre-owned cars get listed.</p>
+            <form class="subscribe-form" onsubmit="handleSubscribe(event)" id="footer-subscribe-form">
+                <input type="email" name="email" id="subscribe-email" placeholder="Enter your email" required>
+                <button type="submit" class="btn-primary">Subscribe</button>
+            </form>
+            <p class="subscribe-msg" id="subscribe-msg"></p>
+        </div>
+    </div>
+
+    <div class="footer-bottom container">
+        <p>&copy; <%= new Date().getFullYear() %> AutoVault India Pvt. Ltd. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="/sitemap.xml" target="_blank">Sitemap</a>
+            <div class="footer-controls" role="group" aria-label="Site settings and controls">
+                <a href="/admin" class="footer-icon-btn" aria-label="Admin Portal" title="Admin Portal">
+                    <svg class="footer-control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </a>
+                <button id="themeToggleFooter" class="footer-icon-btn" type="button" aria-label="Toggle theme" title="Toggle theme">
+                    <svg id="footerIconMoon" class="footer-control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <svg id="footerIconSun" class="footer-control-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
             </div>
         </div>
-    </footer>
+    </div>
+</footer>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast"></div>
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
 
-    <script src="/js/main.js"></script>
+<script src="/js/main.js"></script>
+
 </body>
+
 </html>

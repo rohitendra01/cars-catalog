@@ -1,172 +1,475 @@
-<%- include('partials/header', { pageTitle: 'AutoVault India | Certified Pre-Owned Cars' }) %>
+<!DOCTYPE html>
+<html lang="en">
+<%- include('partials/head-public', { pageTitle: 'AutoVault India | Certified Pre-Owned Cars' }) %>
 
-<main id="app-container">
+    <body>
+        <%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
 
-    <!-- ═══════════════════════ HERO SECTION ═══════════════════════ -->
-    <section class="hero" id="hero-section">
-        <video id="hero-video" class="hero-video" autoplay loop muted playsinline
-            poster="https://images.unsplash.com/photo-1503376712614-7221469e0099?w=1600&q=80">
-            <source src="/driving_c.mp4" type="video/mp4">
-        </video>
-        <div class="hero-overlay"></div>
+            <main id="app-container">
 
-        <div class="hero-content">
-            <h1>Drive Your Dream Car.</h1>
-            <p>Verified pre-owned cars across India. 200-Point Inspection &amp; 1-Year Warranty Included.</p>
+                <!-- ═══════════════════════ HERO SECTION ═══════════════════════ -->
+                <section class="hero" id="hero-section">
+                    <video id="hero-video" class="hero-video" autoplay loop muted playsinline
+                        poster="https://images.unsplash.com/photo-1503376712614-7221469e0099?w=1600&q=80">
+                        <source src="/videos/driving_c.mp4" type="video/mp4">
+                    </video>
+                    <div class="hero-overlay"></div>
 
-            <!-- Quick Finder — links to /inventory with query params -->
-            <form class="quick-finder" action="/inventory" method="GET" id="quick-finder-form">
-                <select name="make" id="qf-make">
-                    <option value="">Any Make</option>
-                    <option value="Mahindra">Mahindra</option>
-                    <option value="Tata">Tata</option>
-                    <option value="Maruti Suzuki">Maruti Suzuki</option>
-                    <option value="Hyundai">Hyundai</option>
-                    <option value="Honda">Honda</option>
-                    <option value="Toyota">Toyota</option>
-                    <option value="Kia">Kia</option>
-                    <option value="MG">MG</option>
-                </select>
-                <select name="bodyType" id="qf-body">
-                    <option value="">Any Body Style</option>
-                    <option value="SUV">SUV</option>
-                    <option value="Hatchback">Hatchback</option>
-                    <option value="Sedan">Sedan</option>
-                    <option value="EV">Electric (EV)</option>
-                    <option value="MUV">MUV</option>
-                </select>
-                <select name="maxPrice" id="qf-price">
-                    <option value="">Any Budget</option>
-                    <option value="800000">Under ₹8 Lakh</option>
-                    <option value="1500000">Under ₹15 Lakh</option>
-                    <option value="2500000">Under ₹25 Lakh</option>
-                    <option value="3500000">Under ₹35 Lakh</option>
-                </select>
-                <button type="submit" class="btn-primary" id="qf-submit">Find Cars</button>
-            </form>
-        </div>
-    </section>
+                    <div class="hero-content">
+                        <p class="hero-eyebrow">PRE-OWNED, PROPERLY VETTED</p>
+                        <h1>AutoVault India</h1>
+                        <p>Find a car that feels right, backed by a 200-point inspection and a one-year warranty.</p>
 
-    <!-- ═══════════════════════ TRUST STRIP ═══════════════════════ -->
-    <div class="container trust-strip">
-        <div class="trust-item">
-            <span class="trust-icon">🔍</span>
-            <div>
-                <strong>200-Point Inspection</strong>
-                <p>Verified by certified engineers</p>
-            </div>
-        </div>
-        <div class="trust-item">
-            <span class="trust-icon">🛡️</span>
-            <div>
-                <strong>1-Year Warranty</strong>
-                <p>Engine &amp; gearbox coverage</p>
-            </div>
-        </div>
-        <div class="trust-item">
-            <span class="trust-icon">📄</span>
-            <div>
-                <strong>Free RC Transfer</strong>
-                <p>100% RTO documentation done</p>
-            </div>
-        </div>
-        <div class="trust-item">
-            <span class="trust-icon">💰</span>
-            <div>
-                <strong>7-Day Money Back</strong>
-                <p>Full money-back assurance</p>
-            </div>
-        </div>
-    </div>
+                        <!-- Quick Finder — links to /inventory with query params -->
+                        <form class="quick-finder" action="/inventory" method="GET" id="quick-finder-form">
+                            <select name="make" id="qf-make">
+                                <option value="">Any Make</option>
+                                <option value="Mahindra">Mahindra</option>
+                                <option value="Tata">Tata</option>
+                                <option value="Maruti Suzuki">Maruti Suzuki</option>
+                                <option value="Hyundai">Hyundai</option>
+                                <option value="Honda">Honda</option>
+                                <option value="Toyota">Toyota</option>
+                                <option value="Kia">Kia</option>
+                                <option value="MG">MG</option>
+                            </select>
+                            <select name="bodyType" id="qf-body">
+                                <option value="">Any Body Style</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Hatchback">Hatchback</option>
+                                <option value="Sedan">Sedan</option>
+                                <option value="EV">Electric (EV)</option>
+                                <option value="MUV">MUV</option>
+                                <option value="Coupe">Coupe</option>
+                                <option value="Convertible">Convertible</option>
+                            </select>
+                            <select name="maxPrice" id="qf-price">
+                                <option value="">Any Budget</option>
+                                <option value="500000">Under ₹5 Lakh</option>
+                                <option value="800000">Under ₹8 Lakh</option>
+                                <option value="1500000">Under ₹15 Lakh</option>
+                                <option value="2500000">Under ₹25 Lakh</option>
+                                <option value="3500000">Under ₹35 Lakh</option>
+                            </select>
+                            <button type="submit" class="btn-primary" id="qf-submit">Find Cars</button>
+                        </form>
+                    </div>
+                </section>
 
-    <!-- ═══════════════════════ BROWSE BY CATEGORY ════════════════ -->
-    <div class="container section">
-        <h2>Browse by Category</h2>
-        <div class="categories-grid">
-            <a href="/inventory?bodyType=SUV" class="category-card" id="cat-suv">
-                <span class="category-icon">🚙</span>
-                <h3>SUV</h3>
-            </a>
-            <a href="/inventory?bodyType=Hatchback" class="category-card" id="cat-hatchback">
-                <span class="category-icon">🚗</span>
-                <h3>Hatchback</h3>
-            </a>
-            <a href="/inventory?bodyType=Sedan" class="category-card" id="cat-sedan">
-                <span class="category-icon">🚘</span>
-                <h3>Sedan</h3>
-            </a>
-            <a href="/inventory?bodyType=EV" class="category-card" id="cat-ev">
-                <span class="category-icon">⚡</span>
-                <h3>Electric (EV)</h3>
-            </a>
-        </div>
-    </div>
+                <!-- ═══════════════════════ TRUST STRIP ═══════════════════════ -->
+                <style>
+                    .trust-strip-cards {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 24px;
+                        margin-top: -40px;
+                        position: relative;
+                        z-index: 10;
+                        padding-bottom: 24px;
+                    }
 
-    <!-- ═══════════════════════ FEATURED CARS ═════════════════════ -->
-    <div class="container section" id="featured-section">
-        <h2>Featured Indian Cars</h2>
-        <% if (featuredCars && featuredCars.length > 0) { %>
-            <div class="car-grid" id="featured-grid">
-                <% featuredCars.forEach(car => { %>
-                    <%
-                        const imgSrc = (car.images && car.images.length > 0)
-                            ? car.images[0].url
-                            : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
-                    %>
-                    <article class="car-card" id="car-card-<%= car._id %>">
-                        <a href="/inventory/<%= car._id %>" class="card-link">
-                            <div class="car-img-wrapper">
-                                <img src="<%= imgSrc %>" alt="<%= car.year %> <%= car.make %> <%= car.model %>" loading="lazy">
-                                <div class="cpo-tag">✓ AutoVault Certified</div>
+                    .trust-card {
+                        background: var(--bg-surface, #ffffff);
+                        border: 1px solid var(--line, #e5e7eb);
+                        border-radius: 16px;
+                        padding: 24px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 16px;
+                        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
+                        box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05);
+                    }
+
+                    .trust-card:hover {
+                        transform: translateY(-6px);
+                        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12);
+                        border-color: var(--signal, #6366f1);
+                    }
+
+                    .trust-card-icon-wrapper {
+                        background: var(--bg-surface, #f8fafc);
+                        border: 1px solid var(--line, #e2e8f0);
+                        padding: 14px;
+                        border-radius: 12px;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: var(--ink, #0f172a);
+                        transition: background 0.3s ease, color 0.3s ease;
+                    }
+
+                    .trust-card:hover .trust-card-icon-wrapper {
+                        background: var(--ink, #0f172a);
+                        color: var(--bg-surface, #ffffff);
+                        border-color: var(--ink, #0f172a);
+                    }
+
+                    .trust-card-icon {
+                        width: 28px;
+                        height: 28px;
+                        stroke-width: 1.5;
+                    }
+
+                    .trust-card-content {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 8px;
+                    }
+
+                    .trust-card-content strong {
+                        font-size: 1.1rem;
+                        color: var(--ink, #0f172a);
+                        font-weight: 600;
+                        letter-spacing: -0.01em;
+                    }
+
+                    .trust-card-content p {
+                        font-size: 0.9rem;
+                        color: var(--muted, #64748b);
+                        margin: 0;
+                        line-height: 1.5;
+                    }
+
+                    /* Dark mode compatibility */
+                    html.dark .trust-card {
+                        background: var(--surface);
+                        border-color: var(--line);
+                    }
+
+                    html.dark .trust-card-icon-wrapper {
+                        background: var(--surface-soft);
+                        border-color: var(--line);
+                        color: var(--brand);
+                    }
+
+                    html.dark .trust-card:hover .trust-card-icon-wrapper {
+                        background: var(--brand);
+                        color: #0f1513;
+                        border-color: var(--brand);
+                    }
+
+                    html.dark .trust-card-content strong {
+                        color: var(--ink);
+                    }
+
+                    html.dark .trust-card-content p {
+                        color: var(--muted);
+                    }
+
+                    @media (max-width: 1024px) {
+                        .trust-strip-cards {
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 16px;
+                            margin-top: 24px;
+                        }
+                    }
+
+                    @media (max-width: 640px) {
+                        .trust-strip-cards {
+                            grid-template-columns: 1fr;
+                        }
+
+                        .trust-card {
+                            flex-direction: row;
+                            align-items: center;
+                            padding: 20px;
+                        }
+                    }
+                </style>
+                <div class="container trust-strip-cards">
+                    <div class="trust-card">
+                        <div class="trust-card-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" class="trust-card-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="trust-card-content">
+                            <strong>200-Point Inspection</strong>
+                            <p>Verified by certified engineers</p>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-card-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" class="trust-card-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
+                        </div>
+                        <div class="trust-card-content">
+                            <strong>1-Year Warranty</strong>
+                            <p>Engine &amp; gearbox coverage</p>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-card-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" class="trust-card-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                        </div>
+                        <div class="trust-card-content">
+                            <strong>Free RC Transfer</strong>
+                            <p>100% RTO documentation done</p>
+                        </div>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-card-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" class="trust-card-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M18 5H7h3a4 4 0 0 1 0 8H7l6 6M7 9h11" />
+                            </svg>
+                        </div>
+                        <div class="trust-card-content">
+                            <strong>7-Day Money Back</strong>
+                            <p>Full money-back assurance</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════ BROWSE BY CATEGORY ════════════════ -->
+                <section class="container section category-section" id="category-section">
+                    <div class="section-heading section-heading-row">
+                        <div>
+                            <p class="section-eyebrow">EXPLORE BY BODY TYPE</p>
+                            <h2>Find your kind of drive</h2>
+                        </div>
+                        <a href="/inventory" class="btn-outline desktop-view-all">All body styles <span
+                                aria-hidden="true">→</span></a>
+                    </div>
+                    <div class="categories-grid">
+                        <!-- SUV -->
+                        <a href="/inventory?bodyType=SUV" class="category-card" id="cat-suv"
+                            aria-label="Explore SUV cars">
+                            <div class="category-card-bg">
+                                <img src="/pictures/suv.png" alt="SUV Collection" loading="lazy">
                             </div>
-                            <div class="car-details">
-                                <div class="car-title"><%= car.year %> <%= car.make %> <%= car.model %></div>
-                                <div class="car-specs">
-                                    <%= car.mileage.toLocaleString('en-IN') %> km &nbsp;|&nbsp;
-                                    <%= car.fuelType %> &nbsp;|&nbsp;
-                                    <%= car.transmission %>
+                            <div class="category-card-overlay"></div>
+                            <div class="category-card-content">
+                                <div class="category-card-top">
+                                    <span class="category-badge">High Clearance</span>
                                 </div>
-                                <% if (car.rto) { %>
-                                    <div class="car-location">📍 <%= car.rto %><% if (car.ownership) { %> • <%= car.ownership %><% } %></div>
-                                <% } %>
-                                <div class="car-price"><%= formatPrice(car.price) %></div>
+                                <div class="category-card-bottom">
+                                    <h3>SUV</h3>
+                                    <p>Commanding road presence, spacious cabin &amp; all-weather confidence.</p>
+                                    <span class="category-explore-link">
+                                        Explore SUVs
+                                        <svg class="category-arrow-icon" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </span>
+                                </div>
                             </div>
                         </a>
-                        <div class="card-actions">
-                            <button
-                                class="btn-save"
-                                id="save-btn-<%= car._id %>"
-                                data-car-id="<%= car._id %>"
-                                onclick="toggleShortlist('<%= car._id %>', this)"
-                                aria-label="Save to shortlist"
-                            >
-                                🤍 Save
-                            </button>
+
+                        <!-- Hatchback -->
+                        <a href="/inventory?bodyType=Hatchback" class="category-card" id="cat-hatchback"
+                            aria-label="Explore Hatchback cars">
+                            <div class="category-card-bg">
+                                <img src="/pictures/hatchback.png" alt="Hatchback Collection" loading="lazy">
+                            </div>
+                            <div class="category-card-overlay"></div>
+                            <div class="category-card-content">
+                                <div class="category-card-top">
+                                    <span class="category-badge">City Favorite</span>
+                                </div>
+                                <div class="category-card-bottom">
+                                    <h3>Hatchback</h3>
+                                    <p>Agile maneuvering, effortless urban parking &amp; great fuel economy.</p>
+                                    <span class="category-explore-link">
+                                        Explore Hatchbacks
+                                        <svg class="category-arrow-icon" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Sedan -->
+                        <a href="/inventory?bodyType=Sedan" class="category-card" id="cat-sedan"
+                            aria-label="Explore Sedan cars">
+                            <div class="category-card-bg">
+                                <img src="/pictures/sedan.png" alt="Sedan Collection" loading="lazy">
+                            </div>
+                            <div class="category-card-overlay"></div>
+                            <div class="category-card-content">
+                                <div class="category-card-top">
+                                    <span class="category-badge">Executive Class</span>
+                                </div>
+                                <div class="category-card-bottom">
+                                    <h3>Sedan</h3>
+                                    <p>Executive styling, plush rear seating &amp; smooth long-distance cruising.</p>
+                                    <span class="category-explore-link">
+                                        Explore Sedans
+                                        <svg class="category-arrow-icon" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Electric (EV) -->
+                        <a href="/inventory?bodyType=EV" class="category-card" id="cat-ev"
+                            aria-label="Explore Electric vehicles">
+                            <div class="category-card-bg">
+                                <img src="/pictures/ev.png" alt="Electric Vehicle Collection" loading="lazy">
+                            </div>
+                            <div class="category-card-overlay"></div>
+                            <div class="category-card-content">
+                                <div class="category-card-top">
+                                    <span class="category-badge category-badge-ev">Zero Emissions</span>
+                                </div>
+                                <div class="category-card-bottom">
+                                    <h3>Electric (EV)</h3>
+                                    <p>Instant torque, whisper-quiet cabin &amp; ultra-low running costs.</p>
+                                    <span class="category-explore-link">
+                                        Explore EVs
+                                        <svg class="category-arrow-icon" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="section-cta mobile-view-all">
+                        <a href="/inventory" class="btn-outline" id="view-all-categories-btn">
+                            <span>All body styles</span>
+                            <svg class="btn-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- ═══════════════════════ FEATURED CARS ═════════════════════ -->
+                <section class="container section" id="featured-section">
+                    <div class="section-heading section-heading-row">
+                        <div>
+                            <p class="section-eyebrow">HANDPICKED INVENTORY</p>
+                            <h2>Featured cars</h2>
                         </div>
-                    </article>
-                <% }) %>
-            </div>
-            <div class="section-cta">
-                <a href="/inventory" class="btn-outline" id="view-all-btn">View All Cars →</a>
-            </div>
-        <% } else { %>
-            <div class="empty-state">
-                <h3>No featured cars yet</h3>
-                <p>Add your first car from the admin panel.</p>
-                <a href="/admin/add" class="btn-primary">+ Add Car</a>
-            </div>
-        <% } %>
-    </div>
+                        <a href="/inventory" class="btn-outline desktop-view-all">
+                            <span>Browse all cars</span>
+                            <svg class="btn-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+                    <% if (featuredCars && featuredCars.length> 0) { %>
+                        <div class="car-grid" id="featured-grid">
+                            <% featuredCars.forEach(car=> { %>
+                                <% const imgSrc=(car.images && car.images.length> 0)
+                                    ? car.images[0].url
+                                    : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+                                    %>
+                                    <article class="car-card" id="car-card-<%= car._id %>">
+                                        <a href="/inventory/<%= car.slug || car._id %>" class="card-link">
+                                            <div class="car-img-wrapper">
+                                                <img src="<%= imgSrc %>"
+                                                    alt="<%= car.year %> <%= car.make %> <%= car.model %>"
+                                                    loading="lazy">
+                                                <div class="cpo-tag">
+                                                    <svg class="badge-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                                    </svg>
+                                                    <span>AutoVault Certified</span>
+                                                </div>
+                                            </div>
+                                            <div class="car-details">
+                                                <div class="car-title">
+                                                    <%= car.year %>
+                                                        <%= car.make %>
+                                                            <%= car.model %>
+                                                </div>
+                                                <div class="car-specs">
+                                                    <%= car.mileage.toLocaleString('en-IN') %> km &nbsp;|&nbsp;
+                                                        <%= car.fuelType %> &nbsp;|&nbsp;
+                                                            <%= car.transmission %>
+                                                </div>
+                                                <% if (car.variant) { %>
+                                                    <div class="car-variant">
+                                                        <%= car.variant %>
+                                                    </div>
+                                                    <% } %>
+                                                        <% if (car.rtoLocation) { %>
+                                                            <div class="car-location">
+                                                                <%= car.rtoLocation %>
+                                                                    <% if (car.ownership) { %> · <%= car.ownership %>
+                                                                            <% } %>
+                                                            </div>
+                                                            <% } %>
+                                                                <div class="car-price">
+                                                                    <%= formatPrice(car.price) %>
+                                                                </div>
+                                            </div>
+                                        </a>
+                                        <div class="card-actions">
+                                            <button class="btn-save" id="save-btn-<%= car._id %>"
+                                                data-car-id="<%= car._id %>"
+                                                onclick="toggleShortlist('<%= car._id %>', this)"
+                                                aria-label="Save to shortlist">
+                                                <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                                </svg>
+                                                <span class="save-text">Save</span>
+                                            </button>
+                                        </div>
+                                    </article>
+                                    <% }) %>
+                        </div>
+                        <div class="section-cta mobile-view-all">
+                            <a href="/inventory" class="btn-outline" id="view-all-btn">
+                                <span>Browse all cars</span>
+                                <svg class="btn-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </a>
+                        </div>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <h3>No featured cars yet</h3>
+                                <p>Add your first car from the admin panel.</p>
+                            </div>
+                            <% } %>
+                </section>
 
-    <!-- ═══════════════════════ CTA BANNER ════════════════════════ -->
-    <div class="cta-banner container" id="cta-section">
-        <div class="cta-content">
-            <h2>Looking to Sell or Upgrade Your Car?</h2>
-            <p>Get an instant online valuation and same-day doorstep payment anywhere in India.</p>
-            <a href="tel:18002008285" class="btn-primary" id="cta-valuate-btn">📞 Get Instant Valuation</a>
-        </div>
-    </div>
+                <!-- ═══════════════════════ CTA BANNER ════════════════════════ -->
+                <section class="cta-section" id="cta-section">
+                    <div class="container cta-banner">
+                        <div class="cta-content">
+                            <p class="section-eyebrow">A BETTER WAY TO MOVE ON</p>
+                            <h2>Ready for your next car?</h2>
+                            <p>Talk with our team about selling, upgrading, or finding the right fit.</p>
+                            <a href="tel:18002008285" class="btn-primary" id="cta-valuate-btn">
+                                <span>Call AutoVault</span>
+                                <svg class="btn-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </section>
 
-</main>
+            </main>
 
-<%- include('partials/footer') %>
+            <%- include('partials/footer') %>

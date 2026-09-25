@@ -1,0 +1,58 @@
+<footer
+    class="fixed bottom-0 w-full z-30 bg-white dark:bg-[#0a0a0a] border-t border-zinc-200 dark:border-zinc-800 h-10 flex items-center px-4 sm:px-6">
+    <div class="flex items-center justify-between w-full max-w-[1920px] mx-auto">
+        <p class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">
+            &copy; <%= new Date().getFullYear() %> AutoVault India. All rights reserved.
+        </p>
+        <div class="flex items-center gap-4">
+            <span class="font-mono text-[10px] text-zinc-300 dark:text-zinc-600 hidden sm:block">Admin Panel v1.0</span>
+            <a href="/" title="Go to live site" class="text-zinc-400 hover:text-brand transition-colors"
+                aria-label="Live site">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            </a>
+        </div>
+    </div>
+</footer>
+
+<!-- Toast Container -->
+<div id="toastContainer"
+    class="fixed bottom-14 right-4 sm:right-6 z-[70] flex flex-col-reverse gap-2 pointer-events-none max-w-xs w-full">
+</div>
+
+<script src="/js/carAdmin.js"></script>
+
+<script>
+    var _html = document.documentElement;
+    var _moon = document.getElementById('iconMoon');
+    var _sun = document.getElementById('iconSun');
+
+    function applyTheme(dark) {
+        _html.classList.toggle('dark', dark);
+        if (_moon) _moon.classList.toggle('hidden', dark);
+        if (_sun) _sun.classList.toggle('hidden', !dark);
+    }
+
+    var _saved = localStorage.getItem('theme') || localStorage.getItem('av-admin-theme');
+    applyTheme(_saved === 'dark');
+
+    var _toggleBtn = document.getElementById('themeToggle');
+    if (_toggleBtn) {
+        _toggleBtn.addEventListener('click', function () {
+            var isDark = !_html.classList.contains('dark');
+            try {
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                localStorage.setItem('av-admin-theme', isDark ? 'dark' : 'light');
+            } catch (e) { }
+            applyTheme(isDark);
+        });
+    }
+
+    window.addEventListener('storage', function (e) {
+        if (e.key === 'theme' || e.key === 'av-admin-theme') {
+            applyTheme(e.newValue === 'dark');
+        }
+    });
+</script>
