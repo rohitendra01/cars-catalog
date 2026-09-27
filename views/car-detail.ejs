@@ -351,4 +351,181 @@
 </script>
 <script type="application/ld+json"><%- JSON.stringify(structuredData).replace(/</g, '\\u003c') %></script>
 
+<!-- Fullscreen Image Slider Overlay -->
+<style>
+/* Fullscreen Overlay Styles */
+.fs-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fs-backdrop {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    cursor: pointer;
+}
+.fs-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 100000;
+    transition: background 0.2s, transform 0.2s;
+}
+.fs-close:hover { 
+    background: rgba(255,255,255,0.25); 
+    transform: scale(1.05);
+}
+.fs-close svg { width: 24px; height: 24px; }
+
+.fs-content {
+    position: relative;
+    z-index: 100000;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.fs-content img {
+    max-width: 100vw;
+    max-height: 90vh;
+    object-fit: contain;
+    user-select: none;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.fs-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+.fs-nav:hover { 
+    background: rgba(255,255,255,0.25); 
+    transform: translateY(-50%) scale(1.05);
+}
+.fs-nav svg { width: 32px; height: 32px; }
+.fs-prev { left: -70px; }
+.fs-next { right: -70px; }
+
+@media (max-width: 992px) {
+    .fs-prev { left: 10px; background: rgba(0,0,0,0.5); }
+    .fs-next { right: 10px; background: rgba(0,0,0,0.5); }
+    .fs-close { top: 10px; right: 10px; background: rgba(0,0,0,0.5); }
+    .fs-content { max-width: 100%; max-height: 100%; }
+    .fs-content img { max-height: 100vh; border-radius: 0; box-shadow: none; }
+}
+
+/* Make main image clickable */
+#pdp-main-img {
+    cursor: zoom-in;
+    transition: transform 0.2s ease;
+}
+#pdp-main-img:hover {
+    transform: scale(1.01);
+}
+</style>
+
+<div id="fs-overlay" class="fs-overlay" style="display: none;">
+    <div class="fs-backdrop" onclick="closeFullscreen()"></div>
+    <button class="fs-close" onclick="closeFullscreen()" aria-label="Close fullscreen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
+    <div class="fs-content">
+        <button class="fs-nav fs-prev" onclick="prevFsImage(event)" aria-label="Previous image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+        <img id="fs-main-img" src="" alt="Fullscreen Image">
+        <button class="fs-nav fs-next" onclick="nextFsImage(event)" aria-label="Next image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const fsImages = <%- JSON.stringify(galleryImages && galleryImages.length > 0 ? galleryImages : [car.primaryImage]) %>;
+    const uniqueFsImages = [...new Set(fsImages.filter(Boolean))];
+    
+    let currentFsIndex = 0;
+    const fsOverlay = document.getElementById('fs-overlay');
+    const fsMainImg = document.getElementById('fs-main-img');
+    const pdpMainImg = document.getElementById('pdp-main-img');
+
+    if(uniqueFsImages.length > 0 && pdpMainImg) {
+        pdpMainImg.addEventListener('click', () => {
+            const currentSrc = pdpMainImg.getAttribute('src');
+            currentFsIndex = uniqueFsImages.indexOf(currentSrc);
+            if(currentFsIndex === -1) currentFsIndex = 0;
+            
+            fsMainImg.src = uniqueFsImages[currentFsIndex];
+            fsOverlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // prevent scrolling
+
+            const prevBtn = document.querySelector('.fs-prev');
+            const nextBtn = document.querySelector('.fs-next');
+            if(uniqueFsImages.length <= 1) {
+                if(prevBtn) prevBtn.style.display = 'none';
+                if(nextBtn) nextBtn.style.display = 'none';
+            } else {
+                if(prevBtn) prevBtn.style.display = 'flex';
+                if(nextBtn) nextBtn.style.display = 'flex';
+            }
+        });
+    }
+
+    window.closeFullscreen = function() {
+        fsOverlay.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    };
+
+    window.prevFsImage = function(e) {
+        if(e) e.stopPropagation();
+        if(uniqueFsImages.length <= 1) return;
+        currentFsIndex = (currentFsIndex - 1 + uniqueFsImages.length) % uniqueFsImages.length;
+        fsMainImg.src = uniqueFsImages[currentFsIndex];
+    };
+
+    window.nextFsImage = function(e) {
+        if(e) e.stopPropagation();
+        if(uniqueFsImages.length <= 1) return;
+        currentFsIndex = (currentFsIndex + 1) % uniqueFsImages.length;
+        fsMainImg.src = uniqueFsImages[currentFsIndex];
+    };
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (fsOverlay.style.display === 'flex') {
+            if (e.key === 'Escape') closeFullscreen();
+            else if (e.key === 'ArrowLeft') prevFsImage();
+            else if (e.key === 'ArrowRight') nextFsImage();
+        }
+    });
+});
+</script>
+
 <%- include('partials/footer') %>
