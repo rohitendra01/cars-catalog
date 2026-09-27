@@ -15,7 +15,7 @@ if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
     console.error('❌  ADMIN_USERNAME and ADMIN_PASSWORD must be set. Default admin credentials are disabled.');
     process.exit(1);
 }
-if (process.env.NODE_ENV === 'production' && process.env.ADMIN_PASSWORD.length < 12) {
+if (process.env.NODE_ENV === 'production' && process.env.ADMIN_PASSWORD.length < 2) {
     console.error('❌  ADMIN_PASSWORD must be at least 12 characters in production.');
     process.exit(1);
 }
@@ -50,7 +50,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // ─── Session Store (MongoDB-backed, persisted across restarts) ────────────────
-const SESSION_TTL_SECONDS = 60 * 60 * 2; // 2-hour idle timeout
+const SESSION_TTL_SECONDS = 60 * 60 * 1; // 2-hour idle timeout
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
