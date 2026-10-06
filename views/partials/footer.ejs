@@ -1,94 +1,157 @@
-<!-- Global Footer -->
-<footer class="site-footer">
-    <div class="container footer-grid">
-        <!-- Showroom Info -->
-        <div class="footer-brand">
-            <a href="/" class="logo brand-lockup" aria-label="The Auto Choice home">
-                <span class="brand-mark" aria-hidden="true">TAC</span>
-                <span class="brand-name">The Auto Choice</span>
-                <span class="country-badge">INDIA</span>
-            </a>
-            <p>Plot No. 43, Near Chirayu Hospital,<br>Ranital Chowk – Madan Mahal Station Road,<br>Wright Town, Jabalpur 482002<br>Madhya Pradesh</p>
-            <p style="margin-top: 1rem;"><a href="https://www.google.com/maps/dir/?api=1&destination=23.1661222%2C79.922788" target="_blank" rel="noopener noreferrer" style="color: var(--brand-strong); font-weight: 600; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">Get directions <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></p>
-        </div>
+<!-- ═══════════════════════════════════════════
+     FOOTER — redesigned dark editorial style
+══════════════════════════════════════════════ -->
+<footer class="rw-footer">
+  <div class="rw-wrap">
+    <div class="rw-footer__grid">
 
-        <!-- Cars Links -->
-        <div>
-            <h4>Cars</h4>
-            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
-                <li><a href="/inventory?body=SUV">SUVs</a></li>
-                <li><a href="/inventory?body=Hatchback">Hatchbacks</a></li>
-                <li><a href="/inventory?body=Sedan">Sedans</a></li>
-                <li><a href="/inventory?body=MUV">MUVs</a></li>
-                <li><a href="/inventory?seats=7">7+ seats</a></li>
-                <li><a href="/inventory?maxp=500000">Under ₹5 Lakh</a></li>
-            </ul>
-        </div>
+      <!-- Brand / Showroom info -->
+      <div>
+        <a href="/" class="rw-footer__brand" aria-label="The Auto Choice home">
+          <div class="rw-footer__mark" aria-hidden="true">TAC</div>
+          The Auto Choice
+        </a>
+        <p class="rw-footer__addr">
+          Plot No. 43, Near Chirayu Hospital,<br>
+          Ranital Chowk – Madan Mahal Station Road,<br>
+          Wright Town, Jabalpur 482002<br>
+          Madhya Pradesh
+        </p>
+        <a href="https://www.google.com/maps/dir/?api=1&destination=23.1661222%2C79.922788" class="rw-footer__dir"
+          target="_blank" rel="noopener noreferrer">
+          Get directions
+          <svg aria-hidden="true" focusable="false">
+            <use href="#ni-arrow-ne" />
+          </svg>
+        </a>
 
-        <!-- The Auto Choice Links -->
-        <div>
-            <h4>The Auto Choice</h4>
-            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
-                <li><a href="/sell-your-car">Sell or exchange</a></li>
-                <li><a href="/finance">Finance</a></li>
-                <li><a href="/about">The showroom</a></li>
-                <li><a href="/visit">Visit</a></li>
-                <li><a href="/test-drive">Book a test drive</a></li>
-                <li><a href="/compare">Compare cars</a></li>
-            </ul>
+        <!-- Social links -->
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <a href="https://wa.me/919516486666" class="rw-btn rw-btn--wa rw-btn--sm" target="_blank" rel="noopener"
+            aria-label="WhatsApp us">
+            <svg aria-hidden="true" focusable="false">
+              <use href="#ni-wa" />
+            </svg>
+            WhatsApp
+          </a>
+          <a href="tel:+919516486666" class="rw-btn rw-btn--ghost rw-btn--sm" aria-label="Call us">
+            <svg aria-hidden="true" focusable="false">
+              <use href="#ni-phone" />
+            </svg>
+            Call
+          </a>
         </div>
+      </div>
 
-        <!-- Talk to us -->
-        <div>
-            <h4>Talk to us</h4>
-            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
-                <li><a href="tel:+919516486666">+91 95164 86666</a></li>
-                <li><a href="tel:+918602228333">+91 86022 28333</a></li>
-                <li><a href="mailto:autochoicecar@gmail.com">autochoicecar@gmail.com</a></li>
-                <li style="color: var(--muted); margin-top: 8px; font-size: 0.9em;">Closed now · opens tomorrow 11 am</li>
-            </ul>
-        </div>
+      <!-- Cars links -->
+      <div class="rw-footer__col">
+        <h4>Cars</h4>
+        <ul class="rw-footer__list">
+          <li><a href="/inventory?bodyType=SUV">SUVs</a></li>
+          <li><a href="/inventory?bodyType=Hatchback">Hatchbacks</a></li>
+          <li><a href="/inventory?bodyType=Sedan">Sedans</a></li>
+          <li><a href="/inventory?bodyType=MUV">MUVs</a></li>
+          <li><a href="/inventory?seats=7">7+ seats</a></li>
+          <li><a href="/inventory?maxPrice=500000">Under ₹5 Lakh</a></li>
+        </ul>
+      </div>
+
+      <!-- The Auto Choice links -->
+      <div class="rw-footer__col">
+        <h4>The Auto Choice</h4>
+        <ul class="rw-footer__list">
+          <li><a href="/inventory">All cars for sale</a></li>
+          <li><a href="/sell-your-car">Sell or exchange</a></li>
+          <li><a href="/finance">Finance</a></li>
+          <li><a href="/about">The showroom</a></li>
+          <li><a href="/visit">Visit us</a></li>
+          <li><a href="/test-drive">Book a test drive</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact -->
+      <div class="rw-footer__col">
+        <h4>Talk to us</h4>
+        <ul class="rw-footer__list">
+          <li>
+            <a href="tel:+919516486666">+91 95164 86666</a>
+          </li>
+          <li>
+            <a href="tel:+918602228333">+91 86022 28333</a>
+          </li>
+          <li>
+            <a href="mailto:autochoicecar@gmail.com">autochoicecar@gmail.com</a>
+          </li>
+          <li style="padding-top:4px;">
+            <span class="rw-footer__status" id="footer-store-hours">
+              Open every day · 11 am – 9 pm
+            </span>
+          </li>
+        </ul>
+      </div>
+
     </div>
 
-    <div class="footer-bottom container">
-        <p>&copy; <%= new Date().getFullYear() %> The Auto Choice Pvt. Ltd. All rights reserved.</p>
-        <div class="footer-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="/sitemap.xml" target="_blank">Sitemap</a>
-            <div class="footer-controls" role="group" aria-label="Site settings and controls">
-                <a href="/admin" class="footer-icon-btn" aria-label="Admin Portal" title="Admin Portal">
-                    <svg class="footer-control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                </a>
-                <button id="themeToggleFooter" class="footer-icon-btn" type="button" aria-label="Toggle theme"
-                    title="Toggle theme">
-                    <svg id="footerIconMoon" class="footer-control-icon" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                    <svg id="footerIconSun" class="footer-control-icon hidden" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+    <!-- Bottom bar -->
+    <div class="rw-footer__bottom">
+      <p class="rw-footer__copy">
+        &copy; <%= new Date().getFullYear() %> The Auto Choice Pvt. Ltd. All rights reserved.
+      </p>
+      <div class="rw-footer__links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="/sitemap.xml" target="_blank">Sitemap</a>
+        <a href="/admin" aria-label="Admin portal" title="Admin portal" style="color:var(--ink-faint);">
+          <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;"
+            viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </a>
+        <!-- Theme toggle -->
+        <button id="themeToggleFooter" class="rw-btn rw-btn--sm" type="button" aria-label="Toggle theme"
+          style="border:none;padding:0.4rem 0.6rem;min-height:auto;color:var(--ink-faint);background:transparent;">
+          <svg id="footerIconMoon" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;"
+            viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+          <svg id="footerIconSun"
+            style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;display:none;"
+            viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        </button>
+      </div>
     </div>
+  </div>
 </footer>
 
-<!-- Toast Notification -->
-<div class="toast" id="toast"></div>
+<!-- Toast notification (used by shortlist JS) -->
+<div class="rw-toast" id="toast"></div>
+
+<script>
+  // Footer store hours
+  (function () {
+    var el = document.getElementById('footer-store-hours');
+    if (!el) return;
+    try {
+      var h = new Date().getHours();
+      if (h >= 11 && h < 21) {
+        el.textContent = 'Open now · closes 9 pm';
+      } else if (h < 11) {
+        el.textContent = 'Closed · opens today 11 am';
+      } else {
+        el.textContent = 'Closed · opens tomorrow 11 am';
+      }
+    } catch (e) { }
+  })();
+
+</script>
 
 <script src="/js/main.js"></script>
-
 </body>
 
 </html>

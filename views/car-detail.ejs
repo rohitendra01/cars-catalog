@@ -6,8 +6,12 @@
     const referenceLabel = car.referenceId || (car._id ? `AC${String(car._id).slice(-8).toUpperCase()}` : '—');
     const registrationLabel = car.registrationState || car.rtoLocation || car.rto || '';
     const galleryImages = (car.images || []).map(image => typeof image === 'string' ? image : image.url).filter(Boolean);
-    const lakhPrice = (Number(car.price || 0) / 100000).toFixed(2);
-    const rupeePrice = Number(car.price || 0).toLocaleString('en-IN');
+    const currentPrice = Number(car.croPricing && car.croPricing.current_price !== undefined ? car.croPricing.current_price : car.price || 0);
+    const savingsAmount = Number(car.croPricing && car.croPricing.savings_amount || 0);
+    const anchorPrice = Number(car.croPricing && car.croPricing.anchor_price || car.market_value || car.price || 0);
+    const anchorLabel = car.croPricing && car.croPricing.anchor_label || 'Market Value';
+    const lakhPrice = (currentPrice / 100000).toFixed(2);
+    const rupeePrice = currentPrice.toLocaleString('en-IN');
     const manufactureDate = car.manufacturedDate && !Number.isNaN(new Date(car.manufacturedDate).getTime())
         ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(car.manufacturedDate))
         : '';
@@ -59,9 +63,9 @@
         vehicleTransmission: car.transmission,
         offers: {
             '@type': 'Offer',
-            price: Number(car.price),
+            price: currentPrice,
             priceCurrency: 'INR',
-            availability: car.status === 'Sold' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+            availability: car.status === 'Sold' || car.reservation_status === 'Reserved' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
             url: typeof canonicalUrl !== 'undefined' ? canonicalUrl : `/inventory/${car.slug || car._id}`
         }
     };
@@ -73,7 +77,7 @@
     ogImage: galleryImages[0] || car.primaryImage,
     pageStylesheet: '/css/car-detail.css'
 }) %>
-<body>
+<body data-vehicle-id="<%= car._id %>">
 <%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
 
 <main class="vehicle-detail-page" id="main">
@@ -107,9 +111,27 @@
                 </p>
             </div>
             <div class="vehicle-heading-price" aria-label="Vehicle price">
+                <% if (savingsAmount > 0) { %>
+                <span class="cro-market-price-label"><%= anchorLabel %></span>
+                <span class="cro-market-price">₹<%= (anchorPrice / 100000).toFixed(2) %> Lakh</span>
+                <span class="cro-today-label">Today's Exclusive Price</span>
+                <% } else { %>
                 <span class="price-caption">Asking price</span>
+                <% } %>
                 <strong>₹<%= lakhPrice %> <small>Lakh</small></strong>
                 <span class="exact-price">₹<%= rupeePrice %></span>
+                <% if (savingsAmount > 0) { %>
+                <div class="cro-savings-badge">↓ ₹<%= savingsAmount.toLocaleString('en-IN') %> Below Market Value</div>
+                <% } %>
+                <% if (car.discount_tag) { %>
+                <div class="cro-deal-badge" style="margin-top: 6px;">
+                    <% if (car.discount_tag && !isNaN(Number(car.discount_tag))) { %>
+                        ↓ ₹<%= Number(car.discount_tag).toLocaleString('en-IN') %> Discount
+                    <% } else { %>
+                        <%= car.discount_tag || 'Featured Deal' %>
+                    <% } %>
+                </div>
+                <% } %>
             </div>
         </header>
 
@@ -210,12 +232,20 @@
                     </div>
                     <p>Leave your details and our team will help arrange a visit.</p>
                     <form class="test-drive-form" onsubmit="handleTestDrive(event)">
-                        <label for="td-name">Your name</label>
-                        <input type="text" id="td-name" name="name" placeholder="Full name" autocomplete="name" required>
-                        <label for="td-phone">Mobile number</label>
-                        <input type="tel" id="td-phone" name="phone" placeholder="+91 mobile number" autocomplete="tel" required>
-                        <label for="td-city">City or pincode</label>
-                        <input type="text" id="td-city" name="city" placeholder="City / Pincode" autocomplete="postal-code" required>
+                        <input type="hidden" id="td-inquiry-type" value="Schedule Visit">
+                        <input type="hidden" id="td-message" value="">
+                        <div class="form-group">
+                            <label for="td-name">Your name</label>
+                            <input type="text" id="td-name" name="name" placeholder="Full name" autocomplete="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="td-phone">Mobile number</label>
+                            <input type="tel" id="td-phone" name="phone" placeholder="+91 mobile number" autocomplete="tel" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="td-city">City or pincode</label>
+                            <input type="text" id="td-city" name="city" placeholder="City / Pincode" autocomplete="postal-code" required>
+                        </div>
                         <button class="button button-primary" type="submit" id="schedule-btn">
                             <svg class="test-drive-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M7 3v3M17 3v3M4 9h16" />
@@ -229,34 +259,120 @@
             </div>
 
             <aside class="vehicle-sidebar" aria-label="Price and enquiry">
-                <div class="vehicle-action-card card-surface">
-                    <div class="sidebar-status <%= car.status === 'Sold' ? 'is-sold' : '' %>"><span></span><%= car.status === 'Sold' ? 'Recently sold' : 'Enquire about this car' %></div>
-                    <div class="sidebar-price">
-                        <span>Price</span>
-                        <strong>₹<%= lakhPrice %> <small>Lakh</small></strong>
-                        <span class="exact-price">₹<%= rupeePrice %></span>
+                <div class="vehicle-action-card card-surface" style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Top section: Status and Price -->
+                    <div>
+                        <div class="sidebar-status <%= car.status === 'Sold' ? 'is-sold' : car.reservation_status === 'Reserved' ? 'is-reserved' : '' %>" style="padding-bottom: 12px; border-bottom: 1px solid var(--detail-line); margin-bottom: 12px;">
+                            <span></span><%= car.status === 'Sold' ? 'Recently sold' : car.reservation_status === 'Reserved' ? 'Currently reserved' : 'Enquire about this car' %>
+                        </div>
+                        <div class="sidebar-price" style="padding: 0;">
+                            <% if (savingsAmount > 0) { %>
+                            <span class="cro-market-price-label"><%= anchorLabel %></span>
+                            <span class="cro-market-price">₹<%= anchorPrice.toLocaleString('en-IN') %></span>
+                            <span class="cro-today-label">Today's Exclusive Price</span>
+                            <% } else { %>
+                            <span>Price</span>
+                            <% } %>
+                            <strong>₹<%= lakhPrice %> <small>Lakh</small></strong>
+                            <span class="exact-price">₹<%= rupeePrice %></span>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                                <% if (savingsAmount > 0) { %>
+                                <div class="cro-savings-badge" style="margin-top: 0; width: fit-content;">↓ ₹<%= savingsAmount.toLocaleString('en-IN') %> Below Market</div>
+                                <% } %>
+                                <% if (car.discount_tag) { %>
+                                <div class="cro-deal-badge" style="width: fit-content; margin-top: 0;">
+                                    <% if (!isNaN(Number(car.discount_tag))) { %>
+                                        ↓ ₹<%= Number(car.discount_tag).toLocaleString('en-IN') %> Discount
+                                    <% } else { %>
+                                        <%= car.discount_tag %>
+                                    <% } %>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
                     </div>
-                    <p class="sidebar-reference">Quote reference <strong><%= referenceLabel %></strong> when you call.</p>
-                    <div class="sidebar-actions">
-                        <a class="button button-whatsapp" href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer" id="whatsapp-btn">
-                            <span aria-hidden="true">◉</span> WhatsApp
+
+                    <!-- Middle section: Deal Info (EMI, Reserve) -->
+                    <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--detail-line);">
+                        <%
+                            const emiAmount = Number(car.croPricing && car.croPricing.monthly_estimate || 0);
+                        %>
+                        <% if (emiAmount > 0) { %>
+                        <div class="cro-emi-teaser" style="margin-top: 0;">
+                            As low as <strong>₹<%= emiAmount.toLocaleString('en-IN') %>/mo</strong> with zero down
+                            <button class="cro-calc-link" type="button" onclick="document.querySelector('.finance-calc').open=true;document.querySelector('.finance-calc').scrollIntoView({behavior:'smooth'})">Calculate Financing →</button>
+                        </div>
+                        <% } %>
+                        
+                        <% if (car.status !== 'Sold' && car.reservation_status !== 'Reserved') { %>
+                        <button class="cro-reserve-btn" type="button" data-reserve-button onclick="handleReservation()">
+                            🔒 Request to Lock In This Deal
+                            <span class="cro-reserve-sub">₹9,999 refundable deposit · collected only after confirmation</span>
+                        </button>
+                        <% } else if (car.reservation_status === 'Reserved') { %>
+                        <p class="cro-reservation-state" role="status" style="margin-top: 0;">This vehicle is currently reserved.</p>
+                        <% } %>
+                    </div>
+
+                    <!-- Bottom section: Actions -->
+                    <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--detail-line);">
+                        <p class="sidebar-reference" style="padding: 0; margin: 0; border: none; text-align: center;">Quote reference <strong><%= referenceLabel %></strong> when you call.</p>
+                        
+                        <div class="sidebar-actions">
+                            <a class="button button-drive" href="#test-drive-form"><span aria-hidden="true">↗</span> Book a test drive</a>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px;">
+                                <a class="button button-minimal" href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer" id="whatsapp-btn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp
+                                </a>
+                                <a class="button button-minimal" href="tel:+919516486666">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> Call us
+                                </a>
+                            </div>
+                        </div>
+
+                        <button class="shortlist-button" type="button" data-car-id="<%= car._id %>" data-full-label="true" onclick="toggleShortlist('<%= car._id %>', this)" aria-label="Save <%= vehicleName %> to shortlist" style="margin-top: 0;">
+                            <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            <span class="save-text">Save to shortlist</span>
+                        </button>
+                    </div>
+
+                    <!-- Trust and Info Section -->
+                    <div style="display: flex; flex-direction: column; gap: 16px; padding-top: 20px; border-top: 1px solid var(--detail-line);">
+                        <div class="cro-trust-strip" style="margin-top: 0; padding-top: 0; border-top: none; gap: 12px; align-items: start;">
+                            <div class="cro-trust-item" style="flex-direction: column; text-align: center; gap: 8px; padding: 0;">
+                                <span class="cro-trust-icon" style="color: var(--detail-ink); display: flex;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                                </span>
+                                <span>150-Point<br>Inspection</span>
+                            </div>
+                            <div class="cro-trust-item" style="flex-direction: column; text-align: center; gap: 8px; padding: 0;">
+                                <span class="cro-trust-icon" style="color: var(--detail-ink); display: flex;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                </span>
+                                <span>7-Day<br>Money-Back</span>
+                            </div>
+                            <div class="cro-trust-item" style="flex-direction: column; text-align: center; gap: 8px; padding: 0;">
+                                <span class="cro-trust-icon" style="color: var(--detail-ink); display: flex;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                </span>
+                                <span>1-Year<br>Warranty</span>
+                            </div>
+                        </div>
+                        <a class="cro-history-badge" href="#test-drive-form" onclick="requestVehicleHistory(event)" style="margin-top: 4px; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            Request a Free Vehicle History Report
                         </a>
-                        <a class="button button-call" href="tel:+919516486666"><span aria-hidden="true">☎</span> Call us</a>
-                        <a class="button button-drive" href="#test-drive-form"><span aria-hidden="true">↗</span> Book a test drive</a>
+                        <p class="showroom-note" style="text-align: center; margin-top: 0;">The Auto Choice · Wright Town, Jabalpur</p>
                     </div>
-                    <button class="shortlist-button" type="button" data-car-id="<%= car._id %>" data-full-label="true" onclick="toggleShortlist('<%= car._id %>', this)" aria-label="Save <%= vehicleName %> to shortlist">
-                        <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                        <span class="save-text">Save to shortlist</span>
-                    </button>
-                    <p class="showroom-note">The Auto Choice · Wright Town, Jabalpur</p>
                 </div>
                 <details class="finance-calc card-surface">
                     <summary>Plan a down payment</summary>
                     <div class="finance-calc-content">
                         <label for="calc-down">Down payment (₹)</label>
-                        <input type="number" id="calc-down" value="<%= Math.min(200000, Math.round(Number(car.price || 0) * 0.1)) %>" step="25000" min="0" max="<%= car.price %>" oninput="calculateEMI()">
+                        <input type="number" id="calc-down" value="<%= Math.min(200000, Math.round(currentPrice * 0.1)) %>" step="25000" min="0" max="<%= currentPrice %>" oninput="calculateEMI()">
                         <label for="calc-term">Loan tenure</label>
                         <select id="calc-term" onchange="calculateEMI()">
                             <option value="36">3 years</option>
@@ -301,7 +417,7 @@
                                     <h3><%= similarTitle %></h3>
                                     <% if (similarCar.variant) { %><p class="similar-car-variant"><%= similarCar.variant %></p><% } %>
                                     <p class="similar-car-specs"><%= Number(similarCar.mileage || 0).toLocaleString('en-IN') %> km <span>·</span> <%= similarCar.fuelType || 'Fuel details on request' %> <span>·</span> <%= similarCar.transmission || 'Transmission details on request' %></p>
-                                    <strong class="similar-car-price"><%= formatPrice(similarCar.price) %></strong>
+                                    <strong class="similar-car-price"><%= formatPrice(similarCar.croPricing.current_price) %></strong>
                                 </div>
                             </a>
                             <div class="similar-car-actions">
@@ -325,13 +441,19 @@
 
     <nav class="mobile-vehicle-actions" aria-label="Quick actions">
         <div class="mobile-price"><strong>₹<%= lakhPrice %> Lakh</strong><span><%= car.year %> · <%= car.model %></span></div>
-        <a href="tel:+919516486666" aria-label="Call The Auto Choice">Call</a>
-        <a class="mobile-whatsapp" href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        <a href="tel:+919516486666" aria-label="Call The Auto Choice">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 20px; height: 20px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            Call
+        </a>
+        <a href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 20px; height: 20px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            WhatsApp
+        </a>
     </nav>
 </main>
 
 <script>
-    const CAR_PRICE = <%= Number(car.price || 0) %>;
+    const CAR_PRICE = <%= currentPrice %>;
     function selectVehiclePhoto(button) {
         const thumbnails = Array.from(document.querySelectorAll('.gallery-thumbnails .thumbnail'));
         const index = thumbnails.indexOf(button);

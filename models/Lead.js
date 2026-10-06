@@ -7,7 +7,7 @@ const leadSchema = new mongoose.Schema({
     email: { type: String, trim: true },
     inquiryType: {
         type: String,
-        enum: ['Request Price', 'Request Details', 'Schedule Visit'],
+        enum: ['Request Price', 'Request Details', 'Schedule Visit', 'Reserve Vehicle', 'Unlock Price'],
         default: 'Request Details'
     },
     status: {

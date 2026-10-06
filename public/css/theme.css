@@ -5,6 +5,7 @@
     --surface-soft: #eaf0ec;
     --ink: #17231d;
     --muted: #65736b;
+    --placeholder: #65736b;
     --line: #d8e1db;
     --brand: #087264;
     --brand-strong: #075e53;
@@ -45,6 +46,7 @@ html.dark {
     --surface-soft: #202e27;
     --ink: #edf3ef;
     --muted: #9aada3;
+    --placeholder: #9aada3;
     --line: #2d3e35;
     --brand: #2ec4a0;
     --brand-strong: #54d8b6;
@@ -308,7 +310,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-    color: #839188;
+    color: var(--placeholder);
 }
 
 input:focus,
@@ -613,7 +615,8 @@ select option {
 
 .category-card {
     position: relative;
-    height: 380px;
+    min-height: 380px;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -1305,6 +1308,33 @@ footer.site-footer {
     color: var(--ink);
 }
 
+.footer-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-directions {
+    margin-top: 1rem;
+}
+
+.footer-directions-link {
+    color: var(--brand-strong) !important;
+    font-weight: 600;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color var(--transition);
+}
+
+.footer-directions-link:hover {
+    color: var(--brand) !important;
+}
+
 .trust-badges li::marker {
     color: var(--brand);
 }
@@ -1430,8 +1460,21 @@ footer.site-footer {
 }
 
 .login-card input {
+    width: 100%;
+    padding: 12px 16px;
     background: var(--surface);
     color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.login-card input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
 }
 
 .error-msg {
@@ -1712,6 +1755,13 @@ html.dark .admin-shell .dark\:text-zinc-500 {
 html.dark .admin-shell .dark\:border-zinc-700,
 html.dark .admin-shell .dark\:border-zinc-800 {
     border-color: var(--line) !important;
+}
+
+/* Keep admin form hints readable against both input palettes. */
+html .admin-shell input::placeholder,
+html .admin-shell textarea::placeholder {
+    color: var(--placeholder) !important;
+    opacity: 1;
 }
 
 /* ── Smooth Theme Transitions ─────────────────────────────────── */
@@ -2149,17 +2199,27 @@ html.dark .login-back:hover {
     }
 
     .category-card {
-        height: 350px;
+        min-height: 350px;
+        height: auto;
     }
 
     .inventory-layout {
-        grid-template-columns: 220px minmax(0, 1fr);
-        gap: 20px;
+        grid-template-columns: 200px minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .sidebar-filters {
+        padding: 14px;
     }
 
     .pdp-layout {
         grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
         gap: 22px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1.5fr 1fr;
+        gap: 32px 28px;
     }
 }
 
@@ -2257,8 +2317,8 @@ html.dark .login-back:hover {
     }
 
     .category-card {
-        height: 305px;
-        min-height: unset;
+        min-height: 305px;
+        height: auto;
         padding: 0;
         border-radius: 12px;
     }
@@ -2461,7 +2521,8 @@ html.dark .login-back:hover {
     }
 
     .category-card {
-        height: 270px;
+        min-height: 270px;
+        height: auto;
     }
 
     .category-card-content {

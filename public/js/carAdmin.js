@@ -435,6 +435,10 @@ function populateForm(car) {
     if (el('fFeatTouchscreen')) el('fFeatTouchscreen').checked = !!feats.touchscreen;
     if (el('fFeatCamera')) el('fFeatCamera').checked = !!feats.reverseCamera;
 
+    if (el('fMarketValue')) el('fMarketValue').value = car.market_value || '';
+    if (el('fDiscountTag')) el('fDiscountTag').value = car.discount_tag || '';
+    if (el('fReservationStatus')) el('fReservationStatus').value = car.reservation_status || '';
+
     // Show live SEO URL preview
     var slugBox = el('liveSlugContainer');
     var slugLink = el('liveSlugLink');
@@ -575,6 +579,9 @@ if (_carForm) {
                 description: el('fDescription') ? el('fDescription').value.trim() : '',
                 equipment: el('fEquipment') ? el('fEquipment').value.trim() : '',
                 isFeatured: el('fFeatured') && el('fFeatured').checked ? 'true' : 'false',
+                market_value: el('fMarketValue') ? el('fMarketValue').value : '',
+                discount_tag: el('fDiscountTag') ? el('fDiscountTag').value.trim() : '',
+                reservation_status: el('fReservationStatus') ? el('fReservationStatus').value : '',
                 featSunroof: el('fFeatSunroof') && el('fFeatSunroof').checked ? 'true' : 'false',
                 featAlloyWheels: el('fFeatAlloys') && el('fFeatAlloys').checked ? 'true' : 'false',
                 featTouchscreen: el('fFeatTouchscreen') && el('fFeatTouchscreen').checked ? 'true' : 'false',

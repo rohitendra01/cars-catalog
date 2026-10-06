@@ -6,6 +6,7 @@ const {
     getHomePage,
     getInventory,
     getCarDetail,
+    getCarPricing,
     getSitemap,
     getRobotsTxt,
     postLead,
@@ -39,6 +40,8 @@ router.get('/robots.txt', getRobotsTxt);
 
 // Test Drive & Customer Lead API
 router.post('/api/leads', postLead);
+
+router.get('/api/cars/:id/pricing', getCarPricing);
 
 // ─── Legacy Admin Form Routes (kept for backward compatibility) ────────────────
 router.get('/admin/add', requireAdmin, getAddCarForm);

@@ -67,6 +67,14 @@ const carSchema = new mongoose.Schema({
         index: true
     },
     isFeatured: { type: Boolean, default: false },
+    // ── CRO Fields ─────────────────────────────────────────────
+    market_value: { type: Number, default: 0, min: 0 },           // Anchor/strikethrough price
+    discount_tag: { type: String, default: '', trim: true },       // e.g. "Exceptional Deal"
+    reservation_status: {
+        type: String,
+        enum: ['', 'Available', 'Reserved'],
+        default: ''
+    },
     images: [imageSchema]
 }, {
     timestamps: true

@@ -111,7 +111,7 @@ html.dark .vehicle-detail-page .card-surface {
 .vehicle-heading h1 {
     margin: 0;
     color: var(--detail-ink);
-    font-family: 'Manrope', 'DM Sans', sans-serif;
+    font-family: var(--font-display, 'Manrope', 'DM Sans', sans-serif);
     font-size: clamp(1.75rem, 3vw, 2.55rem);
     font-weight: 800;
     letter-spacing: -0.045em;
@@ -131,7 +131,7 @@ html.dark .vehicle-detail-page .card-surface {
 .vehicle-subline span + span::before {
     content: '·';
     margin-right: 13px;
-    color: #a6b2aa;
+    color: var(--detail-muted);
 }
 
 .vehicle-heading-price {
@@ -157,7 +157,7 @@ html.dark .vehicle-detail-page .card-surface {
 .sidebar-price > strong {
     display: block;
     color: var(--detail-ink);
-    font-family: 'Manrope', 'DM Sans', sans-serif;
+    font-family: var(--font-display, 'Manrope', 'DM Sans', sans-serif);
     font-size: 1.8rem;
     font-weight: 800;
     letter-spacing: -0.045em;
@@ -345,7 +345,7 @@ html.dark .gallery-empty {
 .section-heading h2 {
     margin: 0;
     color: var(--detail-ink);
-    font-family: 'Manrope', 'DM Sans', sans-serif;
+    font-family: var(--font-display, 'Manrope', 'DM Sans', sans-serif);
     font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: -0.025em;
@@ -489,7 +489,8 @@ html.dark .gallery-empty {
     box-shadow: 0 0 0 4px rgba(46, 174, 113, 0.12);
 }
 
-.sidebar-status.is-sold > span {
+.sidebar-status.is-sold > span,
+.sidebar-status.is-reserved > span {
     background: #d1875e;
     box-shadow: 0 0 0 4px rgba(209, 135, 94, 0.12);
 }
@@ -550,16 +551,7 @@ html.dark .gallery-empty {
     outline-offset: 2px;
 }
 
-.button-whatsapp {
-    color: #fff;
-    background: #168454;
-}
-
-.button-whatsapp:hover {
-    background: #0f7045;
-}
-
-.button-call {
+.button-minimal {
     border-color: var(--detail-line) !important;
     color: var(--detail-ink);
     background: var(--detail-surface);
@@ -627,6 +619,21 @@ html.dark .button-primary {
     background: #fff4f4;
 }
 
+html.dark .shortlist-button .save-icon,
+html.dark .similar-save-button .save-icon {
+    color: #ff9da4;
+}
+
+html.dark .shortlist-button:hover {
+    border-color: #684148;
+    color: #ff9da4;
+    background: #382326;
+}
+
+html.dark .shortlist-button:hover .save-icon,
+html.dark .similar-save-button:hover .save-icon {
+    color: #ff9da4;
+}
 .shortlist-button.saved .save-icon,
 .similar-save-button.saved .save-icon {
     fill: currentColor;
@@ -722,7 +729,7 @@ html.dark .similar-save-button.saved .save-icon {
 
 .finance-estimate strong {
     color: var(--detail-accent);
-    font-family: 'Manrope', 'DM Sans', sans-serif;
+    font-family: var(--font-display, 'Manrope', 'DM Sans', sans-serif);
     font-size: 1.7rem;
     font-weight: 800;
 }
@@ -746,9 +753,13 @@ html.dark .similar-save-button.saved .save-icon {
     margin-top: 17px;
 }
 
+.test-drive-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
 .test-drive-form label {
-    grid-column: 1 / -1;
-    margin-top: 4px;
+    margin-bottom: 6px;
     color: var(--detail-muted);
     font-size: 0.74rem;
     font-weight: 750;
@@ -767,12 +778,15 @@ html.dark .similar-save-button.saved .save-icon {
 }
 
 .test-drive-form input::placeholder {
-    color: #9aa8a0;
+    color: var(--detail-muted);
 }
 
 .test-drive-form .button {
     grid-column: 1 / -1;
-    margin-top: 3px;
+    margin-top: 10px;
+    justify-self: start;
+    padding-left: 32px;
+    padding-right: 32px;
 }
 
 .test-drive-form .button-primary {
@@ -841,7 +855,7 @@ html.dark .test-drive-form .button-primary:hover {
 .similar-cars-heading h2 {
     margin: 0;
     color: var(--detail-ink);
-    font-family: 'Manrope', 'DM Sans', sans-serif;
+    font-family: var(--font-display, 'Manrope', 'DM Sans', sans-serif);
     font-size: 1.55rem;
     font-weight: 800;
     letter-spacing: -0.035em;
@@ -975,7 +989,7 @@ html.dark .test-drive-form .button-primary:hover {
     overflow: hidden;
     margin: 5px 0 0;
     color: var(--detail-ink);
-    font-family: 'Manrope', 'DM Sans', sans-serif;
+    font-family: var(--font-display, 'Manrope', 'DM Sans', sans-serif);
     font-size: 0.9rem;
     font-weight: 800;
     line-height: 1.35;
@@ -1005,13 +1019,13 @@ html.dark .test-drive-form .button-primary:hover {
 
 .similar-car-specs span {
     padding: 0 2px;
-    color: #a5b0a8;
+    color: var(--detail-muted);
 }
 
 .similar-car-price {
     margin-top: auto;
     color: var(--detail-ink);
-    font-family: 'Manrope', 'DM Sans', sans-serif;
+    font-family: var(--font-display, 'Manrope', 'DM Sans', sans-serif);
     font-size: 1.03rem;
     font-weight: 850;
 }
@@ -1171,6 +1185,18 @@ html.dark .similar-save-button.saved {
         grid-row: 1;
     }
 
+    .quick-overview {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .quick-item:nth-child(3) {
+        border-right: 0;
+    }
+
+    .quick-item:nth-child(4) {
+        border-right: 1px solid var(--detail-line);
+    }
+
     .vehicle-action-card {
         padding: 17px;
     }
@@ -1194,8 +1220,6 @@ html.dark .similar-save-button.saved {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .test-drive-form input,
-    .test-drive-form label:first-of-type,
     .test-drive-form .button {
         grid-column: 1 / -1;
     }
@@ -1252,10 +1276,6 @@ html.dark .similar-save-button.saved {
         font-weight: 800;
     }
 
-    .mobile-vehicle-actions > .mobile-whatsapp {
-        color: #fff;
-        background: #168454;
-    }
 }
 
 @media (max-width: 520px) {
@@ -1420,10 +1440,9 @@ html.dark .similar-save-button.saved {
         grid-template-columns: 1fr;
     }
 
-    .test-drive-form label,
-    .test-drive-form input,
     .test-drive-form .button {
         grid-column: 1 / -1;
+        justify-self: stretch;
     }
 
     .mobile-vehicle-actions {

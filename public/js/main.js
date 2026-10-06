@@ -180,8 +180,11 @@ function calculateEMI() {
         return;
     }
 
-    const monthlyRate = 0.09 / 12;               // 9% annual
-    const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, months))
+    const aprEl = document.getElementById('cro-apr-rate');
+    const apr = aprEl ? (Number.isFinite(parseFloat(aprEl.value)) ? parseFloat(aprEl.value) : 9) : 9;
+    const monthlyRate = apr / 100 / 12;
+    const emi = monthlyRate === 0 ? principal / months :
+        (principal * monthlyRate * Math.pow(1 + monthlyRate, months))
         / (Math.pow(1 + monthlyRate, months) - 1);
 
     resEl.textContent = new Intl.NumberFormat('en-IN', {
@@ -281,7 +284,7 @@ async function handleTestDrive(e) {
     const name = document.getElementById('td-name')?.value.trim();
     const phone = document.getElementById('td-phone')?.value.trim();
     const city = document.getElementById('td-city')?.value.trim();
-    const carId = document.querySelector('[data-car-id]')?.getAttribute('data-car-id');
+    const carId = document.body.dataset.vehicleId;
     const submitBtn = document.getElementById('schedule-btn');
     const submitBtnLabel = submitBtn?.querySelector('.test-drive-button-label');
 
@@ -294,26 +297,29 @@ async function handleTestDrive(e) {
     }
 
     try {
-        await fetch('/api/leads', {
+        const response = await fetch('/api/leads', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
                 customerName: name,
                 phone: phone,
-                inquiryType: 'Schedule Visit',
-                message: `City / Pincode: ${city}`,
+                inquiryType: document.getElementById('td-inquiry-type')?.value || 'Schedule Visit',
+                message: [document.getElementById('td-message')?.value, `City / Pincode: ${city}`].filter(Boolean).join(' · '),
                 carId: carId || undefined
             })
         });
-        showToast(`Test drive booked for ${name}! We'll call you at ${phone}.`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not submit your request.');
+        showToast('Your request has been sent. The dealership will contact you shortly.');
         e.target.reset();
     } catch (err) {
-        showToast(`Test drive booked for ${name}! We'll call you at ${phone}.`);
-        e.target.reset();
+        showToast(err.message || 'Could not submit your request. Please try again.');
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
-            if (submitBtnLabel) submitBtnLabel.textContent = 'Request a test drive';
+            if (submitBtnLabel) submitBtnLabel.textContent = document.getElementById('td-inquiry-type')?.value === 'Request Details'
+                ? 'Request the free report'
+                : 'Request a test drive';
             else submitBtn.textContent = 'Schedule Test Drive';
         }
     }
@@ -363,11 +369,17 @@ function applySiteTheme(dark, animate = false) {
     const sunIcons = document.querySelectorAll('#footerIconSun, #iconSun');
 
     moonIcons.forEach(icon => {
-        if (icon) icon.classList.toggle('hidden', dark);
+        if (icon) {
+            icon.classList.toggle('hidden', dark);
+            icon.style.display = dark ? 'none' : 'block';
+        }
     });
 
     sunIcons.forEach(icon => {
-        if (icon) icon.classList.toggle('hidden', !dark);
+        if (icon) {
+            icon.classList.toggle('hidden', !dark);
+            icon.style.display = dark ? 'block' : 'none';
+        }
     });
 
     // Update buttons' aria-labels and titles
@@ -379,6 +391,9 @@ function applySiteTheme(dark, animate = false) {
             btn.setAttribute('title', label);
         }
     });
+
+    const toggleText = document.getElementById('themeToggleText');
+    if (toggleText) toggleText.textContent = dark ? 'Light Mode' : 'Dark Mode';
 
     if (animate) {
         setTimeout(() => {
@@ -453,4 +468,52 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
 });
+
+// ── CRO: Reservation Handler ──────────────────────────────────
+async function handleReservation() {
+    const carId = document.body.dataset.vehicleId;
+    const button = document.querySelector('[data-reserve-button]');
+    const name = prompt('Enter your name to request a reservation for this vehicle:');
+    if (!name) return;
+    const phone = prompt('Enter your mobile number:');
+    if (!phone) return;
+
+    try {
+        if (button) button.disabled = true;
+        const response = await fetch('/api/leads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                customerName: name,
+                phone: phone,
+                inquiryType: 'Reserve Vehicle',
+                message: 'Reservation request. The dealership must confirm availability and deposit terms; no payment was collected online.',
+                carId: carId || undefined
+            })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not submit your reservation request.');
+        showToast('Reservation request sent. The dealership will contact you to confirm availability and deposit terms.');
+    } catch (err) {
+        showToast(err.message || 'Could not submit your reservation request. Please try again.');
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
+function requestVehicleHistory(event) {
+    event.preventDefault();
+    const inquiryType = document.getElementById('td-inquiry-type');
+    const message = document.getElementById('td-message');
+    const form = document.getElementById('test-drive-form');
+    if (inquiryType) inquiryType.value = 'Request Details';
+    if (message) message.value = 'Please provide the free vehicle history report.';
+    const submitLabel = document.querySelector('.test-drive-button-label');
+    if (submitLabel) submitLabel.textContent = 'Request the free report';
+    if (form) {
+        form.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('td-name')?.focus({ preventScroll: true });
+    }
+}

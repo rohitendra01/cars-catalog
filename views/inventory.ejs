@@ -173,6 +173,9 @@
                                         <span>EV</span>
                                     </div>
                                 <% } %>
+                                <% if (car.discount_tag) { %>
+                                    <div class="cro-card-badge"><%= car.discount_tag %></div>
+                                <% } %>
                             </div>
                             <div class="car-details">
                                 <div class="car-title"><%= car.year %> <%= car.make %> <%= car.model %></div>
@@ -185,7 +188,13 @@
                                 <% if (car.rtoLocation) { %>
                                     <div class="car-location"><%= car.rtoLocation %><% if (car.ownership) { %> · <%= car.ownership %><% } %></div>
                                 <% } %>
-                                <div class="car-price"><%= formatPrice(car.price) %></div>
+                                <div class="car-price">
+                                    <%= formatPrice(car.croPricing.current_price) %>
+                                    <% if (car.croPricing.savings_amount > 0) { %>
+                                    <div class="cro-card-market-price"><%= car.croPricing.anchor_label %>: ₹<%= Number(car.croPricing.anchor_price).toLocaleString('en-IN') %></div>
+                                    <div class="cro-card-savings">Save ₹<%= Number(car.croPricing.savings_amount).toLocaleString('en-IN') %></div>
+                                    <% } %>
+                                </div>
                             </div>
                         </a>
                         <div class="card-actions">

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Car = require('../models/Car');
 const Lead = require('../models/Lead');
 const cloudinary = require('cloudinary').v2;
+const { calculateCroPricing } = require('../utils/croPricing');
 
 function formatPrice(price) {
     return new Intl.NumberFormat('en-IN', {
@@ -20,7 +21,8 @@ function parseEquipment(value) {
 
 exports.getHomePage = async (req, res) => {
     try {
-        const featuredCars = await Car.find({ isFeatured: true, status: 'Available' }).limit(3).lean();
+        const featuredCars = await Car.find({ isFeatured: true, status: 'Available', reservation_status: { $ne: 'Reserved' } }).limit(3).lean();
+        featuredCars.forEach(car => { car.croPricing = calculateCroPricing(car); });
         res.render('index', {
             featuredCars,
             formatPrice,
@@ -30,6 +32,21 @@ exports.getHomePage = async (req, res) => {
     } catch (err) {
         console.error('getHomePage error:', err);
         res.status(500).send('Server Error');
+    }
+};
+
+exports.getCarPricing = async (req, res) => {
+    try {
+        if (!/^[a-f\d]{24}$/i.test(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid vehicle id.' });
+        }
+        const car = await Car.findById(req.params.id).select('price market_value status reservation_status').lean();
+        if (!car) return res.status(404).json({ error: 'Vehicle not found.' });
+        res.set('Cache-Control', 'no-store');
+        res.json(calculateCroPricing(car));
+    } catch (err) {
+        console.error('getCarPricing error:', err);
+        res.status(500).json({ error: 'Failed to calculate vehicle pricing.' });
     }
 };
 
@@ -99,6 +116,7 @@ exports.getInventory = async (req, res) => {
             ]);
         }
 
+        cars.forEach(car => { car.croPricing = calculateCroPricing(car); });
         res.render('inventory', {
             cars, total, currentPage: Number(page), totalPages: Math.ceil(total / limit),
             query: req.query, isShortlist, shortlistIds, formatPrice,
@@ -170,7 +188,9 @@ exports.getCarDetail = async (req, res) => {
         }
 
         car.primaryImage = (car.images && car.images.length > 0) ? car.images[0].url : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
-        car.formattedPrice = formatPrice(car.price);
+        car.croPricing = calculateCroPricing(car);
+        car.formattedPrice = formatPrice(car.croPricing.current_price);
+        similarCars.forEach(similarCar => { similarCar.croPricing = calculateCroPricing(similarCar); });
         res.render('car-detail', {
             car,
             similarCars,
@@ -224,6 +244,8 @@ exports.postAddCar = async (req, res) => {
             equipment: parseEquipment(equipment),
             status: status || 'Available',
             isFeatured: isFeatured === 'on',
+            market_value: Number(req.body.market_value) || 0,
+            discount_tag: req.body.discount_tag || '',
             features: {
                 sunroof: featSunroof === 'on',
                 alloyWheels: featAlloyWheels === 'on',
@@ -232,7 +254,6 @@ exports.postAddCar = async (req, res) => {
             },
             images
         });
-
         await newCar.save();
         res.redirect(`/inventory/${newCar.slug}`);
     } catch (err) {
@@ -453,6 +474,9 @@ exports.postAdminCar = async (req, res) => {
             extColor: extColor || '', intColor: intColor || '', ownership: ownership || '1st Owner',
             rtoLocation: rtoLocation || '', description: description || '', equipment: parseEquipment(equipment),
             status: status || 'Available', isFeatured: isFeatured === 'true',
+            market_value: Number(req.body.market_value) || 0,
+            discount_tag: req.body.discount_tag || '',
+            reservation_status: req.body.reservation_status || '',
             features: {
                 sunroof: featSunroof === 'true',
                 alloyWheels: featAlloyWheels === 'true',
@@ -461,7 +485,6 @@ exports.postAdminCar = async (req, res) => {
             },
             images
         });
-
         await newCar.save();
         res.status(201).json({ success: true, car: newCar.toJSON() });
     } catch (err) {
@@ -483,7 +506,7 @@ exports.putAdminCar = async (req, res) => {
         const newImages = (req.files || []).map(file => ({ url: file.path, public_id: file.filename }));
         car.images.push(...newImages);
 
-        const scalarFields = ['make', 'model', 'variant', 'year', 'price', 'mileage', 'manufacturedDate', 'referenceId', 'engine', 'fuelType', 'transmission', 'seats', 'bodyType', 'extColor', 'intColor', 'ownership', 'registrationState', 'rtoLocation', 'insuranceType', 'description', 'status'];
+        const scalarFields = ['make', 'model', 'variant', 'year', 'price', 'mileage', 'manufacturedDate', 'referenceId', 'engine', 'fuelType', 'transmission', 'seats', 'bodyType', 'extColor', 'intColor', 'ownership', 'registrationState', 'rtoLocation', 'insuranceType', 'description', 'status', 'discount_tag', 'reservation_status'];
         scalarFields.forEach(field => {
             if (req.body[field] !== undefined) {
                 if (['year', 'price', 'mileage', 'seats'].includes(field)) {
@@ -500,6 +523,8 @@ exports.putAdminCar = async (req, res) => {
 
         if (req.body.isFeatured !== undefined) car.isFeatured = req.body.isFeatured === 'true';
 
+        // CRO fields
+        if (req.body.market_value !== undefined) car.market_value = Number(req.body.market_value) || 0;
         if (req.body.featSunroof !== undefined) car.features.sunroof = req.body.featSunroof === 'true';
         if (req.body.featAlloyWheels !== undefined) car.features.alloyWheels = req.body.featAlloyWheels === 'true';
         if (req.body.featTouchscreen !== undefined) car.features.touchscreen = req.body.featTouchscreen === 'true';
@@ -583,21 +608,42 @@ exports.getRobotsTxt = (req, res) => {
 exports.postLead = async (req, res) => {
     try {
         const { carId, customerName, phone, email, inquiryType, message } = req.body;
-        if (!customerName || !phone) {
+        if (!String(customerName || '').trim() || !String(phone || '').trim()) {
             return res.status(400).json({ error: 'Customer name and phone number are required.' });
         }
 
+        const allowedInquiryTypes = ['Request Price', 'Request Details', 'Schedule Visit', 'Reserve Vehicle', 'Unlock Price'];
+        const type = inquiryType || 'Schedule Visit';
+        if (!allowedInquiryTypes.includes(type)) {
+            return res.status(400).json({ error: 'Invalid inquiry type.' });
+        }
+
+        let car = null;
+        if (carId) {
+            if (!mongoose.Types.ObjectId.isValid(carId)) {
+                return res.status(400).json({ error: 'Invalid vehicle reference.' });
+            }
+            car = await Car.findById(carId).select('make model status reservation_status').lean();
+            if (!car) return res.status(404).json({ error: 'Vehicle not found.' });
+        }
+        if (type === 'Reserve Vehicle') {
+            if (!car) return res.status(400).json({ error: 'A vehicle is required for a reservation request.' });
+            if (car.status !== 'Available' || car.reservation_status === 'Reserved') {
+                return res.status(409).json({ error: 'This vehicle is no longer available for a reservation request.' });
+            }
+        }
+
         const lead = new Lead({
-            carId: carId && mongoose.Types.ObjectId.isValid(carId) ? carId : undefined,
+            carId: car ? car._id : undefined,
             customerName: String(customerName).trim(),
             phone: String(phone).trim(),
             email: email ? String(email).trim() : undefined,
-            inquiryType: inquiryType || 'Schedule Visit',
+            inquiryType: type,
             message: message ? String(message).trim() : ''
         });
 
         await lead.save();
-        res.status(201).json({ success: true, message: 'Lead captured successfully.', lead });
+        res.status(201).json({ success: true, message: 'Your request has been sent to the dealership.' });
     } catch (err) {
         console.error('postLead error:', err);
         res.status(500).json({ error: 'Failed to record lead: ' + err.message });

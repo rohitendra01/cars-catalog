@@ -11,20 +11,8 @@
     app.use(ejsLayouts);
     app.set('layout', 'layouts/main');
 
-  STRUCTURE EACH PUBLIC VIEW FOLLOWS:
-  ─────────────────────────────────────────────────────
-  <!DOCTYPE html>
-  <html lang="en">
-  <%- include('partials/head-public', { pageTitle: '...' }) %>
-  <body>
-  <%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
-
-  <main> ... page content ... </main>
-
-  <%- include('partials/footer') %>
-  </body>
-  </html>
-  ─────────────────────────────────────────────────────
+  Each public page includes the shared public head, navigation, and footer
+  around its page-specific content.
 %>
 <!DOCTYPE html>
 <html lang="en">

@@ -141,13 +141,23 @@
                     <div class="w-1 h-5 bg-brand"></div>
                     <h3 class="font-mono font-bold text-[11px] text-zinc-500 uppercase tracking-widest">Pricing</h3>
                 </div>
-                <div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
                     <label for="price" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">Price (&#8377;) <span class="text-brand">*</span></label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm">&#8377;</span>
                         <input type="number" id="price" name="price" placeholder="2150000" min="1" required
                             class="w-full pl-7 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono text-sm rounded-none transition-colors" />
                     </div>
+                  </div>
+                  <div>
+                    <label for="market_value" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">Market value (optional)</label>
+                    <input type="number" id="market_value" name="market_value" min="0" placeholder="Leave empty to hide" class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white font-mono text-sm" />
+                  </div>
+                  <div>
+                    <label for="discount_tag" class="block text-[10px] font-bold text-zinc-950 dark:text-white uppercase tracking-widest mb-1.5">Deal badge (optional)</label>
+                    <input type="text" id="discount_tag" name="discount_tag" maxlength="60" placeholder="Exceptional Deal" class="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-950 dark:text-white font-mono text-sm" />
+                  </div>
                 </div>
             </div>
 
@@ -286,7 +296,7 @@
                         class="w-5 h-5 rounded-none bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-brand focus:ring-brand focus:ring-offset-0 focus:ring-1" />
                     <div>
                         <span class="font-bold text-xs text-zinc-950 dark:text-white uppercase tracking-widest group-hover:text-brand transition-colors">Feature on Homepage</span>
-                        <p class="font-mono text-[10px] text-zinc-400 mt-0.5">Car will appear in the featured section</p>
+                        <p class="font-mono text-[10px] text-zinc-400 mt-0.5">Car will appear in the featured section.</p>
                     </div>
                 </label>
             </div>

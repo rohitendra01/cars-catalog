@@ -1,14 +1,6 @@
 ﻿<%#
   DEPRECATED — views/partials/header.ejs
   This compatibility wrapper is no longer used by any view.
-  All views now include head-public + navbar directly:
-
-    <!DOCTYPE html>
-    <html lang="en">
-    <%- include('partials/head-public', { pageTitle: '...' }) %>
-    <body>
-    <%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
-
   Kept in place in case a controller render() still references it.
   Safe to delete once confirmed no references remain.
 %>
