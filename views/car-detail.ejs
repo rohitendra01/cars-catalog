@@ -193,66 +193,104 @@
                     <% } %>
                 </section>
 
-                <section class="detail-section card-surface" aria-labelledby="specifications-title">
-                    <div class="section-heading">
-                        <span class="section-eyebrow">At a glance</span>
-                        <h2 id="specifications-title">Specifications</h2>
-                    </div>
-                    <dl class="specification-grid">
-                        <% specificationItems.forEach(([label, value]) => { %>
-                            <div class="specification-item">
-                                <dt><%= label %></dt>
-                                <dd><%= value %><%= label === 'Photographs' ? ' photos' : '' %></dd>
-                            </div>
-                        <% }) %>
-                    </dl>
-                    <p class="specification-note">Details are provided as listed by The Auto Choice. Please confirm anything important when you see the car.</p>
-                </section>
-
-                <section class="detail-section card-surface" aria-labelledby="equipment-title">
-                    <div class="section-heading">
-                        <span class="section-eyebrow">Included with this vehicle</span>
-                        <h2 id="equipment-title">Equipment</h2>
-                    </div>
-                    <% if (equipmentItems.length) { %>
-                        <ul class="equipment-grid">
-                            <% equipmentItems.forEach(item => { %>
-                                <li><span class="equipment-check" aria-hidden="true">✓</span><%= item %></li>
+                <details class="detail-disclosure card-surface">
+                    <summary aria-controls="vehicle-specifications">
+                        <span class="disclosure-heading">
+                            <span class="section-eyebrow">Full vehicle details</span>
+                            <span class="disclosure-title" id="specifications-title">Specifications</span>
+                        </span>
+                        <span class="disclosure-meta"><%= specificationItems.length %> details</span>
+                        <span class="disclosure-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div class="disclosure-content" id="vehicle-specifications">
+                        <dl class="specification-grid">
+                            <% specificationItems.forEach(([label, value]) => { %>
+                                <div class="specification-item">
+                                    <dt><%= label %></dt>
+                                    <dd><%= value %><%= label === 'Photographs' ? ' photos' : '' %></dd>
+                                </div>
                             <% }) %>
-                        </ul>
-                    <% } else { %>
-                        <p class="empty-equipment">Equipment details haven’t been added yet. Contact us and we’ll be happy to confirm.</p>
-                    <% } %>
-                </section>
-
-                <section class="detail-section test-drive-section card-surface" id="test-drive-form" aria-labelledby="test-drive-title">
-                    <div class="section-heading">
-                        <span class="section-eyebrow">Come see it in person</span>
-                        <h2 id="test-drive-title">Book a test drive</h2>
+                        </dl>
+                        <p class="specification-note">Details are provided as listed by The Auto Choice. Please confirm anything important when you see the car.</p>
                     </div>
-                    <p>Leave your details and our team will help arrange a visit.</p>
-                    <form class="test-drive-form" onsubmit="handleTestDrive(event)">
-                        <input type="hidden" id="td-inquiry-type" value="Schedule Visit">
-                        <input type="hidden" id="td-message" value="">
-                        <div class="form-group">
-                            <label for="td-name">Your name</label>
-                            <input type="text" id="td-name" name="name" placeholder="Full name" autocomplete="name" required>
+                </details>
+
+                <details class="detail-disclosure card-surface">
+                    <summary aria-controls="vehicle-equipment">
+                        <span class="disclosure-heading">
+                            <span class="section-eyebrow">Included with this vehicle</span>
+                            <span class="disclosure-title" id="equipment-title">Equipment</span>
+                        </span>
+                        <span class="disclosure-meta"><%= equipmentItems.length ? `${equipmentItems.length} features` : 'Details available on request' %></span>
+                        <span class="disclosure-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div class="disclosure-content" id="vehicle-equipment">
+                        <% if (equipmentItems.length) { %>
+                            <ul class="equipment-grid">
+                                <% equipmentItems.forEach(item => { %>
+                                    <li><span class="equipment-check" aria-hidden="true">✓</span><%= item %></li>
+                                <% }) %>
+                            </ul>
+                        <% } else { %>
+                            <p class="empty-equipment">Equipment details haven’t been added yet. Contact us and we’ll be happy to confirm.</p>
+                        <% } %>
+                    </div>
+                </details>
+
+                <section class="detail-section enquiry-section card-surface" id="enquiry-form" aria-labelledby="enquiry-title">
+                    <div class="section-heading">
+                        <span class="section-eyebrow">Get in touch instantly</span>
+                        <h2 id="enquiry-title">Send Enquiry</h2>
+                    </div>
+                    <p class="enquiry-intro">Fill in your details and we'll open WhatsApp with a ready-to-send message — no copy-pasting needed.</p>
+                    <form class="enquiry-form" id="whatsapp-enquiry-form" onsubmit="handleEnquiry(event)" novalidate>
+                        <div class="enquiry-form-grid enquiry-primary-fields">
+                            <div class="form-group">
+                                <label for="enq-name">Your Name <span class="field-required" aria-hidden="true">*</span></label>
+                                <input type="text" id="enq-name" name="name" placeholder="Full name" autocomplete="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="enq-phone">Mobile Number <span class="field-required" aria-hidden="true">*</span></label>
+                                <input type="tel" id="enq-phone" name="phone" placeholder="+91 mobile number" autocomplete="tel" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="td-phone">Mobile number</label>
-                            <input type="tel" id="td-phone" name="phone" placeholder="+91 mobile number" autocomplete="tel" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="td-city">City or pincode</label>
-                            <input type="text" id="td-city" name="city" placeholder="City / Pincode" autocomplete="postal-code" required>
-                        </div>
-                        <button class="button button-primary" type="submit" id="schedule-btn">
-                            <svg class="test-drive-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M7 3v3M17 3v3M4 9h16" />
-                                <rect x="4" y="5" width="16" height="16" rx="2" />
-                                <path d="m9 15 2 2 4-4" />
-                            </svg>
-                            <span class="test-drive-button-label">Request a test drive</span>
+                        <details class="enquiry-extras">
+                            <summary><span>Add budget, payment type or a message</span><span class="enquiry-extras-chevron" aria-hidden="true"></span></summary>
+                            <div class="enquiry-extras-content">
+                                <div class="enquiry-form-grid">
+                                    <div class="form-group">
+                                        <label for="enq-budget">Your Budget (₹)</label>
+                                        <div class="budget-input-wrap">
+                                            <span class="budget-prefix">₹</span>
+                                            <input type="number" id="enq-budget" name="budget" min="0" step="10000" value="<%= currentPrice %>" placeholder="Enter your budget">
+                                        </div>
+                                        <span class="form-hint">Pre-filled with the listed price — feel free to edit.</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Purchase Type <span class="field-required" aria-hidden="true">*</span></label>
+                                        <div class="pt-toggle" role="radiogroup" aria-label="Purchase type">
+                                            <label class="pt-option" for="enq-cash">
+                                                <input type="radio" id="enq-cash" name="purchaseType" value="Cash" checked>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                                                Cash
+                                            </label>
+                                            <label class="pt-option" for="enq-finance">
+                                                <input type="radio" id="enq-finance" name="purchaseType" value="Finance">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 22V12M3 12l9-9 9 9M3 12h18"/><rect x="9" y="14" width="6" height="8"/></svg>
+                                                Finance
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="enq-notes">Additional Notes</label>
+                                    <textarea id="enq-notes" name="notes" rows="3" placeholder="Any questions or special requests? (e.g. preferred test drive time, colour preference...)"></textarea>
+                                </div>
+                            </div>
+                        </details>
+                        <button class="button enquiry-submit-btn" type="submit" id="enquiry-submit-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:22px;height:22px;flex-shrink:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                            <span>Send Enquiry via WhatsApp</span>
                         </button>
                     </form>
                 </section>
@@ -318,16 +356,19 @@
                     <!-- Bottom section: Actions -->
                     <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--detail-line);">
                         <p class="sidebar-reference" style="padding: 0; margin: 0; border: none; text-align: center;">Quote reference <strong><%= referenceLabel %></strong> when you call.</p>
-                        
+                        <% if (car.status !== 'Sold' && car.reservation_status !== 'Reserved') { %>
+                        <a class="button button-test-drive sidebar-test-drive" href="#enquiry-form" onclick="requestTestDrive(event)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h3M8 17h6"/></svg>
+                            Book a Test Drive
+                        </a>
+                        <% } %>
                         <div class="sidebar-actions">
-                            <a class="button button-drive" href="#test-drive-form"><span aria-hidden="true">↗</span> Book a test drive</a>
+                            <a class="button button-drive" href="#enquiry-form" onclick="document.getElementById('enq-name')&&setTimeout(()=>document.getElementById('enq-name').focus(),300)"><span aria-hidden="true">↗</span> Send Enquiry</a>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px;">
-                                <a class="button button-minimal" href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer" id="whatsapp-btn">
+                                <a class="button button-minimal" href="#enquiry-form" id="whatsapp-btn" onclick="document.getElementById('enq-name')&&setTimeout(()=>document.getElementById('enq-name').focus(),300)">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp
                                 </a>
-                                <a class="button button-minimal" href="tel:+919516486666">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> Call us
-                                </a>
+                                <%- include('partials/call-picker', { variant: 'is-car-sidebar', callLabel: 'Call us', buttonClass: 'button button-minimal' }) %>
                             </div>
                         </div>
 
@@ -340,7 +381,13 @@
                     </div>
 
                     <!-- Trust and Info Section -->
-                    <div style="display: flex; flex-direction: column; gap: 16px; padding-top: 20px; border-top: 1px solid var(--detail-line);">
+                    <details class="cro-trust-disclosure">
+                        <summary>
+                            <span class="trust-summary-title">Buying with confidence</span>
+                            <span class="trust-summary-points">150-point check · 7-day return · 1-year warranty</span>
+                            <span class="disclosure-chevron" aria-hidden="true"></span>
+                        </summary>
+                        <div class="cro-trust-content">
                         <div class="cro-trust-strip" style="margin-top: 0; padding-top: 0; border-top: none; gap: 12px; align-items: start;">
                             <div class="cro-trust-item" style="flex-direction: column; text-align: center; gap: 8px; padding: 0;">
                                 <span class="cro-trust-icon" style="color: var(--detail-ink); display: flex;">
@@ -361,12 +408,13 @@
                                 <span>1-Year<br>Warranty</span>
                             </div>
                         </div>
-                        <a class="cro-history-badge" href="#test-drive-form" onclick="requestVehicleHistory(event)" style="margin-top: 4px; justify-content: center;">
+                        <a class="cro-history-badge" href="#enquiry-form" onclick="requestCarHistoryReport(event)" style="margin-top: 4px; justify-content: center;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                             Request a Free Vehicle History Report
                         </a>
-                        <p class="showroom-note" style="text-align: center; margin-top: 0;">The Auto Choice · Wright Town, Jabalpur</p>
-                    </div>
+                        <p class="showroom-note" style="text-align: center; margin-top: 0;">The Auto Choice · Near Ranital Chowk, Jabalpur</p>
+                        </div>
+                    </details>
                 </div>
                 <details class="finance-calc card-surface">
                     <summary>Plan a down payment</summary>
@@ -441,11 +489,8 @@
 
     <nav class="mobile-vehicle-actions" aria-label="Quick actions">
         <div class="mobile-price"><strong>₹<%= lakhPrice %> Lakh</strong><span><%= car.year %> · <%= car.model %></span></div>
-        <a href="tel:+919516486666" aria-label="Call The Auto Choice">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 20px; height: 20px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            Call
-        </a>
-        <a href="<%= whatsappUrl %>" target="_blank" rel="noopener noreferrer">
+        <%- include('partials/call-picker', { variant: 'is-vehicle-mobile', callLabel: 'Call' }) %>
+        <a href="#enquiry-form" id="mobile-whatsapp-btn" onclick="mobileWhatsAppClick(event)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 20px; height: 20px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
             WhatsApp
         </a>
@@ -454,6 +499,8 @@
 
 <script>
     const CAR_PRICE = <%= currentPrice %>;
+
+    /* ── Gallery ─────────────────────────────────────────────── */
     function selectVehiclePhoto(button) {
         const thumbnails = Array.from(document.querySelectorAll('.gallery-thumbnails .thumbnail'));
         const index = thumbnails.indexOf(button);
@@ -466,11 +513,246 @@
         const title = document.querySelector('.vehicle-heading h1')?.textContent || '';
         if (mainImage && index >= 0) mainImage.alt = `${title} — photo ${index + 1} of ${thumbnails.length}`;
     }
+
+    /* ── WhatsApp Enquiry ─────────────────────────────────────── */
+    const COMPANY_PHONE  = '919516486666';
+    const CAR_MAKE       = '<%= car.make  %>';
+    const CAR_MODEL      = '<%= car.model %>';
+    const CAR_YEAR       = '<%= car.year  %>';
+    const CAR_REF        = '<%= referenceLabel %>';
+    const CAR_LISTED_PRICE = '<%= rupeePrice %>';
+    const CAR_PAGE_URL   = (typeof absoluteCarUrl !== 'undefined' && absoluteCarUrl)
+                             ? absoluteCarUrl
+                             : window.location.href;
+
+    function buildWhatsAppUrl() {
+        const name         = (document.getElementById('enq-name')?.value  || '').trim();
+        const phone        = (document.getElementById('enq-phone')?.value || '').trim();
+        const budgetRaw    = document.getElementById('enq-budget')?.value;
+        const budget       = budgetRaw ? Number(budgetRaw).toLocaleString('en-IN') : CAR_LISTED_PRICE;
+        const purchaseType = document.querySelector('input[name="purchaseType"]:checked')?.value || 'Cash';
+        const notes        = (document.getElementById('enq-notes')?.value || '').trim();
+
+        const lines = [
+            `Hi The Auto Choice! I'm interested in the following car:`,
+            ``,
+            `🚗 *Car:* ${CAR_MAKE} ${CAR_MODEL} (${CAR_YEAR})`,
+            `🔖 *Ref:* ${CAR_REF}`,
+            `🔗 *Link:* ${CAR_PAGE_URL}`,
+            ``,
+            `💰 *Budget:* ₹${budget}`,
+            `💳 *Payment Type:* ${purchaseType}`,
+            `👤 *Customer:* ${name || '(not provided)'}${phone ? ' · ' + phone : ''}`,
+            notes ? `📝 *Notes:* ${notes}` : null
+        ].filter(l => l !== null).join('\n');
+
+        return `https://wa.me/${COMPANY_PHONE}?text=${encodeURIComponent(lines)}`;
+    }
+
+    function handleEnquiry(event) {
+        event.preventDefault();
+        const name  = (document.getElementById('enq-name')?.value  || '').trim();
+        const phone = (document.getElementById('enq-phone')?.value || '').trim();
+        if (!name) {
+            document.getElementById('enq-name').focus();
+            document.getElementById('enq-name').classList.add('input-error');
+            return;
+        }
+        if (!phone) {
+            document.getElementById('enq-phone').focus();
+            document.getElementById('enq-phone').classList.add('input-error');
+            return;
+        }
+        window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
+    }
+
+    /* Clear error state on input */
+    document.addEventListener('DOMContentLoaded', () => {
+        ['enq-name','enq-phone'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => el.classList.remove('input-error'));
+        });
+    });
+
+    /* Mobile bottom bar WhatsApp click → open WA directly with quick message */
+    function mobileWhatsAppClick(event) {
+        event.preventDefault();
+        /* If form fields are already filled use full message, otherwise use quick message */
+        const name = (document.getElementById('enq-name')?.value || '').trim();
+        if (name) {
+            window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
+        } else {
+            /* Scroll to form and focus first field */
+            const form = document.getElementById('enquiry-form');
+            if (form) {
+                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setTimeout(() => document.getElementById('enq-name')?.focus(), 500);
+            }
+        }
+    }
+
+    /* Vehicle history helper – now targets enquiry form */
+    function requestCarHistoryReport(event) {
+        event.preventDefault();
+        document.querySelector('.enquiry-extras')?.setAttribute('open', '');
+        const notesEl = document.getElementById('enq-notes');
+        if (notesEl && !notesEl.value.includes('Vehicle History')) {
+            notesEl.value = (notesEl.value ? notesEl.value + '\n' : '') + 'Please share the Vehicle History Report.';
+        }
+        const form = document.getElementById('enquiry-form');
+        if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => document.getElementById('enq-name')?.focus(), 400);
+    }
+
+    function requestTestDrive(event) {
+        event.preventDefault();
+        document.querySelector('.enquiry-extras')?.setAttribute('open', '');
+        const notesEl = document.getElementById('enq-notes');
+        if (notesEl && !notesEl.value.toLowerCase().includes('test drive')) {
+            notesEl.value = (notesEl.value ? notesEl.value + '\n' : '') + 'I would like to book a test drive.';
+        }
+        const form = document.getElementById('enquiry-form');
+        if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => document.getElementById('enq-name')?.focus(), 400);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         calculateEMI();
         initShortlistButtons();
     });
 </script>
+
+<style>
+/* ── Send Enquiry Form ─────────────────────────────────────────── */
+.enquiry-intro {
+    margin: 0 0 20px;
+    font-size: 0.95rem;
+    opacity: 0.8;
+    line-height: 1.55;
+}
+.enquiry-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+@media (max-width: 560px) {
+    .enquiry-form-grid { grid-template-columns: 1fr; }
+}
+.budget-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.budget-prefix {
+    position: absolute;
+    left: 13px;
+    font-weight: 600;
+    color: var(--detail-ink);
+    pointer-events: none;
+    font-size: 1rem;
+}
+.budget-input-wrap input {
+    padding-left: 28px;
+    width: 100%;
+}
+.form-hint {
+    display: block;
+    font-size: 0.78rem;
+    opacity: 0.6;
+    margin-top: 4px;
+}
+.field-required {
+    color: #f04;
+    font-size: 0.85em;
+}
+/* Purchase Type segmented toggle */
+.pt-toggle {
+    display: flex;
+    gap: 0;
+    border: 1.5px solid var(--detail-line);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+.pt-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.88rem;
+    transition: color 0.18s, background 0.18s;
+    user-select: none;
+    position: relative;
+    color: inherit;
+    opacity: 0.65;
+}
+.pt-option + .pt-option {
+    border-left: 1.5px solid var(--detail-line);
+}
+.pt-option input[type="radio"] { display: none; }
+.pt-option svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    transition: stroke 0.18s;
+}
+.pt-option:has(input:checked) {
+    background: var(--detail-accent, #2563eb);
+    color: #fff;
+    opacity: 1;
+}
+.pt-option:not(:has(input:checked)):hover {
+    opacity: 1;
+    background: color-mix(in srgb, var(--detail-accent, #2563eb) 8%, transparent);
+}
+/* Submit button */
+.enquiry-submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 15px 24px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    box-shadow: 0 4px 18px rgba(37,211,102,0.32);
+    transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
+    margin-top: 4px;
+}
+.enquiry-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(37,211,102,0.4);
+    filter: brightness(1.05);
+}
+.enquiry-submit-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(37,211,102,0.25);
+}
+/* Error state */
+.input-error {
+    border-color: #f04 !important;
+    box-shadow: 0 0 0 3px rgba(255,0,68,0.12) !important;
+    animation: shake 0.35s ease;
+}
+@keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+}
+</style>
 <script type="application/ld+json"><%- JSON.stringify(structuredData).replace(/</g, '\\u003c') %></script>
 
 <!-- Fullscreen Image Slider Overlay -->

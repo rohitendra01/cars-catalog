@@ -1211,9 +1211,12 @@ html.dark .similar-save-button.saved {
         font-size: 0.78rem;
     }
 
-    .shortlist-button,
+    .shortlist-button {
+        display: flex;
+    }
+
     .showroom-note {
-        display: none;
+        display: block;
     }
 
     .test-drive-form {
@@ -1276,6 +1279,273 @@ html.dark .similar-save-button.saved {
         font-weight: 800;
     }
 
+}
+
+/* Progressive disclosure modules keep the first view focused while leaving
+   every vehicle detail and buying aid one tap away. */
+.detail-disclosure {
+    overflow: hidden;
+    padding: 0;
+}
+
+.detail-disclosure > summary,
+.cro-trust-disclosure > summary {
+    display: flex;
+    min-height: 78px;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 21px;
+    color: var(--detail-ink);
+    cursor: pointer;
+    list-style: none;
+}
+
+.detail-disclosure > summary::-webkit-details-marker,
+.cro-trust-disclosure > summary::-webkit-details-marker,
+.enquiry-extras > summary::-webkit-details-marker {
+    display: none;
+}
+
+.detail-disclosure > summary:focus-visible,
+.cro-trust-disclosure > summary:focus-visible,
+.enquiry-extras > summary:focus-visible {
+    outline: 3px solid rgba(37, 143, 99, 0.35);
+    outline-offset: -3px;
+}
+
+.disclosure-heading {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    margin-right: auto;
+}
+
+.disclosure-heading .section-eyebrow {
+    margin: 0;
+}
+
+.disclosure-title,
+.trust-summary-title {
+    color: var(--detail-ink);
+    font-family: var(--font-display, 'Manrope', 'DM Sans', sans-serif);
+    font-size: 1.03rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.disclosure-meta {
+    color: var(--detail-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.disclosure-chevron,
+.enquiry-extras-chevron {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 auto;
+    border-right: 2px solid var(--detail-accent);
+    border-bottom: 2px solid var(--detail-accent);
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+.detail-disclosure[open] > summary .disclosure-chevron,
+.cro-trust-disclosure[open] > summary .disclosure-chevron {
+    transform: rotate(225deg) translate(-2px, -1px);
+}
+
+.disclosure-content {
+    padding: 0 22px 21px;
+    animation: pdp-unfold 0.22s ease both;
+}
+
+.detail-disclosure[open] > summary {
+    border-bottom: 1px solid var(--detail-line);
+}
+
+.detail-disclosure .specification-grid {
+    margin-top: 2px;
+}
+
+.detail-disclosure .equipment-grid {
+    margin-top: 1px;
+}
+
+.enquiry-primary-fields {
+    margin-bottom: 13px;
+}
+
+.enquiry-extras {
+    overflow: hidden;
+    margin: 0 0 16px;
+    border: 1px solid var(--detail-line);
+    border-radius: 11px;
+    background: var(--detail-bg);
+}
+
+.enquiry-extras > summary {
+    display: flex;
+    min-height: 47px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 14px;
+    color: var(--detail-ink);
+    font-size: 0.82rem;
+    font-weight: 750;
+    cursor: pointer;
+    list-style: none;
+}
+
+.enquiry-extras-chevron {
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg) translateY(-2px);
+}
+
+.enquiry-extras[open] > summary {
+    border-bottom: 1px solid var(--detail-line);
+}
+
+.enquiry-extras[open] > summary .enquiry-extras-chevron {
+    transform: rotate(225deg) translate(-2px, -1px);
+}
+
+.enquiry-extras-content {
+    display: grid;
+    gap: 15px;
+    padding: 16px;
+    animation: pdp-unfold 0.2s ease both;
+}
+
+.enquiry-extras-content .enquiry-form-grid,
+.enquiry-extras-content .form-group {
+    margin-bottom: 0;
+}
+
+.cro-trust-disclosure {
+    padding-top: 2px;
+    border-top: 1px solid var(--detail-line);
+}
+
+.cro-trust-disclosure > summary {
+    min-height: 72px;
+    flex-wrap: wrap;
+    gap: 3px 12px;
+    padding: 13px 0;
+}
+
+.trust-summary-title {
+    flex: 1 1 calc(100% - 26px);
+    font-size: 0.9rem;
+}
+
+.trust-summary-points {
+    flex: 1 1 calc(100% - 26px);
+    color: var(--detail-muted);
+    font-size: 0.68rem;
+    font-weight: 650;
+    line-height: 1.45;
+}
+
+.cro-trust-disclosure > summary .disclosure-chevron {
+    position: absolute;
+    right: 1px;
+    top: 24px;
+}
+
+.cro-trust-disclosure > summary {
+    position: relative;
+    padding-right: 22px;
+}
+
+.cro-trust-content {
+    padding: 0 0 2px;
+    animation: pdp-unfold 0.2s ease both;
+}
+
+.cro-trust-disclosure .cro-trust-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cro-trust-disclosure .cro-trust-item {
+    color: var(--detail-muted);
+    font-size: 0.68rem;
+    line-height: 1.35;
+}
+
+.sidebar-test-drive {
+    width: 100%;
+    margin-bottom: 1px;
+    min-height: 49px;
+    border-color: #146b4d;
+    color: #fff;
+    background: linear-gradient(135deg, #167b58, #105b42);
+    box-shadow: 0 8px 18px rgba(20, 107, 77, 0.2);
+}
+
+.sidebar-test-drive:hover {
+    border-color: #0d5039;
+    color: #fff;
+    background: linear-gradient(135deg, #126b4c, #0c4d37);
+    box-shadow: 0 11px 22px rgba(20, 107, 77, 0.26);
+}
+
+.sidebar-test-drive svg {
+    width: 19px;
+    height: 19px;
+    flex: 0 0 auto;
+}
+
+html.dark .sidebar-test-drive {
+    border-color: #67d1a8;
+    color: #10231a;
+    background: linear-gradient(135deg, #8ce0bb, #67d1a8);
+}
+
+@keyframes pdp-unfold {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .disclosure-content,
+    .enquiry-extras-content,
+    .cro-trust-content {
+        animation: none;
+    }
+
+    .disclosure-chevron,
+    .enquiry-extras-chevron {
+        transition: none;
+    }
+}
+
+@media (max-width: 560px) {
+    .detail-disclosure > summary {
+        min-height: 70px;
+        gap: 9px;
+        padding: 14px 15px;
+    }
+
+    .detail-disclosure .disclosure-meta {
+        font-size: 0.68rem;
+    }
+
+    .disclosure-content {
+        padding: 0 15px 17px;
+    }
+
+    .enquiry-extras-content {
+        padding: 13px;
+    }
+
+    .trust-summary-points {
+        font-size: 0.64rem;
+    }
 }
 
 @media (max-width: 520px) {

@@ -25,11 +25,7 @@
 
     <%# Brand %>
     <a href="/" class="rw-brand" aria-label="The Auto Choice — home">
-      <div class="rw-brand__mark" aria-hidden="true">TAC</div>
-      <div>
-        <span style="display:block; color:inherit;">The Auto Choice</span>
-        <span class="rw-brand__sub">Used cars · Jabalpur</span>
-      </div>
+      <img class="rw-brand__logo" src="/pictures/logo.png" alt="The Auto Choice">
     </a>
 
     <%# Desktop Search %>
@@ -71,10 +67,7 @@
           <svg aria-hidden="true" focusable="false"><use href="#ni-wa"/></svg>
           <span class="rw-hdr__wa-text">WhatsApp</span>
         </a>
-        <a href="tel:+919516486666" class="rw-btn rw-btn--ghost rw-btn--sm rw-desktop-only">
-          <svg aria-hidden="true" focusable="false"><use href="#ni-phone"/></svg>
-          Call
-        </a>
+        <%- include('call-picker', { variant: 'is-header rw-desktop-only', callLabel: 'Call' }) %>
       <% } %>
 
       <%# Hamburger %>
@@ -128,14 +121,11 @@
       <svg aria-hidden="true" focusable="false"><use href="#ni-wa"/></svg>
       WhatsApp
     </a>
-    <a href="tel:+919516486666" class="rw-btn rw-btn--ghost">
-      <svg aria-hidden="true" focusable="false"><use href="#ni-phone"/></svg>
-      Call us
-    </a>
+    <%- include('call-picker', { variant: 'is-menu', callLabel: 'Call us' }) %>
   </div>
 </div>
 
-<script>
+  <script>
   // Burger toggle
   (function () {
     var burger = document.getElementById('rw-burger');
@@ -167,4 +157,22 @@
     window.addEventListener('storage', update);
     document.addEventListener('shortlistChanged', update);
   })();
+
+  // Keep the phone chooser compact and dismiss it when focus moves elsewhere.
+  document.addEventListener('click', function (event) {
+    document.querySelectorAll('.rw-call-picker[open]').forEach(function (picker) {
+      if (!picker.contains(event.target)) picker.removeAttribute('open');
+    });
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      document.querySelectorAll('.rw-call-picker[open]').forEach(function (picker) {
+        if (picker.contains(document.activeElement)) {
+          var summary = picker.querySelector('summary');
+          if (summary) summary.focus();
+        }
+        picker.removeAttribute('open');
+      });
+    }
+  });
 </script>

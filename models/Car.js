@@ -39,7 +39,7 @@ const carSchema = new mongoose.Schema({
     engine: { type: String, trim: true, default: '' },
     bodyType: {
         type: String,
-        enum: ['SUV', 'Hatchback', 'Sedan', 'EV', 'MUV', 'Coupe', 'Convertible'],
+        enum: ['SUV', 'Hatchback', 'Sedan', 'Mini Van', 'MUV', 'Coupe', 'Convertible'],
         default: 'Sedan',
         index: true
     },

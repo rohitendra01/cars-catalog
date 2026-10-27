@@ -57,10 +57,10 @@
                 <label for="filter-body">Body Style</label>
                 <select id="filter-body" name="bodyType">
                     <option value="">All Body Styles</option>
-                    <% ['SUV', 'Hatchback', 'Sedan', 'EV', 'MUV', 'Coupe', 'Convertible'].forEach(type => { %>
+                    <% ['SUV', 'Hatchback', 'Sedan', 'Mini Van', 'MUV', 'Coupe', 'Convertible'].forEach(type => { %>
                         <option value="<%= type %>"
                             <%= (typeof query !== 'undefined' && query.bodyType === type) ? 'selected' : '' %>>
-                            <%= type === 'EV' ? 'Electric (EV)' : type %>
+                            <%= type %>
                         </option>
                     <% }) %>
                 </select>
@@ -170,7 +170,7 @@
                                         <svg class="ev-bolt-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                                         </svg>
-                                        <span>EV</span>
+                                        <span>Electric</span>
                                     </div>
                                 <% } %>
                                 <% if (car.discount_tag) { %>

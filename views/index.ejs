@@ -2,574 +2,653 @@
 <html lang="en">
 <%- include('partials/head-public', { pageTitle: 'The Auto Choice | Certified Pre-Owned Cars in Jabalpur' }) %>
 
-<body>
-<%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
+  <body>
+    <%- include('partials/navbar', { isAdmin: typeof isAdmin !=='undefined' && isAdmin }) %>
 
-<main id="main">
+      <main id="main">
 
-  <!-- ══════════════════════════════════════════════════════════
+        <!-- ══════════════════════════════════════════════════════════
        HERO SECTION
   ══════════════════════════════════════════════════════════ -->
-  <section class="rw-hero" aria-labelledby="hero-h">
+        <section class="rw-hero" aria-labelledby="hero-h">
 
-    <!-- Background image -->
-    <div class="rw-hero__bg" aria-hidden="true">
-      <img
-        src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=80&auto=format&fit=crop"
-        alt=""
-        loading="eager"
-        fetchpriority="high"
-        width="1600" height="900"
-      >
-    </div>
+          <!-- Background image -->
+          <div class="rw-hero__bg" aria-hidden="true">
+            <img class="rw-hero__slide is-active" src="/pictures/hero1.jpeg" alt="" loading="eager" fetchpriority="high"
+              width="1600" height="900">
+            <img class="rw-hero__slide" src="/pictures/hero2.jpeg" alt="" loading="eager" width="1600" height="900">
+            <img class="rw-hero__slide" src="/pictures/hero3.jpeg" alt="" loading="eager" width="1600" height="900">
+          </div>
 
-    <!-- Gradient overlay -->
-    <div class="rw-hero__grad" aria-hidden="true"></div>
+          <!-- Gradient overlay -->
+          <div class="rw-hero__grad" aria-hidden="true"></div>
 
-    <!-- Main hero body -->
-    <div class="rw-hero__body">
+          <!-- Main hero body -->
+          <div class="rw-hero__body">
 
-      <!-- Kicker -->
-      <p class="rw-hero__kicker">
-        <span class="rw-hero__led" aria-hidden="true"></span>
-        Used car showroom · Wright Town, Jabalpur
-      </p>
+            <!-- Kicker -->
+            <p class="rw-hero__kicker">
+              <span class="rw-hero__led" aria-hidden="true"></span>
+              Pre Owned showroom · Near Ranital Chowk, Jabalpur
+            </p>
 
-      <!-- Headline -->
-      <h1 class="rw-hero__title" id="hero-h">
-        <span class="rw-line">Drive home</span>
-        <span class="rw-line">the right</span>
-        <span class="rw-line rw-acc">choice.</span>
-      </h1>
+            <!-- Headline -->
+            <h1 class="rw-hero__title" id="hero-h">
+              <span class="rw-line">Drive home</span>
+              <span class="rw-line">the right</span>
+              <span class="rw-line rw-acc">choice.</span>
+            </h1>
 
-      <!-- Lede -->
-      <p class="rw-hero__lede">
-        Inspected, certified pre-owned cars in Jabalpur. Clear pricing, full photo documentation, and a team ready to help you every step of the way.
-      </p>
+            <p class="rw-hero__finance">Easy <strong>finance</strong></p>
 
-      <!-- Search -->
-      <form class="rw-hero__search" action="/inventory" method="GET" role="search" aria-label="Search cars for sale">
-        <svg aria-hidden="true" focusable="false"><use href="#ni-search"/></svg>
-        <input
-          type="search"
-          name="search"
-          placeholder="Bolero, Swift, Innova, Fortuner…"
-          autocomplete="off"
-          enterkeyhint="search"
-          aria-label="Search by make or model"
-        >
-        <button type="submit">Search</button>
-      </form>
+            <!-- Lede -->
+            <p class="rw-hero__lede">
+              Inspected, certified pre-owned cars in Jabalpur. Clear pricing, full photo documentation, and a team ready
+              to help you every step of the way.
+            </p>
 
-      <!-- CTA row -->
-      <div class="rw-hero__cta">
-        <a href="/inventory" class="rw-btn rw-btn--bone">
-          Explore cars
-          <span class="rw-btn-arrow">
-            <svg aria-hidden="true" focusable="false"><use href="#ni-arrow"/></svg>
-          </span>
-        </a>
-        <a
-          href="https://wa.me/919516486666?text=Hi%20The%20Auto%20Choice%2C%20I%20found%20you%20on%20your%20website%20and%20I'd%20like%20to%20know%20more%20about%20your%20cars."
-          class="rw-btn rw-btn--wa"
-          target="_blank" rel="noopener"
-        >
-          <svg aria-hidden="true" focusable="false"><use href="#ni-wa"/></svg>
-          WhatsApp us
-        </a>
-        <a href="tel:+919516486666" class="rw-btn rw-btn--ghost">
-          <svg aria-hidden="true" focusable="false"><use href="#ni-phone"/></svg>
-          +91 95164 86666
-        </a>
-      </div>
-    </div>
+            <!-- Search -->
+            <form class="rw-hero__search" action="/inventory" method="GET" role="search"
+              aria-label="Search cars for sale">
+              <svg aria-hidden="true" focusable="false">
+                <use href="#ni-search" />
+              </svg>
+              <input type="search" name="search" placeholder="Bolero, Swift, Innova, Fortuner…" autocomplete="off"
+                enterkeyhint="search" aria-label="Search by make or model">
+              <button type="submit">Search</button>
+            </form>
 
-    <!-- Featured cars strip (only if we have featured cars) -->
-    <% if (featuredCars && featuredCars.length > 0) { %>
-    <div class="rw-hero__spots" aria-label="Featured cars on the forecourt">
-      <div class="rw-hero__spots-in">
-        <p class="rw-hero__kicker" style="padding:14px 0;white-space:nowrap;margin:0;flex-shrink:0;">
-          <span class="rw-hero__led" aria-hidden="true"></span>
-          On the forecourt
-        </p>
-        <% featuredCars.slice(0,5).forEach(function(car) {
-             var img = (car.images && car.images.length > 0) ? car.images[0].url : 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=300&q=60';
-        %>
-          <a href="/inventory/<%= car.slug || car._id %>" class="rw-spot">
-            <div class="rw-spot__img">
-              <img src="<%= img %>" alt="" loading="lazy" width="128" height="80">
+            <!-- CTA row -->
+            <div class="rw-hero__cta">
+              <a href="/inventory" class="rw-btn rw-btn--bone">
+                Explore cars
+                <span class="rw-btn-arrow">
+                  <svg aria-hidden="true" focusable="false">
+                    <use href="#ni-arrow" />
+                  </svg>
+                </span>
+              </a>
+              <a href="https://wa.me/919516486666?text=Hi%20The%20Auto%20Choice%2C%20I%20found%20you%20on%20your%20website%20and%20I'd%20like%20to%20know%20more%20about%20your%20cars."
+                class="rw-btn rw-btn--wa" target="_blank" rel="noopener">
+                <svg aria-hidden="true" focusable="false">
+                  <use href="#ni-wa" />
+                </svg>
+                WhatsApp us
+              </a>
+              <%- include('partials/call-picker', { variant: 'is-hero' , callLabel: 'Call us' }) %>
             </div>
-            <div class="rw-spot__txt">
-              <div class="rw-spot__name"><%= car.make %> <%= car.model %></div>
-              <div class="rw-spot__meta"><%= car.year %> · <%= formatPrice(car.croPricing.current_price) %></div>
+          </div>
+
+          <!-- Featured cars strip (only if we have featured cars) -->
+          <% if (featuredCars && featuredCars.length> 0) { %>
+            <div class="rw-hero__spots" aria-label="Featured cars on the forecourt">
+              <div class="rw-hero__spots-in">
+                <p class="rw-hero__kicker" style="padding:14px 0;white-space:nowrap;margin:0;flex-shrink:0;">
+                  <span class="rw-hero__led" aria-hidden="true"></span>
+                  On the forecourt
+                </p>
+                <% featuredCars.slice(0,5).forEach(function(car) { var img=(car.images && car.images.length> 0) ?
+                  car.images[0].url : 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=300&q=60';
+                  %>
+                  <a href="/inventory/<%= car.slug || car._id %>" class="rw-spot">
+                    <div class="rw-spot__img">
+                      <img src="<%= img %>" alt="" loading="lazy" width="128" height="80">
+                    </div>
+                    <div class="rw-spot__txt">
+                      <div class="rw-spot__name">
+                        <%= car.make %>
+                          <%= car.model %>
+                      </div>
+                      <div class="rw-spot__meta">
+                        <%= car.year %> · <%= formatPrice(car.croPricing.current_price) %>
+                      </div>
+                    </div>
+                    <svg class="rw-spot__arrow" aria-hidden="true" focusable="false">
+                      <use href="#ni-arrow" />
+                    </svg>
+                  </a>
+                  <% }) %>
+              </div>
             </div>
-            <svg class="rw-spot__arrow" aria-hidden="true" focusable="false"><use href="#ni-arrow"/></svg>
-          </a>
-        <% }) %>
-      </div>
-    </div>
-    <% } %>
+            <% } %>
 
-  </section>
+        </section>
 
-  <!-- ── Stats cluster ── -->
-  <div class="rw-cluster" aria-label="The Auto Choice at a glance">
-    <div class="rw-cluster__in">
-      <div class="rw-cluster__item">
-        <span class="rw-cluster__label">Google Rating</span>
-        <div class="rw-cluster__val">
-          <span class="rw-cluster__num">4.4</span>
-          <span class="rw-cluster__stars">
-            <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z"/></svg>
-            <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z"/></svg>
-            <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z"/></svg>
-            <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z"/></svg>
-          </span>
-          <span class="rw-cluster__small">66 reviews</span>
+        <script>
+          (function () {
+            var slides = Array.from(document.querySelectorAll('.rw-hero__slide'));
+            if (slides.length < 2) return;
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            var activeIndex = 0;
+            window.setInterval(function () {
+              slides[activeIndex].classList.remove('is-active');
+              activeIndex = (activeIndex + 1) % slides.length;
+              slides[activeIndex].classList.add('is-active');
+            }, 8000);
+          })();
+        </script>
+
+        <!-- ── Stats cluster ── -->
+        <div class="rw-cluster" aria-label="The Auto Choice at a glance">
+          <div class="rw-cluster__in">
+            <div class="rw-cluster__item">
+              <span class="rw-cluster__label">Google Rating</span>
+              <div class="rw-cluster__val">
+                <span class="rw-cluster__num">4.4</span>
+                <span class="rw-cluster__stars">
+                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
+                  </svg>
+                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
+                  </svg>
+                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
+                  </svg>
+                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
+                  </svg>
+                </span>
+                <span class="rw-cluster__small">66 reviews</span>
+              </div>
+            </div>
+
+            <div class="rw-cluster__item">
+              <span class="rw-cluster__label">On the forecourt</span>
+              <div class="rw-cluster__val">
+                <span class="rw-cluster__num">
+                  <%= featuredCars ? featuredCars.length : '—' %>
+                </span>
+                <span class="rw-cluster__small">cars · multiple makes</span>
+              </div>
+            </div>
+
+            <div class="rw-cluster__item">
+              <span class="rw-cluster__label">Showroom hours</span>
+              <div class="rw-cluster__val">
+                <span id="store-status" class="rw-footer__status" style="font-size:0.78rem;">
+                  Open every day · 11 am – 9 pm
+                </span>
+              </div>
+            </div>
+
+            <div class="rw-cluster__item">
+              <span class="rw-cluster__label">Find us</span>
+              <div class="rw-cluster__val">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=23.1661222%2C79.922788"
+                  class="rw-cluster__link" target="_blank" rel="noopener">
+                  Near Ranital Chowk (Pillar 123)
+                  <svg aria-hidden="true" focusable="false">
+                    <use href="#ni-arrow-ne" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="rw-cluster__item">
-        <span class="rw-cluster__label">On the forecourt</span>
-        <div class="rw-cluster__val">
-          <span class="rw-cluster__num"><%= featuredCars ? featuredCars.length : '—' %></span>
-          <span class="rw-cluster__small">cars · multiple makes</span>
-        </div>
-      </div>
-
-      <div class="rw-cluster__item">
-        <span class="rw-cluster__label">Showroom hours</span>
-        <div class="rw-cluster__val">
-          <span id="store-status" class="rw-footer__status" style="font-size:0.78rem;">
-            Open every day · 11 am – 9 pm
-          </span>
-        </div>
-      </div>
-
-      <div class="rw-cluster__item">
-        <span class="rw-cluster__label">Find us</span>
-        <div class="rw-cluster__val">
-          <a
-            href="https://www.google.com/maps/dir/?api=1&destination=23.1661222%2C79.922788"
-            class="rw-cluster__link"
-            target="_blank" rel="noopener"
-          >
-            Near Chirayu Hospital
-            <svg aria-hidden="true" focusable="false"><use href="#ni-arrow-ne"/></svg>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════
+        <!-- ══════════════════════════════════════════════════════════
        WHY US / TRUST
   ══════════════════════════════════════════════════════════ -->
-  <section class="rw-sec rw-sec--dark" aria-labelledby="trust-h">
-    <div class="rw-wrap">
-      <div class="rw-shead" data-rv>
-        <div class="rw-shead__row">
-          <div>
-            <p class="rw-shead__idx"><span class="rw-shead__n">01</span> Why The Auto Choice</p>
-            <h2 class="rw-d1" id="trust-h">Buy with <span class="rw-acc">confidence.</span></h2>
-          </div>
-          <a href="/inventory" class="rw-btn rw-btn--ghost rw-desktop-only" style="flex-shrink:0;">
-            Explore cars
-            <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false"><use href="#ni-arrow"/></svg></span>
-          </a>
-        </div>
-      </div>
+        <section class="rw-sec rw-sec--dark" aria-labelledby="trust-h">
+          <div class="rw-wrap">
+            <div class="rw-shead" data-rv>
+              <div class="rw-shead__row">
+                <div>
+                  <p class="rw-shead__idx"><span class="rw-shead__n">01</span> Why The Auto Choice</p>
+                  <h2 class="rw-d1" id="trust-h">Buy with <span class="rw-acc">confidence.</span></h2>
+                </div>
+                <a href="/inventory" class="rw-btn rw-btn--ghost rw-desktop-only" style="flex-shrink:0;">
+                  Explore cars
+                  <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false">
+                      <use href="#ni-arrow" />
+                    </svg></span>
+                </a>
+              </div>
+            </div>
 
-      <div class="rw-trust" data-rv>
-        <div class="rw-trust__item">
-          <div class="rw-trust__icon">
-            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-          <div class="rw-trust__title">200-Point Inspection</div>
-          <div class="rw-trust__desc">Every car is verified by our certified engineers before it reaches the forecourt.</div>
-        </div>
+            <div class="rw-trust" data-rv>
+              <div class="rw-trust__item">
+                <div class="rw-trust__icon">
+                  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div class="rw-trust__title">63-Point Inspection</div>
+                <div class="rw-trust__desc">Every car is verified by our certified engineers before it reaches the
+                  forecourt.</div>
+              </div>
 
-        <div class="rw-trust__item">
-          <div class="rw-trust__icon">
-            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
-            </svg>
-          </div>
-          <div class="rw-trust__title">1-Year Warranty</div>
-          <div class="rw-trust__desc">Engine & gearbox coverage on every certified car we sell. Drive worry-free.</div>
-        </div>
+              <div class="rw-trust__item">
+                <div class="rw-trust__icon">
+                  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M14.121 15.121L19 10m-4.879 4.879a3 3 0 10-4.243 4.243L19 10zm0 0L12 2m6.121 8.121L12 22m0 0l-6.879-6.879A3 3 0 003 10l7.879-7.879" />
+                  </svg>
+                </div>
+                <div class="rw-trust__title">Valuable Deal</div>
+                <div class="rw-trust__desc">Get the most valuable deal at most affordable price around the market.</div>
+              </div>
 
-        <div class="rw-trust__item">
-          <div class="rw-trust__icon">
-            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
-            </svg>
-          </div>
-          <div class="rw-trust__title">Free RC Transfer</div>
-          <div class="rw-trust__desc">100% RTO documentation handled by us. Zero hidden fees, zero stress.</div>
-        </div>
+              <div class="rw-trust__item">
+                <div class="rw-trust__icon">
+                  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                  </svg>
+                </div>
+                <div class="rw-trust__title">Free RC Transfer</div>
+                <div class="rw-trust__desc">100% RTO documentation handled by us. Zero hidden fees, zero stress.</div>
+              </div>
 
-        <div class="rw-trust__item">
-          <div class="rw-trust__icon">
-            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/>
-            </svg>
+              <div class="rw-trust__item">
+                <div class="rw-trust__icon">
+                  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                  </svg>
+                </div>
+                <div class="rw-trust__title">Finance Help</div>
+                <div class="rw-trust__desc">We work with leading banks to get you the best EMI option with minimal
+                  paperwork.</div>
+              </div>
+            </div>
           </div>
-          <div class="rw-trust__title">Finance Help</div>
-          <div class="rw-trust__desc">We work with leading banks to get you the best EMI option with minimal paperwork.</div>
-        </div>
-      </div>
-    </div>
-  </section>
+        </section>
 
-  <!-- ══════════════════════════════════════════════════════════
+        <!-- ══════════════════════════════════════════════════════════
        BROWSE BY CATEGORY
   ══════════════════════════════════════════════════════════ -->
-  <section class="rw-sec rw-sec--mid" aria-labelledby="cat-h" id="category-section">
-    <div class="rw-wrap">
+        <section class="rw-sec rw-sec--mid" aria-labelledby="cat-h" id="category-section">
+          <div class="rw-wrap">
 
-      <div class="rw-shead" data-rv>
-        <div class="rw-shead__row">
-          <div>
-            <p class="rw-shead__idx"><span class="rw-shead__n">02</span> Browse by type</p>
-            <h2 class="rw-d1" id="cat-h">Find your <span class="rw-acc">kind of drive.</span></h2>
-          </div>
-          <a href="/inventory" class="rw-btn rw-btn--ghost rw-desktop-only">
-            All body styles
-            <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false"><use href="#ni-arrow"/></svg></span>
-          </a>
-        </div>
-      </div>
-
-      <div class="rw-cats" data-rv>
-
-        <!-- SUV -->
-        <a href="/inventory?bodyType=SUV" class="rw-cat" aria-label="Explore SUV cars">
-          <div class="rw-cat__bg">
-            <img src="/pictures/suv.png" alt="SUV Collection" loading="lazy">
-          </div>
-          <div class="rw-cat__overlay"></div>
-          <div class="rw-cat__content">
-            <span class="rw-cat__badge">High Clearance</span>
-            <div class="rw-cat__foot">
-              <h3 class="rw-cat__name">SUV</h3>
-              <p class="rw-cat__desc">Commanding road presence, spacious cabin &amp; all-weather confidence.</p>
-              <span class="rw-cat__link">
-                Explore SUVs
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Hatchback -->
-        <a href="/inventory?bodyType=Hatchback" class="rw-cat" aria-label="Explore Hatchback cars">
-          <div class="rw-cat__bg">
-            <img src="/pictures/hatchback.png" alt="Hatchback Collection" loading="lazy">
-          </div>
-          <div class="rw-cat__overlay"></div>
-          <div class="rw-cat__content">
-            <span class="rw-cat__badge">City Favourite</span>
-            <div class="rw-cat__foot">
-              <h3 class="rw-cat__name">Hatchback</h3>
-              <p class="rw-cat__desc">Agile maneuvering, effortless urban parking &amp; great fuel economy.</p>
-              <span class="rw-cat__link">
-                Explore Hatchbacks
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Sedan -->
-        <a href="/inventory?bodyType=Sedan" class="rw-cat" aria-label="Explore Sedan cars">
-          <div class="rw-cat__bg">
-            <img src="/pictures/sedan.png" alt="Sedan Collection" loading="lazy">
-          </div>
-          <div class="rw-cat__overlay"></div>
-          <div class="rw-cat__content">
-            <span class="rw-cat__badge">Executive Class</span>
-            <div class="rw-cat__foot">
-              <h3 class="rw-cat__name">Sedan</h3>
-              <p class="rw-cat__desc">Executive styling, plush rear seating &amp; smooth long-distance cruising.</p>
-              <span class="rw-cat__link">
-                Explore Sedans
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </span>
-            </div>
-          </div>
-        </a>
-
-        <!-- EV -->
-        <a href="/inventory?bodyType=EV" class="rw-cat" aria-label="Explore Electric vehicles">
-          <div class="rw-cat__bg">
-            <img src="/pictures/ev.png" alt="Electric Vehicle Collection" loading="lazy">
-          </div>
-          <div class="rw-cat__overlay"></div>
-          <div class="rw-cat__content">
-            <span class="rw-cat__badge rw-cat__badge--lime">Zero Emissions</span>
-            <div class="rw-cat__foot">
-              <h3 class="rw-cat__name">Electric</h3>
-              <p class="rw-cat__desc">Instant torque, whisper-quiet cabin &amp; ultra-low running costs.</p>
-              <span class="rw-cat__link">
-                Explore EVs
-                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </span>
-            </div>
-          </div>
-        </a>
-
-      </div>
-
-      <div class="rw-sec-cta rw-mobile-only" style="margin-top:28px;">
-        <a href="/inventory" class="rw-btn rw-btn--ghost" style="width:100%;justify-content:center;">
-          All body styles
-          <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false"><use href="#ni-arrow"/></svg></span>
-        </a>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════════════════
-       FEATURED CARS
-  ══════════════════════════════════════════════════════════ -->
-  <section class="rw-sec rw-sec--dark" aria-labelledby="cars-h" id="featured-section">
-    <div class="rw-wrap">
-
-      <div class="rw-shead" data-rv>
-        <div class="rw-shead__row">
-          <div>
-            <p class="rw-shead__idx"><span class="rw-shead__n">03</span> Handpicked inventory</p>
-            <h2 class="rw-d1" id="cars-h">Pick <span class="rw-acc">yours.</span></h2>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-            <!-- Filter tabs -->
-            <div class="rw-tabs rw-desktop-only" role="group" aria-label="Filter by body type" id="car-tabs">
-              <button class="rw-tab active" data-filter="all" type="button" aria-pressed="true">
-                All <span class="rw-tab__count">(<%= featuredCars ? featuredCars.length : 0 %>)</span>
-              </button>
-              <button class="rw-tab" data-filter="SUV" type="button" aria-pressed="false">SUVs</button>
-              <button class="rw-tab" data-filter="Hatchback" type="button" aria-pressed="false">Hatchbacks</button>
-              <button class="rw-tab" data-filter="Sedan" type="button" aria-pressed="false">Sedans</button>
-            </div>
-            <a href="/inventory" class="rw-btn rw-btn--ghost rw-desktop-only">
-              All cars
-              <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false"><use href="#ni-arrow"/></svg></span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <% if (featuredCars && featuredCars.length > 0) { %>
-        <div class="rw-car-grid" id="featured-grid" data-rv>
-          <% featuredCars.forEach(function(car) {
-               var imgSrc = (car.images && car.images.length > 0)
-                 ? car.images[0].url
-                 : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
-          %>
-            <article
-              class="rw-car"
-              id="car-card-<%= car._id %>"
-              data-body="<%= car.bodyType || '' %>"
-            >
-              <!-- Media -->
-              <div class="rw-car__media">
-                <a href="/inventory/<%= car.slug || car._id %>">
-                  <img
-                    src="<%= imgSrc %>"
-                    alt="<%= car.year %> <%= car.make %> <%= car.model %>"
-                    loading="lazy"
-                  >
-                </a>
-
-                <!-- Certified tag -->
-                <span class="rw-car__tag">
-                  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  Certified
-                </span>
-
-                <!-- Image count (if images available) -->
-                <% if (car.images && car.images.length > 1) { %>
-                  <span class="rw-car__count">
-                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 8h3.8l1.7-2.5h6l1.7 2.5h3.8v11h-17z"/><circle cx="12" cy="13.3" r="3.2"/></svg>
-                    <%= car.images.length %>
-                  </span>
-                <% } %>
-
-                <!-- Discount badge -->
-                <% if (car.discount_tag) { %>
-                  <span class="rw-car__badge-disc"><%= car.discount_tag %></span>
-                <% } %>
-              </div>
-
-              <!-- Body -->
-              <a href="/inventory/<%= car.slug || car._id %>" class="rw-car__body" style="text-decoration:none;display:flex;flex-direction:column;flex:1;">
-                <p class="rw-car__kicker">
-                  <span><%= car.make %></span>
-                  <span class="rw-car__year"><%= car.year %></span>
-                </p>
-                <h3 class="rw-car__title">
-                  <%= car.make %> <strong><%= car.model %></strong>
-                  <% if (car.variant) { %><span style="font-weight:500;opacity:0.7;"> <%= car.variant %></span><% } %>
-                </h3>
-
-                <!-- Price -->
-                <div class="rw-car__price">
-                  <span class="rw-car__price-cur">₹</span>
-                  <%= formatPrice(car.croPricing.current_price) %>
-                  <% if (car.croPricing.savings_amount > 0) { %>
-                    <span class="rw-car__mkt">₹<%= Number(car.croPricing.anchor_price).toLocaleString('en-IN') %></span>
-                    <span class="rw-car__save-tag">Save ₹<%= Number(car.croPricing.savings_amount).toLocaleString('en-IN') %></span>
-                  <% } %>
+            <div class="rw-shead" data-rv>
+              <div class="rw-shead__row">
+                <div>
+                  <p class="rw-shead__idx"><span class="rw-shead__n">02</span> Browse by type</p>
+                  <h2 class="rw-d1" id="cat-h">Find your <span class="rw-acc">kind of drive.</span></h2>
                 </div>
+                <a href="/inventory" class="rw-btn rw-btn--ghost rw-desktop-only">
+                  All body styles
+                  <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false">
+                      <use href="#ni-arrow" />
+                    </svg></span>
+                </a>
+              </div>
+            </div>
 
-                <!-- Specs -->
-                <ul class="rw-specline">
-                  <li class="rw-num"><%= car.mileage.toLocaleString('en-IN') %> km</li>
-                  <li><%= car.fuelType %></li>
-                  <li><%= car.transmission %></li>
-                  <% if (car.rtoLocation) { %><li><%= car.rtoLocation %></li><% } %>
-                </ul>
+            <div class="rw-cats" data-rv>
+
+              <!-- SUV -->
+              <a href="/inventory?bodyType=SUV" class="rw-cat" aria-label="Explore SUV cars">
+                <div class="rw-cat__bg">
+                  <img src="/pictures/suv.png" alt="SUV Collection" loading="lazy">
+                </div>
+                <div class="rw-cat__overlay"></div>
+                <div class="rw-cat__content">
+                  <span class="rw-cat__badge">High Clearance</span>
+                  <div class="rw-cat__foot">
+                    <h3 class="rw-cat__name">SUV</h3>
+                    <p class="rw-cat__desc">Commanding road presence, spacious cabin &amp; all-weather confidence.</p>
+                    <span class="rw-cat__link">
+                      Explore SUVs
+                      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2">
+                        <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
               </a>
 
-              <!-- Actions -->
-              <div class="rw-car__act">
-                <button
-                  class="rw-car__save-btn"
-                  id="save-btn-<%= car._id %>"
-                  data-car-id="<%= car._id %>"
-                  onclick="toggleShortlist('<%= car._id %>', this)"
-                  aria-label="Save <%= car.make %> <%= car.model %> to shortlist"
-                >
-                  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                  </svg>
-                  <span>Save</span>
-                </button>
-                <a href="/inventory/<%= car.slug || car._id %>" class="rw-car__view">
-                  View
-                  <svg aria-hidden="true" focusable="false"><use href="#ni-arrow"/></svg>
+              <!-- Hatchback -->
+              <a href="/inventory?bodyType=Hatchback" class="rw-cat" aria-label="Explore Hatchback cars">
+                <div class="rw-cat__bg">
+                  <img src="/pictures/hatchback.png" alt="Hatchback Collection" loading="lazy">
+                </div>
+                <div class="rw-cat__overlay"></div>
+                <div class="rw-cat__content">
+                  <span class="rw-cat__badge">City Favourite</span>
+                  <div class="rw-cat__foot">
+                    <h3 class="rw-cat__name">Hatchback</h3>
+                    <p class="rw-cat__desc">Agile maneuvering, effortless urban parking &amp; great fuel economy.</p>
+                    <span class="rw-cat__link">
+                      Explore Hatchbacks
+                      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2">
+                        <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </a>
+
+              <!-- Sedan -->
+              <a href="/inventory?bodyType=Sedan" class="rw-cat" aria-label="Explore Sedan cars">
+                <div class="rw-cat__bg">
+                  <img src="/pictures/sedan.png" alt="Sedan Collection" loading="lazy">
+                </div>
+                <div class="rw-cat__overlay"></div>
+                <div class="rw-cat__content">
+                  <span class="rw-cat__badge">Executive Class</span>
+                  <div class="rw-cat__foot">
+                    <h3 class="rw-cat__name">Sedan</h3>
+                    <p class="rw-cat__desc">Executive styling, plush rear seating &amp; smooth long-distance cruising.
+                    </p>
+                    <span class="rw-cat__link">
+                      Explore Sedans
+                      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2">
+                        <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </a>
+
+              <!-- Mini Van -->
+              <a href="/inventory?bodyType=Mini+Van" class="rw-cat" aria-label="Explore Mini Van vehicles">
+                <div class="rw-cat__bg">
+                  <img src="/pictures/ev.png" alt="Mini Van Collection" loading="lazy">
+                </div>
+                <div class="rw-cat__overlay"></div>
+                <div class="rw-cat__content">
+                  <span class="rw-cat__badge rw-cat__badge--lime">Family Ready</span>
+                  <div class="rw-cat__foot">
+                    <h3 class="rw-cat__name">Mini Van</h3>
+                    <p class="rw-cat__desc">Spacious cabins, sliding doors &amp; comfort built for the whole family.</p>
+                    <span class="rw-cat__link">
+                      Explore Mini Vans
+                      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2">
+                        <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </a>
+
+            </div>
+
+            <div class="rw-sec-cta rw-mobile-only" style="margin-top:28px;">
+              <a href="/inventory" class="rw-btn rw-btn--ghost" style="width:100%;justify-content:center;">
+                All body styles
+                <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false">
+                    <use href="#ni-arrow" />
+                  </svg></span>
+              </a>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════════════════
+       FEATURED CARS
+  ══════════════════════════════════════════════════════════ -->
+        <section class="rw-sec rw-sec--dark" aria-labelledby="cars-h" id="featured-section">
+          <div class="rw-wrap">
+
+            <div class="rw-shead" data-rv>
+              <div class="rw-shead__row">
+                <div>
+                  <p class="rw-shead__idx"><span class="rw-shead__n">03</span> Handpicked inventory</p>
+                  <h2 class="rw-d1" id="cars-h">Pick <span class="rw-acc">yours.</span></h2>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                  <!-- Filter tabs -->
+                  <div class="rw-tabs rw-desktop-only" role="group" aria-label="Filter by body type" id="car-tabs">
+                    <button class="rw-tab active" data-filter="all" type="button" aria-pressed="true">
+                      All <span class="rw-tab__count">(<%= featuredCars ? featuredCars.length : 0 %>)</span>
+                    </button>
+                    <button class="rw-tab" data-filter="SUV" type="button" aria-pressed="false">SUVs</button>
+                    <button class="rw-tab" data-filter="Hatchback" type="button"
+                      aria-pressed="false">Hatchbacks</button>
+                    <button class="rw-tab" data-filter="Sedan" type="button" aria-pressed="false">Sedans</button>
+                  </div>
+                  <a href="/inventory" class="rw-btn rw-btn--ghost rw-desktop-only">
+                    All cars
+                    <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false">
+                        <use href="#ni-arrow" />
+                      </svg></span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <% if (featuredCars && featuredCars.length> 0) { %>
+              <div class="rw-car-grid" id="featured-grid" data-rv>
+                <% featuredCars.forEach(function(car) { var imgSrc=(car.images && car.images.length> 0)
+                  ? car.images[0].url
+                  : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+                  %>
+                  <article class="rw-car" id="car-card-<%= car._id %>" data-body="<%= car.bodyType || '' %>">
+                    <!-- Media -->
+                    <div class="rw-car__media">
+                      <a href="/inventory/<%= car.slug || car._id %>">
+                        <img src="<%= imgSrc %>" alt="<%= car.year %> <%= car.make %> <%= car.model %>" loading="lazy">
+                      </a>
+
+                      <!-- Certified tag -->
+                      <span class="rw-car__tag">
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2.5" stroke-linecap="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Certified
+                      </span>
+
+                      <!-- Image count (if images available) -->
+                      <% if (car.images && car.images.length> 1) { %>
+                        <span class="rw-car__count">
+                          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1.8">
+                            <path d="M3.5 8h3.8l1.7-2.5h6l1.7 2.5h3.8v11h-17z" />
+                            <circle cx="12" cy="13.3" r="3.2" />
+                          </svg>
+                          <%= car.images.length %>
+                        </span>
+                        <% } %>
+
+                          <!-- Discount badge -->
+                          <% if (car.discount_tag) { %>
+                            <span class="rw-car__badge-disc">
+                              <%= car.discount_tag %>
+                            </span>
+                            <% } %>
+                    </div>
+
+                    <!-- Body -->
+                    <a href="/inventory/<%= car.slug || car._id %>" class="rw-car__body"
+                      style="text-decoration:none;display:flex;flex-direction:column;flex:1;">
+                      <p class="rw-car__kicker">
+                        <span>
+                          <%= car.make %>
+                        </span>
+                        <span class="rw-car__year">
+                          <%= car.year %>
+                        </span>
+                      </p>
+                      <h3 class="rw-car__title">
+                        <%= car.make %> <strong>
+                            <%= car.model %>
+                          </strong>
+                          <% if (car.variant) { %><span style="font-weight:500;opacity:0.7;">
+                              <%= car.variant %>
+                            </span>
+                            <% } %>
+                      </h3>
+
+                      <!-- Price -->
+                      <div class="rw-car__price">
+                        <span class="rw-car__price-cur">₹</span>
+                        <%= formatPrice(car.croPricing.current_price) %>
+                          <% if (car.croPricing.savings_amount> 0) { %>
+                            <span class="rw-car__mkt">₹<%= Number(car.croPricing.anchor_price).toLocaleString('en-IN')
+                                %></span>
+                            <span class="rw-car__save-tag">Save ₹<%=
+                                Number(car.croPricing.savings_amount).toLocaleString('en-IN') %></span>
+                            <% } %>
+                      </div>
+
+                      <!-- Specs -->
+                      <ul class="rw-specline">
+                        <li class="rw-num">
+                          <%= car.mileage.toLocaleString('en-IN') %> km
+                        </li>
+                        <li>
+                          <%= car.fuelType %>
+                        </li>
+                        <li>
+                          <%= car.transmission %>
+                        </li>
+                        <% if (car.rtoLocation) { %>
+                          <li>
+                            <%= car.rtoLocation %>
+                          </li>
+                          <% } %>
+                      </ul>
+                    </a>
+
+                    <!-- Actions -->
+                    <div class="rw-car__act">
+                      <button class="rw-car__save-btn" id="save-btn-<%= car._id %>" data-car-id="<%= car._id %>"
+                        onclick="toggleShortlist('<%= car._id %>', this)"
+                        aria-label="Save <%= car.make %> <%= car.model %> to shortlist">
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2" stroke-linecap="round">
+                          <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        <span>Save</span>
+                      </button>
+                      <a href="/inventory/<%= car.slug || car._id %>" class="rw-car__view">
+                        View
+                        <svg aria-hidden="true" focusable="false">
+                          <use href="#ni-arrow" />
+                        </svg>
+                      </a>
+                    </div>
+                  </article>
+                  <% }) %>
+              </div>
+
+              <!-- Mobile view all -->
+              <div class="rw-sec-cta rw-mobile-only" style="margin-top:28px;">
+                <a href="/inventory" class="rw-btn rw-btn--ghost" style="width:100%;justify-content:center;">
+                  Browse all cars
+                  <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false">
+                      <use href="#ni-arrow" />
+                    </svg></span>
                 </a>
               </div>
-            </article>
-          <% }) %>
-        </div>
 
-        <!-- Mobile view all -->
-        <div class="rw-sec-cta rw-mobile-only" style="margin-top:28px;">
-          <a href="/inventory" class="rw-btn rw-btn--ghost" style="width:100%;justify-content:center;">
-            Browse all cars
-            <span class="rw-btn-arrow"><svg aria-hidden="true" focusable="false"><use href="#ni-arrow"/></svg></span>
-          </a>
-        </div>
+              <% } else { %>
+                <div class="rw-empty" data-rv>
+                  <h3>No featured cars yet</h3>
+                  <p>Add your first car from the admin panel.</p>
+                  <a href="/inventory" class="rw-btn rw-btn--ghost" style="margin-top:20px;display:inline-flex;">Browse
+                    inventory</a>
+                </div>
+                <% } %>
 
-      <% } else { %>
-        <div class="rw-empty" data-rv>
-          <h3>No featured cars yet</h3>
-          <p>Add your first car from the admin panel.</p>
-          <a href="/inventory" class="rw-btn rw-btn--ghost" style="margin-top:20px;display:inline-flex;">Browse inventory</a>
-        </div>
-      <% } %>
+          </div>
+        </section>
 
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════════════════
+        <!-- ══════════════════════════════════════════════════════════
        CTA BANNER
   ══════════════════════════════════════════════════════════ -->
-  <section class="rw-sec rw-sec--mid" aria-labelledby="cta-h">
-    <div class="rw-wrap">
-      <div class="rw-cta-banner" data-rv>
-        <div>
-          <p class="rw-cta-banner__eyebrow">A better way to move on</p>
-          <h2 class="rw-cta-banner__title" id="cta-h">Ready for your next car?</h2>
-          <p class="rw-cta-banner__sub">Talk with our team about selling, upgrading, or finding the perfect fit — no pressure, ever.</p>
-        </div>
-        <div class="rw-cta-banner__btns">
-          <a href="tel:+919516486666" class="rw-btn rw-btn--dark" id="cta-call-btn">
-            <svg aria-hidden="true" focusable="false"><use href="#ni-phone"/></svg>
-            Call us now
-          </a>
-          <a
-            href="https://wa.me/919516486666?text=Hi%20The%20Auto%20Choice%2C%20I%20found%20you%20on%20your%20website%20and%20I'd%20like%20to%20know%20more."
-            class="rw-btn"
-            style="background:rgba(0,0,0,0.12);color:#0c0e0d;border:1px solid rgba(0,0,0,0.15);"
-            target="_blank" rel="noopener"
-          >
-            <svg aria-hidden="true" focusable="false"><use href="#ni-wa"/></svg>
-            WhatsApp
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
+        <section class="rw-sec rw-sec--mid" aria-labelledby="cta-h">
+          <div class="rw-wrap">
+            <div class="rw-cta-banner" data-rv>
+              <div>
+                <p class="rw-cta-banner__eyebrow">A better way to move on</p>
+                <h2 class="rw-cta-banner__title" id="cta-h">Ready for your next car?</h2>
+                <p class="rw-cta-banner__sub">Talk with our team about selling, upgrading, or finding the perfect fit —
+                  no pressure, ever.</p>
+              </div>
+              <div class="rw-cta-banner__btns">
+                <%- include('partials/call-picker', { variant: 'is-banner' , callLabel: 'Call us now' ,
+                  buttonClass: 'rw-btn--dark' }) %>
+                  <a href="https://wa.me/919516486666?text=Hi%20The%20Auto%20Choice%2C%20I%20found%20you%20on%20your%20website%20and%20I'd%20like%20to%20know%20more."
+                    class="rw-btn" style="background:rgba(0,0,0,0.12);color:#0c0e0d;border:1px solid rgba(0,0,0,0.15);"
+                    target="_blank" rel="noopener">
+                    <svg aria-hidden="true" focusable="false">
+                      <use href="#ni-wa" />
+                    </svg>
+                    WhatsApp
+                  </a>
+              </div>
+            </div>
+          </div>
+        </section>
 
-</main>
+      </main>
 
-<%- include('partials/footer') %>
+      <%- include('partials/footer') %>
 
-<!-- ── Scroll reveal + car filter JS ── -->
-<script>
-  // Scroll reveal
-  (function () {
-    var els = document.querySelectorAll('[data-rv]');
-    if (!els.length) return;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
-      });
-    }, { threshold: 0.08 });
-    els.forEach(function (el) { io.observe(el); });
-  })();
+        <!-- ── Scroll reveal + car filter JS ── -->
+        <script>
+          // Scroll reveal
+          (function () {
+            var els = document.querySelectorAll('[data-rv]');
+            if (!els.length) return;
+            var io = new IntersectionObserver(function (entries) {
+              entries.forEach(function (e) {
+                if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+              });
+            }, { threshold: 0.08 });
+            els.forEach(function (el) { io.observe(el); });
+          })();
 
-  // Store hours status
-  (function () {
-    var el = document.getElementById('store-status');
-    if (!el) return;
-    try {
-      var h = new Date().getHours();
-      if (h >= 11 && h < 21) {
-        el.textContent = 'Open now · closes 9 pm';
-      } else if (h < 11) {
-        el.textContent = 'Closed · opens today 11 am';
-      } else {
-        el.textContent = 'Closed · opens tomorrow 11 am';
-      }
-    } catch (e) {}
-  })();
+          // Store hours status
+          (function () {
+            var el = document.getElementById('store-status');
+            if (!el) return;
+            try {
+              var h = new Date().getHours();
+              if (h >= 11 && h < 21) {
+                el.textContent = 'Open now · closes 9 pm';
+              } else if (h < 11) {
+                el.textContent = 'Closed · opens today 11 am';
+              } else {
+                el.textContent = 'Closed · opens tomorrow 11 am';
+              }
+            } catch (e) { }
+          })();
 
-  // Car filter tabs
-  (function () {
-    var tabs = document.querySelectorAll('#car-tabs .rw-tab');
-    var grid = document.getElementById('featured-grid');
-    if (!tabs.length || !grid) return;
+          // Car filter tabs
+          (function () {
+            var tabs = document.querySelectorAll('#car-tabs .rw-tab');
+            var grid = document.getElementById('featured-grid');
+            if (!tabs.length || !grid) return;
 
-    tabs.forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        var filter = this.dataset.filter;
+            tabs.forEach(function (tab) {
+              tab.addEventListener('click', function () {
+                var filter = this.dataset.filter;
 
-        // Update tab states
-        tabs.forEach(function (t) {
-          t.classList.remove('active');
-          t.setAttribute('aria-pressed', 'false');
-        });
-        this.classList.add('active');
-        this.setAttribute('aria-pressed', 'true');
+                // Update tab states
+                tabs.forEach(function (t) {
+                  t.classList.remove('active');
+                  t.setAttribute('aria-pressed', 'false');
+                });
+                this.classList.add('active');
+                this.setAttribute('aria-pressed', 'true');
 
-        // Filter cards
-        var cards = grid.querySelectorAll('.rw-car');
-        cards.forEach(function (card) {
-          var body = card.dataset.body || '';
-          if (filter === 'all' || body === filter) {
-            card.style.display = '';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      });
-    });
-  })();
-</script>
+                // Filter cards
+                var cards = grid.querySelectorAll('.rw-car');
+                cards.forEach(function (card) {
+                  var body = card.dataset.body || '';
+                  if (filter === 'all' || body === filter) {
+                    card.style.display = '';
+                  } else {
+                    card.style.display = 'none';
+                  }
+                });
+              });
+            });
+          })();
+        </script>

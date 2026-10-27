@@ -1,0 +1,16 @@
+<details class="rw-call-picker <%= typeof variant !== 'undefined' ? variant : '' %>">
+  <summary class="rw-btn rw-btn--ghost rw-btn--sm <%= typeof buttonClass !== 'undefined' ? buttonClass : '' %>"
+    aria-label="Choose a number to call" title="Choose a number to call">
+    <svg aria-hidden="true" focusable="false">
+      <use href="#ni-phone" />
+    </svg>
+    <% if (typeof callLabel !=='undefined' && callLabel) { %><span>
+        <%= callLabel %>
+      </span>
+      <% } %>
+  </summary>
+  <div class="rw-call-picker__menu" role="group" aria-label="Choose a showroom phone number">
+    <a href="tel:+919516486666"><span>Call 1</span><strong>+91 95164 86666</strong></a>
+    <a href="tel:+918602228333"><span>Call 2</span><strong>+91 86022 28333</strong></a>
+  </div>
+</details>
