@@ -7,6 +7,7 @@
   <defs>
     <symbol id="ni-search"   viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m20 20-4.5-4.5"/></symbol>
     <symbol id="ni-phone"    viewBox="0 0 24 24"><path d="M20.6 16.3v2.8a1.9 1.9 0 0 1-2 1.9 18.6 18.6 0 0 1-8.1-2.9 18.3 18.3 0 0 1-5.6-5.6A18.6 18.6 0 0 1 2 4.4a1.9 1.9 0 0 1 1.9-2h2.8a1.9 1.9 0 0 1 1.9 1.6c.1.9.3 1.8.6 2.6a1.9 1.9 0 0 1-.4 2L7.6 9.8a15 15 0 0 0 5.6 5.6l1.2-1.2a1.9 1.9 0 0 1 2-.4c.8.3 1.7.5 2.6.6a1.9 1.9 0 0 1 1.6 1.9z"/></symbol>
+    <symbol id="ni-location" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
     <symbol id="ni-wa"       viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.44-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.08-.13-.28-.2-.57-.35m-5.42 7.4h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 0 0-3.48-8.41z"/></symbol>
     <symbol id="ni-heart"    viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
     <symbol id="ni-menu"     viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></symbol>
@@ -25,6 +26,7 @@
 
     <%# Brand %>
     <a href="/" class="rw-brand" aria-label="The Auto Choice — home">
+      <img class="rw-brand__circle" src="/pictures/circle_logo.png" alt="" aria-hidden="true" width="40" height="40">
       <img class="rw-brand__logo" src="/pictures/logo.png" alt="The Auto Choice">
     </a>
 
@@ -63,12 +65,22 @@
           <span class="modern-badge" id="shortlist-count" style="background:var(--lime);color:#0c0e0d;border-radius:100px;padding:1px 6px;font-size:0.65rem;font-weight:900;min-width:18px;text-align:center;display:none;">0</span>
         </button>
         <a href="https://wa.me/919516486666?text=Hi%20The%20Auto%20Choice%2C%20I%20found%20you%20on%20your%20website%20and%20I'd%20like%20to%20know%20more%20about%20your%20cars."
-           class="rw-btn rw-btn--wa rw-btn--sm" target="_blank" rel="noopener">
+           class="rw-btn rw-btn--wa rw-btn--sm rw-header-wa" target="_blank" rel="noopener noreferrer">
           <svg aria-hidden="true" focusable="false"><use href="#ni-wa"/></svg>
           <span class="rw-hdr__wa-text">WhatsApp</span>
         </a>
-        <%- include('call-picker', { variant: 'is-header rw-desktop-only', callLabel: 'Call' }) %>
+        <%- include('call-picker', { variant: 'is-header', callLabel: 'Call' }) %>
       <% } %>
+
+      <a href="https://share.google/uKYKM2Vom8fuvopwq" class="rw-btn rw-btn--ghost rw-btn--sm rw-desktop-only rw-location-link"
+         target="_blank" rel="noopener noreferrer" aria-label="Find our shop" title="Find our shop">
+        <svg aria-hidden="true" focusable="false"><use href="#ni-location"/></svg>
+        <span>Location</span>
+      </a>
+      <a href="https://share.google/uKYKM2Vom8fuvopwq" class="rw-btn rw-btn--ghost rw-btn--sm rw-mobile-only rw-mobile-location"
+         target="_blank" rel="noopener noreferrer" aria-label="Find our shop" title="Find our shop">
+        <svg aria-hidden="true" focusable="false"><use href="#ni-location"/></svg>
+      </a>
 
       <%# Hamburger %>
       <button class="rw-burger" id="rw-burger" aria-expanded="false" aria-controls="rw-menu" aria-label="Menu">
@@ -116,14 +128,20 @@
     </a>
   <% } %>
   <div class="rw-menu__btns">
-    <a href="https://wa.me/919516486666?text=Hi%20The%20Auto%20Choice%2C%20I%20found%20you%20on%20your%20website%20and%20I'd%20like%20to%20know%20more%20about%20your%20cars."
-       class="rw-btn rw-btn--wa" target="_blank" rel="noopener">
-      <svg aria-hidden="true" focusable="false"><use href="#ni-wa"/></svg>
-      WhatsApp
+    <a href="https://share.google/uKYKM2Vom8fuvopwq" class="rw-btn rw-btn--ghost rw-location-link"
+       target="_blank" rel="noopener noreferrer" aria-label="Find our shop">
+      <svg aria-hidden="true" focusable="false"><use href="#ni-location"/></svg>
+      Shop location
     </a>
     <%- include('call-picker', { variant: 'is-menu', callLabel: 'Call us' }) %>
   </div>
 </div>
+
+<a class="rw-whatsapp-float" href="https://wa.me/919516486666?text=Hi%20The%20Auto%20Choice%2C%20I%20found%20you%20on%20your%20website%20and%20I'd%20like%20to%20know%20more%20about%20your%20cars."
+   draggable="false"
+   target="_blank" rel="noopener noreferrer" aria-label="Message The Auto Choice on WhatsApp" title="Drag to move · WhatsApp">
+  <svg aria-hidden="true" focusable="false"><use href="#ni-wa"/></svg>
+</a>
 
   <script>
   // Burger toggle
@@ -175,4 +193,107 @@
       });
     }
   });
+
+  // Movable WhatsApp shortcut. Keep its dragged position for this page and
+  // restore it to the middle of the same side after a reload.
+  (function () {
+    var shortcut = document.querySelector('.rw-whatsapp-float');
+    if (!shortcut) return;
+
+    var storageKey = 'rw-whatsapp-float-position';
+    var dragged = false;
+    var suppressClick = false;
+    var pointerStart = null;
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function setCenterPosition(side) {
+      shortcut.style.top = '50%';
+      shortcut.style.transform = 'translateY(-50%)';
+      shortcut.dataset.side = side;
+      if (side === 'left') {
+        shortcut.style.left = '12px';
+        shortcut.style.right = 'auto';
+      } else {
+        shortcut.style.left = 'auto';
+        shortcut.style.right = '12px';
+      }
+    }
+
+    try {
+      var saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+      setCenterPosition(saved && saved.side === 'left' ? 'left' : 'right');
+    } catch (e) {}
+
+    shortcut.addEventListener('pointerdown', function (event) {
+      if (event.button !== undefined && event.button !== 0) return;
+      var rect = shortcut.getBoundingClientRect();
+      pointerStart = {
+        id: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        left: rect.left,
+        top: rect.top
+      };
+      dragged = false;
+      suppressClick = false;
+      shortcut.setPointerCapture(event.pointerId);
+    });
+
+    shortcut.addEventListener('pointermove', function (event) {
+      if (!pointerStart || event.pointerId !== pointerStart.id) return;
+      var dx = event.clientX - pointerStart.x;
+      var dy = event.clientY - pointerStart.y;
+      if (!dragged && Math.hypot(dx, dy) < 6) return;
+      dragged = true;
+      event.preventDefault();
+      var left = clamp(pointerStart.left + dx, 8, window.innerWidth - shortcut.offsetWidth - 8);
+      var top = clamp(pointerStart.top + dy, 8, window.innerHeight - shortcut.offsetHeight - 8);
+      shortcut.style.left = left + 'px';
+      shortcut.style.right = 'auto';
+      shortcut.style.top = top + 'px';
+      shortcut.style.transform = 'none';
+      shortcut.dataset.moved = 'true';
+    });
+
+    shortcut.addEventListener('pointerup', function (event) {
+      if (!pointerStart || event.pointerId !== pointerStart.id) return;
+      if (dragged) {
+        var rect = shortcut.getBoundingClientRect();
+        var side = rect.left + rect.width / 2 < window.innerWidth / 2 ? 'left' : 'right';
+        shortcut.dataset.side = side;
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({ side: side }));
+        } catch (e) {}
+        suppressClick = true;
+        window.setTimeout(function () { suppressClick = false; }, 500);
+      }
+      pointerStart = null;
+    });
+    shortcut.addEventListener('pointercancel', function () { pointerStart = null; });
+    shortcut.addEventListener('dragstart', function (event) { event.preventDefault(); });
+    shortcut.addEventListener('click', function (event) {
+      if (!dragged && !suppressClick) return;
+      event.preventDefault();
+      event.stopPropagation();
+      dragged = false;
+    });
+
+    window.addEventListener('resize', function () {
+      if (shortcut.dataset.moved !== 'true') {
+        setCenterPosition(shortcut.dataset.side || 'right');
+        return;
+      }
+
+      var rect = shortcut.getBoundingClientRect();
+      var left = clamp(rect.left, 8, window.innerWidth - shortcut.offsetWidth - 8);
+      var top = clamp(rect.top, 8, window.innerHeight - shortcut.offsetHeight - 8);
+      shortcut.style.left = left + 'px';
+      shortcut.style.right = 'auto';
+      shortcut.style.top = top + 'px';
+      shortcut.style.transform = 'none';
+    });
+  })();
 </script>

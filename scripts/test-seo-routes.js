@@ -52,7 +52,7 @@ async function run() {
         customerName: 'Aarav Sharma',
         phone: '9876543210',
         inquiryType: 'Schedule Visit',
-        message: 'City / Pincode: Jabalpur 482002'
+        message: 'City / Pincode: Jabalpur 482001'
     });
     console.log('POST /api/leads -> Status:', leadRes.status, 'Response:', leadRes.body);
 

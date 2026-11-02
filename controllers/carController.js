@@ -3,6 +3,7 @@ const Car = require('../models/Car');
 const Lead = require('../models/Lead');
 const cloudinary = require('cloudinary').v2;
 const { calculateCroPricing } = require('../utils/croPricing');
+const { GOOGLE_PLACE_ID } = require('../utils/googlePlace');
 
 function formatPrice(price) {
     return new Intl.NumberFormat('en-IN', {
@@ -26,6 +27,7 @@ exports.getHomePage = async (req, res) => {
         res.render('index', {
             featuredCars,
             formatPrice,
+            googlePlaceId: GOOGLE_PLACE_ID,
             isAdmin: Boolean(req.session && req.session.isAdmin),
             canonicalUrl: '/'
         });

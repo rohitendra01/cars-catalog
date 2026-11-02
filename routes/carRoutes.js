@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/upload');
 const { requireAdmin } = require('../middleware/auth');
+const { getGoogleReviewSummary } = require('../controllers/googleReviewController');
 const {
     getHomePage,
     getInventory,
@@ -42,6 +43,7 @@ router.get('/robots.txt', getRobotsTxt);
 router.post('/api/leads', postLead);
 
 router.get('/api/cars/:id/pricing', getCarPricing);
+router.get('/api/google-review-summary', getGoogleReviewSummary);
 
 // ─── Legacy Admin Form Routes (kept for backward compatibility) ────────────────
 router.get('/admin/add', requireAdmin, getAddCarForm);

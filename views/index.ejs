@@ -1,6 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/head-public', { pageTitle: 'The Auto Choice | Certified Pre-Owned Cars in Jabalpur' }) %>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "AutoDealer",
+      "name": "The Auto Choice",
+      "image": "/pictures/logo.png",
+      "telephone": "+919516486666",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Plot no. 43 Infront of Flyover Over Pillar no. 123, Madan Mahal Station Road, Ranital Chowk",
+        "addressLocality": "Jabalpur",
+        "addressRegion": "M.P.",
+        "postalCode": "482001",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 23.1661222,
+        "longitude": 79.922788
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ],
+        "opens": "11:00",
+        "closes": "21:00"
+      }
+    }
+    </script>
 
   <body>
     <%- include('partials/navbar', { isAdmin: typeof isAdmin !=='undefined' && isAdmin }) %>
@@ -27,9 +63,9 @@
           <div class="rw-hero__body">
 
             <!-- Kicker -->
-            <p class="rw-hero__kicker">
+            <p class="rw-hero__kicker" color="white">
               <span class="rw-hero__led" aria-hidden="true"></span>
-              Pre Owned showroom · Near Ranital Chowk, Jabalpur
+              Pre Owned Car Showroom · Near Ranital Chowk, Jabalpur
             </p>
 
             <!-- Headline -->
@@ -131,11 +167,11 @@
         <!-- ── Stats cluster ── -->
         <div class="rw-cluster" aria-label="The Auto Choice at a glance">
           <div class="rw-cluster__in">
-            <div class="rw-cluster__item">
-              <span class="rw-cluster__label">Google Rating</span>
+            <div class="rw-cluster__item" id="google-rating-summary" aria-busy="true">
+              <span class="rw-cluster__label">Google Maps rating</span>
               <div class="rw-cluster__val">
-                <span class="rw-cluster__num">4.4</span>
-                <span class="rw-cluster__stars">
+                <span class="rw-cluster__num" id="google-rating-value">—</span>
+                <span class="rw-cluster__stars" id="google-rating-stars" role="img" aria-label="Google rating is loading">
                   <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
                     <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
                   </svg>
@@ -147,9 +183,16 @@
                   </svg>
                   <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
                     <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
+                  </svg>
+                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="m12 2.6 2.9 6 6.6-.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
                   </svg>
                 </span>
-                <span class="rw-cluster__small">66 reviews</span>
+                <a class="rw-cluster__small rw-cluster__small-link" id="google-review-count"
+                   href="https://search.google.com/local/writereview?placeid=<%= encodeURIComponent(googlePlaceId) %>"
+                   target="_blank" rel="noopener noreferrer">Loading reviews…</a>
+                <a class="rw-cluster__google-maps" href="https://www.google.com/maps/search/?api=1&amp;query_place_id=<%= encodeURIComponent(googlePlaceId) %>"
+                   target="_blank" rel="noopener noreferrer">Google Maps</a>
               </div>
             </div>
 
@@ -162,30 +205,49 @@
                 <span class="rw-cluster__small">cars · multiple makes</span>
               </div>
             </div>
-
-            <div class="rw-cluster__item">
-              <span class="rw-cluster__label">Showroom hours</span>
-              <div class="rw-cluster__val">
-                <span id="store-status" class="rw-footer__status" style="font-size:0.78rem;">
-                  Open every day · 11 am – 9 pm
-                </span>
-              </div>
-            </div>
-
-            <div class="rw-cluster__item">
-              <span class="rw-cluster__label">Find us</span>
-              <div class="rw-cluster__val">
-                <a href="https://www.google.com/maps/dir/?api=1&destination=23.1661222%2C79.922788"
-                  class="rw-cluster__link" target="_blank" rel="noopener">
-                  Near Ranital Chowk (Pillar 123)
-                  <svg aria-hidden="true" focusable="false">
-                    <use href="#ni-arrow-ne" />
-                  </svg>
-                </a>
-              </div>
-            </div>
           </div>
         </div>
+
+        <script>
+          (function () {
+            var summary = document.getElementById('google-rating-summary');
+            var ratingValue = document.getElementById('google-rating-value');
+            var reviewCount = document.getElementById('google-review-count');
+            var stars = document.getElementById('google-rating-stars');
+            if (!summary || !ratingValue || !reviewCount || !stars) return;
+
+            var starItems = Array.from(stars.querySelectorAll('.rw-cluster__star'));
+            function showUnavailable() {
+              ratingValue.textContent = '—';
+              reviewCount.textContent = 'Live rating unavailable';
+              stars.setAttribute('aria-label', 'Google rating currently unavailable');
+              starItems.forEach(function (star) { star.style.opacity = '0.25'; });
+              summary.setAttribute('aria-busy', 'false');
+            }
+
+            fetch('/api/google-review-summary', { cache: 'no-store' })
+              .then(function (response) {
+                if (!response.ok) throw new Error('Google rating request failed');
+                return response.json();
+              })
+              .then(function (data) {
+                var rating = Number(data.rating);
+                var count = Number(data.userRatingCount);
+                if (!Number.isFinite(rating) || rating < 0 || rating > 5 || !Number.isFinite(count) || count < 0) {
+                  throw new Error('Google rating response was invalid');
+                }
+
+                ratingValue.textContent = rating.toFixed(1);
+                reviewCount.textContent = count.toLocaleString('en-IN') + ' ' + (count === 1 ? 'review' : 'reviews');
+                stars.setAttribute('aria-label', rating.toFixed(1) + ' out of 5 stars');
+                starItems.forEach(function (star, index) {
+                  star.style.opacity = String(Math.max(0, Math.min(1, rating - index)));
+                });
+                summary.setAttribute('aria-busy', 'false');
+              })
+              .catch(showUnavailable);
+          })();
+        </script>
 
         <!-- ══════════════════════════════════════════════════════════
        WHY US / TRUST
@@ -240,7 +302,7 @@
                       d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                   </svg>
                 </div>
-                <div class="rw-trust__title">Free RC Transfer</div>
+                <div class="rw-trust__title">Easy RC Transfer</div>
                 <div class="rw-trust__desc">100% RTO documentation handled by us. Zero hidden fees, zero stress.</div>
               </div>
 

@@ -393,6 +393,83 @@ html:not(.dark) .rw-hdr {
   padding-top: 16px;
 }
 
+.rw-menu__btns a.rw-btn {
+  padding: 0.62rem 1.1rem;
+  border-bottom: 1px solid transparent;
+  color: var(--ink);
+  font-size: 0.875rem;
+}
+
+.rw-location-link {
+  text-decoration: none;
+}
+
+.rw-location-link svg {
+  stroke: currentColor;
+  fill: none;
+}
+
+.rw-whatsapp-float {
+  position: fixed;
+  z-index: 1200;
+  top: 50%;
+  right: 12px;
+  width: 54px;
+  height: 54px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.28);
+  transform: translateY(-50%);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.rw-whatsapp-float:active {
+  cursor: grabbing;
+}
+
+.rw-whatsapp-float:hover {
+  background: #1fbd5a;
+  color: #fff;
+}
+
+.rw-whatsapp-float svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+  stroke: none;
+}
+
+@media (max-width: 900px) {
+  .rw-header-wa {
+    display: none !important;
+  }
+
+  .rw-whatsapp-float {
+    display: flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .rw-call-picker.is-header > summary {
+    justify-content: center;
+    min-width: 36px;
+    padding: 0.5rem;
+  }
+
+  .rw-call-picker.is-header > summary span {
+    display: none;
+  }
+}
+
 @media (max-width: 900px) {
 
   .rw-nav,
@@ -745,6 +822,19 @@ html:not(.dark) .rw-hdr {
   font-size: 0.78rem;
   color: var(--ink-dim);
   font-weight: 500;
+}
+
+.rw-cluster__small-link,
+.rw-cluster__google-maps {
+  color: var(--ink-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rw-cluster__google-maps {
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .rw-cluster__link {
@@ -1771,12 +1861,30 @@ html:not(.dark) .rw-hdr {
 }
 
 /* Brand image, two-second hero crossfade and reusable call-number chooser. */
+.rw-brand__circle {
+  display: block;
+  width: clamp(34px, 3.8vw, 42px);
+  height: clamp(34px, 3.8vw, 42px);
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
 .rw-brand__logo {
   display: block;
-  width: clamp(142px, 14vw, 184px);
+  width: clamp(130px, 13vw, 175px);
   max-height: 38px;
   object-fit: contain;
   object-position: left center;
+}
+
+.rw-footer__circle {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 50%;
 }
 
 .rw-footer__logo {
@@ -1935,9 +2043,13 @@ html:not(.dark) .rw-hdr {
 }
 
 @media (max-width: 560px) {
+  .rw-brand__circle {
+    width: 30px;
+    height: 30px;
+  }
   .rw-brand__logo {
-    width: min(154px, 37vw);
-    max-height: 32px;
+    width: min(136px, 35vw);
+    max-height: 30px;
   }
 }
 
