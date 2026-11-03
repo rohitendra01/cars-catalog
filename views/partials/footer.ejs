@@ -45,7 +45,7 @@
           <li><a href="/inventory?bodyType=Hatchback">Hatchbacks</a></li>
           <li><a href="/inventory?bodyType=Sedan">Sedans</a></li>
           <li><a href="/inventory?bodyType=MUV">MUVs</a></li>
-          <li><a href="/inventory?seats=7">7+ seats</a></li>
+          <li><a href="/inventory?minSeats=7">7+ seats</a></li>
           <li><a href="/inventory?maxPrice=500000">Under ₹5 Lakh</a></li>
         </ul>
       </div>
@@ -55,11 +55,11 @@
         <h4>The Auto Choice</h4>
         <ul class="rw-footer__list">
           <li><a href="/inventory">All cars for sale</a></li>
-          <li><a href="/sell-your-car">Sell or exchange</a></li>
-          <li><a href="/finance">Finance</a></li>
-          <li><a href="/about">The showroom</a></li>
-          <li><a href="/visit">Visit us</a></li>
-          <li><a href="/test-drive">Book a test drive</a></li>
+          <li><a href="https://wa.me/919516486666?text=Hi%20The%20Auto%20Choice%2C%20I%27d%20like%20to%20sell%20or%20exchange%20my%20car.">Sell or exchange</a></li>
+          <li><a href="/inventory">Finance estimates</a></li>
+          <li><a href="/#trust-h">Why choose us</a></li>
+          <li><a href="https://www.google.com/maps/dir/?api=1&amp;destination=23.1661222%2C79.922788" target="_blank" rel="noopener noreferrer">Visit showroom</a></li>
+          <li><a href="/inventory">Choose a car to test drive</a></li>
         </ul>
       </div>
 
@@ -98,8 +98,8 @@
         &copy; <%= new Date().getFullYear() %> The Auto Choice Pvt. Ltd. All rights reserved.
       </p>
       <div class="rw-footer__links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
+        <a href="mailto:autochoicecar@gmail.com?subject=Privacy%20inquiry">Privacy questions</a>
+        <a href="mailto:autochoicecar@gmail.com?subject=Website%20terms%20inquiry">Terms questions</a>
         <a href="/sitemap.xml" target="_blank">Sitemap</a>
         <a href="/admin" aria-label="Admin portal" title="Admin portal" style="color:var(--ink-faint);">
           <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;"
@@ -138,7 +138,11 @@
     var el = document.getElementById('footer-store-hours');
     if (!el) return;
     try {
-      var h = new Date().getHours();
+      var h = Number(new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        hourCycle: 'h23'
+      }).format(new Date()));
       if (h >= 11 && h < 21) {
         el.textContent = 'Open now · closes 9 pm';
       } else if (h < 11) {

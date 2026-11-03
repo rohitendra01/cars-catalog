@@ -106,7 +106,7 @@ carSchema.virtual('primaryImage').get(function () {
         const image = this.images[0];
         return typeof image === 'string' ? image : image.url;
     }
-    return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=80';
+    return '/pictures/hero1.jpeg';
 });
 
 carSchema.virtual('priceInLakhs').get(function () {

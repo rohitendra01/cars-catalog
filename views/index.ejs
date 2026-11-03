@@ -124,7 +124,7 @@
                   On the forecourt
                 </p>
                 <% featuredCars.slice(0,5).forEach(function(car) { var img=(car.images && car.images.length> 0) ?
-                  car.images[0].url : 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=300&q=60';
+                  car.images[0].url : '/pictures/hero1.jpeg';
                   %>
                   <a href="/inventory/<%= car.slug || car._id %>" class="rw-spot">
                     <div class="rw-spot__img">
@@ -485,13 +485,13 @@
               <div class="rw-car-grid" id="featured-grid" data-rv>
                 <% featuredCars.forEach(function(car) { var imgSrc=(car.images && car.images.length> 0)
                   ? car.images[0].url
-                  : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+                  : '/pictures/hero1.jpeg';
                   %>
                   <article class="rw-car" id="car-card-<%= car._id %>" data-body="<%= car.bodyType || '' %>">
                     <!-- Media -->
                     <div class="rw-car__media">
                       <a href="/inventory/<%= car.slug || car._id %>">
-                        <img src="<%= imgSrc %>" alt="<%= car.year %> <%= car.make %> <%= car.model %>" loading="lazy">
+                        <img src="<%= imgSrc %>" alt="<%= car.images && car.images.length ? `${car.year} ${car.make} ${car.model}` : 'The Auto Choice showroom forecourt' %>" loading="lazy">
                       </a>
 
                       <!-- Certified tag -->

@@ -27,7 +27,11 @@ const storage = new CloudinaryStorage({
         ],
         public_id: (req, file) => {
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-            const originalName = file.originalname.replace(/\.[^/.]+$/, '').replace(/\s+/g, '-');
+            const originalName = file.originalname
+                .replace(/\.[^/.]+$/, '')
+                .replace(/[^a-zA-Z0-9_-]+/g, '-')
+                .replace(/^-+|-+$/g, '')
+                .slice(0, 60) || 'image';
             return `car-${originalName}-${uniqueSuffix}`;
         }
     }
@@ -39,7 +43,7 @@ const fileFilter = (req, file, cb) => {
     if (allowed.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Only image files (JPG, PNG, WebP) are allowed.'), false);
+        cb(new Error('Only image files (JPG, PNG, WebP, or AVIF) are allowed.'), false);
     }
 };
 

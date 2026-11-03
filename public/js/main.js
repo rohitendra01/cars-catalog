@@ -2,6 +2,8 @@
 
 // ── Constants ────────────────────────────────────────────────────
 const SHORTLIST_KEY = 'autovault_shortlist';
+let volatileShortlist = null;
+let shortlistStorageUnavailable = false;
 
 // ── Toast Helper ─────────────────────────────────────────────────
 /**
@@ -25,11 +27,18 @@ function showToast(message) {
  * @returns {string[]} Array of car ID strings
  */
 function getShortlist() {
+    if (shortlistStorageUnavailable) return volatileShortlist || [];
     try {
-        return JSON.parse(localStorage.getItem(SHORTLIST_KEY)) || [];
+        const saved = JSON.parse(localStorage.getItem(SHORTLIST_KEY));
+        if (Array.isArray(saved)) {
+            volatileShortlist = saved.filter(id => typeof id === 'string' && id.length > 0);
+            return volatileShortlist;
+        }
     } catch {
-        return [];
+        // Keep this tab usable if browser storage is blocked or full.
+        shortlistStorageUnavailable = true;
     }
+    return volatileShortlist || [];
 }
 
 /**
@@ -37,7 +46,15 @@ function getShortlist() {
  * @param {string[]} list
  */
 function saveShortlist(list) {
-    localStorage.setItem(SHORTLIST_KEY, JSON.stringify(list));
+    volatileShortlist = list;
+    try {
+        localStorage.setItem(SHORTLIST_KEY, JSON.stringify(list));
+        shortlistStorageUnavailable = false;
+        document.dispatchEvent(new Event('shortlistChanged'));
+    } catch {
+        shortlistStorageUnavailable = true;
+        showToast('Shortlist saved for this page only because browser storage is unavailable.');
+    }
 }
 
 /**
@@ -47,7 +64,9 @@ function updateShortlistBadge() {
     const count = getShortlist().length;
     const badges = document.querySelectorAll('#shortlist-count, #mobile-shortlist-count');
     badges.forEach(b => {
-        if (b) b.textContent = count;
+        if (!b) return;
+        b.textContent = count;
+        b.style.display = count > 0 ? 'inline-block' : 'none';
     });
 
     const navShortlistIcons = document.querySelectorAll('.nav-shortlist-icon');
@@ -123,6 +142,9 @@ function toggleShortlist(carId, btn) {
     const shortlistFilter = document.getElementById('shortlist-filter');
     if (shortlistFilter) {
         shortlistFilter.value = list.join(',');
+        const params = new URLSearchParams(window.location.search);
+        params.set('shortlist', list.join(','));
+        window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
         if (!willSave) {
             btn?.closest('.car-card')?.remove();
             const resultCount = document.getElementById('result-count');

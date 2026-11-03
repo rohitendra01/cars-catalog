@@ -24,6 +24,12 @@ if (process.env.NODE_ENV === 'production' && Buffer.byteLength(process.env.SESSI
     process.exit(1);
 }
 
+const mongoUri = (process.env.MONGO_URI || '').trim();
+if (!mongoUri || mongoUri.includes('<user>') || mongoUri.includes('<password>')) {
+    console.error('❌  MONGO_URI is missing or still contains placeholder credentials.');
+    process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.disable('x-powered-by');
@@ -50,7 +56,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // ─── Session Store (MongoDB-backed, persisted across restarts) ────────────────
-const SESSION_TTL_SECONDS = 60 * 60 * 1; // 2-hour idle timeout
+const SESSION_TTL_SECONDS = 60 * 60 * 2; // 2-hour idle timeout
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -96,11 +102,6 @@ app.use((err, req, res, next) => {
 });
 
 // ─── MongoDB + Server Startup ─────────────────────────────────────────────────
-const mongoUri = process.env.MONGO_URI;
-
-if (!process.env.MONGO_URI || process.env.MONGO_URI.includes('<user>') || process.env.MONGO_URI.includes('cluster.mongodb.net')) {
-}
-
 mongoose.connect(mongoUri)
     .then(async () => {
         console.log('✅ MongoDB Connected');

@@ -18,6 +18,31 @@ function parseEquipment(value) {
     return [...new Set(values.flatMap(item => String(item).split(/[,;\n]+/)).map(item => item.trim()).filter(Boolean))];
 }
 
+function queryText(value) {
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+function escapeRegex(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function positiveInteger(value, fallback, maximum) {
+    if (typeof value !== 'string' || !/^\d+$/.test(value.trim())) return fallback;
+    return Math.min(maximum, Math.max(1, Number(value)));
+}
+
+function numericQuery(value) {
+    if (typeof value !== 'string' || value.trim() === '') return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+}
+
+function getPublicBaseUrl(req) {
+    const configuredBaseUrl = process.env.PUBLIC_BASE_URL;
+    if (configuredBaseUrl) return configuredBaseUrl.replace(/\/+$/, '');
+    return `${req.protocol || 'http'}://${req.get('host') || 'localhost:3000'}`;
+}
+
 // ─── Public Route Handlers ─────────────────────────────────────────────────────
 
 exports.getHomePage = async (req, res) => {
@@ -29,7 +54,7 @@ exports.getHomePage = async (req, res) => {
             formatPrice,
             googlePlaceId: GOOGLE_PLACE_ID,
             isAdmin: Boolean(req.session && req.session.isAdmin),
-            canonicalUrl: '/'
+            canonicalUrl: `${getPublicBaseUrl(req)}/`
         });
     } catch (err) {
         console.error('getHomePage error:', err);
@@ -56,8 +81,7 @@ exports.getInventory = async (req, res) => {
     try {
         const {
             search, make, bodyType, fuelType, transmission,
-            minPrice, maxPrice, minYear, maxYear, maxMileage, shortlist,
-            status, sort, page = 1, limit = 12
+            minPrice, maxPrice, minYear, maxYear, maxMileage, minSeats, shortlist, sort
         } = req.query;
 
         const isShortlist = Object.prototype.hasOwnProperty.call(req.query, 'shortlist');
@@ -67,14 +91,13 @@ exports.getInventory = async (req, res) => {
                 .map(id => id.toLowerCase()))]
             : [];
 
-        // Default to Available for catalog visibility
-        const filter = { status: status || 'Available' };
+        const filter = { status: 'Available', reservation_status: { $ne: 'Reserved' } };
 
         if (isShortlist) filter._id = { $in: shortlistIds };
 
-        const searchTerm = search ? search.trim() : '';
+        const searchTerm = queryText(search).slice(0, 100);
         if (searchTerm.length >= 3) {
-            const regex = new RegExp(searchTerm, 'i');
+            const regex = new RegExp(escapeRegex(searchTerm), 'i');
             filter.$or = [
                 { make: regex },
                 { model: regex },
@@ -83,16 +106,30 @@ exports.getInventory = async (req, res) => {
                 { fuelType: regex }
             ];
         }
-        if (make) filter.make = new RegExp(`^${make.trim()}`, 'i');
-        if (bodyType) filter.bodyType = bodyType;
-        if (fuelType) filter.fuelType = fuelType;
-        if (transmission) filter.transmission = transmission;
+        const makeTerm = queryText(make).slice(0, 60);
+        if (makeTerm) filter.make = new RegExp(`^${escapeRegex(makeTerm)}`, 'i');
+        if (['SUV', 'Hatchback', 'Sedan', 'Mini Van', 'MUV', 'Coupe', 'Convertible'].includes(bodyType)) filter.bodyType = bodyType;
+        if (['Petrol', 'Diesel', 'CNG', 'Electric', 'Hybrid'].includes(fuelType)) filter.fuelType = fuelType;
+        if (['Manual', 'Automatic'].includes(transmission)) filter.transmission = transmission;
 
-        if (minPrice || maxPrice) {
-            filter.price = {};
-            if (minPrice) filter.price.$gte = Number(minPrice);
-            if (maxPrice) filter.price.$lte = Number(maxPrice);
-        }
+        const priceRange = {};
+        const minimumPrice = numericQuery(minPrice);
+        const maximumPrice = numericQuery(maxPrice);
+        if (minimumPrice !== null && minimumPrice >= 0) priceRange.$gte = minimumPrice;
+        if (maximumPrice !== null && maximumPrice >= 0) priceRange.$lte = maximumPrice;
+        if (Object.keys(priceRange).length) filter.price = priceRange;
+
+        const yearRange = {};
+        const minimumYear = numericQuery(minYear);
+        const maximumYear = numericQuery(maxYear);
+        if (minimumYear !== null && minimumYear >= 1900) yearRange.$gte = minimumYear;
+        if (maximumYear !== null && maximumYear >= 1900) yearRange.$lte = maximumYear;
+        if (Object.keys(yearRange).length) filter.year = yearRange;
+
+        const mileageLimit = numericQuery(maxMileage);
+        if (mileageLimit !== null && mileageLimit >= 0) filter.mileage = { $lte: mileageLimit };
+        const minimumSeats = numericQuery(minSeats);
+        if (minimumSeats !== null && minimumSeats >= 2 && minimumSeats <= 12) filter.seats = { $gte: minimumSeats };
 
         const sortMap = {
             'price-asc': { price: 1 },
@@ -101,29 +138,35 @@ exports.getInventory = async (req, res) => {
             'year-desc': { year: -1 },
             'newest': { createdAt: -1 }
         };
-        const sortOption = sortMap[sort] || { createdAt: -1 };
+        const sortOption = sortMap[queryText(sort)] || { createdAt: -1 };
         let cars;
         let total;
+        const limit = positiveInteger(req.query.limit, 12, 48);
+        const requestedPage = positiveInteger(req.query.page, 1, 1000000);
+        let currentPage = requestedPage;
+        let totalPages;
 
         if (isShortlist) {
             const foundCars = await Car.find(filter).lean();
             const carsById = new Map(foundCars.map(car => [String(car._id), car]));
             cars = shortlistIds.map(id => carsById.get(id)).filter(Boolean);
             total = cars.length;
+            totalPages = total ? 1 : 0;
+            currentPage = 1;
         } else {
-            const skip = (Math.max(1, Number(page)) - 1) * Number(limit);
-            [cars, total] = await Promise.all([
-                Car.find(filter).sort(sortOption).skip(skip).limit(Number(limit)).lean(),
-                Car.countDocuments(filter)
-            ]);
+            total = await Car.countDocuments(filter);
+            totalPages = Math.ceil(total / limit);
+            currentPage = totalPages ? Math.min(requestedPage, totalPages) : 1;
+            const skip = (currentPage - 1) * limit;
+            cars = await Car.find(filter).sort(sortOption).skip(skip).limit(limit).lean();
         }
 
         cars.forEach(car => { car.croPricing = calculateCroPricing(car); });
         res.render('inventory', {
-            cars, total, currentPage: Number(page), totalPages: Math.ceil(total / limit),
+            cars, total, currentPage, totalPages,
             query: req.query, isShortlist, shortlistIds, formatPrice,
             isAdmin: Boolean(req.session && req.session.isAdmin),
-            canonicalUrl: '/inventory'
+            canonicalUrl: `${getPublicBaseUrl(req)}/inventory`
         });
     } catch (err) {
         console.error('getInventory error:', err);
@@ -176,6 +219,7 @@ exports.getCarDetail = async (req, res) => {
         const similarBaseFilter = {
             _id: { $ne: car._id },
             status: 'Available',
+            reservation_status: { $ne: 'Reserved' },
             ...(similarityFilters.length ? { $or: similarityFilters } : {})
         };
         let similarCars = await Car.find(similarBaseFilter)
@@ -183,13 +227,13 @@ exports.getCarDetail = async (req, res) => {
             .limit(4)
             .lean();
         if (!similarCars.length) {
-            similarCars = await Car.find({ _id: { $ne: car._id }, status: 'Available' })
+            similarCars = await Car.find({ _id: { $ne: car._id }, status: 'Available', reservation_status: { $ne: 'Reserved' } })
                 .sort({ isFeatured: -1, createdAt: -1 })
                 .limit(4)
                 .lean();
         }
 
-        car.primaryImage = (car.images && car.images.length > 0) ? car.images[0].url : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+        car.primaryImage = (car.images && car.images.length > 0) ? car.images[0].url : `${getPublicBaseUrl(req)}/pictures/hero1.jpeg`;
         car.croPricing = calculateCroPricing(car);
         car.formattedPrice = formatPrice(car.croPricing.current_price);
         similarCars.forEach(similarCar => { similarCar.croPricing = calculateCroPricing(similarCar); });
@@ -198,8 +242,8 @@ exports.getCarDetail = async (req, res) => {
             similarCars,
             formatPrice,
             isAdmin: Boolean(req.session && req.session.isAdmin),
-            canonicalUrl: `/inventory/${car.slug || car._id}`,
-            absoluteCarUrl: `${req.protocol}://${req.get('host')}/inventory/${car.slug || car._id}`,
+            canonicalUrl: `${getPublicBaseUrl(req)}/inventory/${car.slug || car._id}`,
+            absoluteCarUrl: `${getPublicBaseUrl(req)}/inventory/${car.slug || car._id}`,
             ogImage: car.primaryImage
         });
     } catch (err) {
@@ -208,69 +252,6 @@ exports.getCarDetail = async (req, res) => {
             isAdmin: Boolean(req.session && req.session.isAdmin)
         });
         console.error('getCarDetail error:', err);
-        res.status(500).send('Server Error');
-    }
-};
-
-// ─── Legacy Admin Form Routes ─────────────────────────────────────────────
-
-exports.getAddCarForm = (req, res) => {
-    res.render('admin/add-car', { error: null, success: null });
-};
-
-exports.postAddCar = async (req, res) => {
-    try {
-        const {
-            make, model, variant, year, price, mileage,
-            fuelType, transmission, seats, bodyType,
-            extColor, intColor, ownership, rtoLocation, description,
-            manufacturedDate, referenceId, engine, registrationState, insuranceType, equipment,
-            status, isFeatured, featSunroof, featAlloyWheels, featTouchscreen, featReverseCamera
-        } = req.body;
-
-        const images = (req.files || []).map(file => ({
-            url: file.path,
-            public_id: file.filename
-        }));
-
-        const newCar = new Car({
-            make: make.trim(), model: model.trim(), variant: variant ? variant.trim() : '',
-            year: Number(year), price: Number(price), mileage: Number(mileage),
-            manufacturedDate: manufacturedDate ? new Date(manufacturedDate) : undefined,
-            referenceId: referenceId ? referenceId.trim() : undefined,
-            fuelType, transmission, seats: Number(seats) || 5, bodyType: bodyType || 'Sedan',
-            engine: engine || '', registrationState: registrationState || '', insuranceType: insuranceType || '',
-            extColor: extColor || '', intColor: intColor || '',
-            ownership: ownership || '1st Owner', rtoLocation: rtoLocation || '',
-            description: description || '',
-            equipment: parseEquipment(equipment),
-            status: status || 'Available',
-            isFeatured: isFeatured === 'on',
-            market_value: Number(req.body.market_value) || 0,
-            discount_tag: req.body.discount_tag || '',
-            features: {
-                sunroof: featSunroof === 'on',
-                alloyWheels: featAlloyWheels === 'on',
-                touchscreen: featTouchscreen === 'on',
-                reverseCamera: featReverseCamera === 'on'
-            },
-            images
-        });
-        await newCar.save();
-        res.redirect(`/inventory/${newCar.slug}`);
-    } catch (err) {
-        res.render('admin/add-car', { error: err.message, success: null });
-    }
-};
-
-exports.deleteCar = async (req, res) => {
-    try {
-        const car = await Car.findById(req.params.id);
-        if (!car) return res.status(404).send('Car not found.');
-        for (const img of car.images) await cloudinary.uploader.destroy(img.public_id);
-        await Car.findByIdAndDelete(req.params.id);
-        res.redirect('/admin');
-    } catch (err) {
         res.status(500).send('Server Error');
     }
 };
@@ -403,9 +384,9 @@ exports.getAdminCars = async (req, res) => {
         if (bodyType) filter.bodyType = bodyType;
         if (status) filter.status = status;
 
-        const searchTerm = search ? search.trim() : '';
+        const searchTerm = queryText(search).slice(0, 100);
         if (searchTerm.length >= 3) {
-            const regex = new RegExp(searchTerm, 'i');
+            const regex = new RegExp(escapeRegex(searchTerm), 'i');
             filter.$or = [
                 { make: regex },
                 { model: regex },
@@ -426,7 +407,7 @@ exports.getAdminCars = async (req, res) => {
         ]);
 
         cars.forEach(car => {
-            car.primaryImage = (car.images && car.images.length > 0) ? car.images[0].url : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+            car.primaryImage = (car.images && car.images.length > 0) ? car.images[0].url : '';
         });
 
         res.json({ cars, pagination: { page, limit, total, totalPages: Math.ceil(total / limit), hasNext: page < Math.ceil(total / limit), hasPrev: page > 1 } });
@@ -554,11 +535,9 @@ exports.deleteAdminCar = async (req, res) => {
 // ─── SEO Sitemap & Robots ──────────────────────────────────────────────────
 exports.getSitemap = async (req, res) => {
     try {
-        const host = req.get('host') || 'localhost:3000';
-        const protocol = req.protocol || 'http';
-        const baseUrl = `${protocol}://${host}`;
+        const baseUrl = getPublicBaseUrl(req);
 
-        const cars = await Car.find({ status: 'Available' }).select('slug updatedAt').lean();
+        const cars = await Car.find({ status: 'Available', reservation_status: { $ne: 'Reserved' } }).select('slug updatedAt').lean();
 
         let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
         xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
@@ -590,9 +569,7 @@ exports.getSitemap = async (req, res) => {
 };
 
 exports.getRobotsTxt = (req, res) => {
-    const host = req.get('host') || 'localhost:3000';
-    const protocol = req.protocol || 'http';
-    const baseUrl = `${protocol}://${host}`;
+    const baseUrl = getPublicBaseUrl(req);
 
     const robots = [
         'User-agent: *',
@@ -609,9 +586,19 @@ exports.getRobotsTxt = (req, res) => {
 // ─── Lead Submissions (Test Drives & Inquiries) ───────────────────────────
 exports.postLead = async (req, res) => {
     try {
-        const { carId, customerName, phone, email, inquiryType, message } = req.body;
-        if (!String(customerName || '').trim() || !String(phone || '').trim()) {
+        const { carId, customerName, phone, email, inquiryType, message } = req.body || {};
+        const name = String(customerName || '').trim();
+        const phoneNumber = String(phone || '').trim();
+        const emailAddress = String(email || '').trim();
+        const requestMessage = String(message || '').trim();
+        if (!name || !phoneNumber) {
             return res.status(400).json({ error: 'Customer name and phone number are required.' });
+        }
+        if (name.length > 120 || phoneNumber.length > 30 || emailAddress.length > 254 || requestMessage.length > 1500) {
+            return res.status(400).json({ error: 'One or more fields exceed the allowed length.' });
+        }
+        if (emailAddress && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress)) {
+            return res.status(400).json({ error: 'Enter a valid email address.' });
         }
 
         const allowedInquiryTypes = ['Request Price', 'Request Details', 'Schedule Visit', 'Reserve Vehicle', 'Unlock Price'];
@@ -637,17 +624,17 @@ exports.postLead = async (req, res) => {
 
         const lead = new Lead({
             carId: car ? car._id : undefined,
-            customerName: String(customerName).trim(),
-            phone: String(phone).trim(),
-            email: email ? String(email).trim() : undefined,
+            customerName: name,
+            phone: phoneNumber,
+            email: emailAddress || undefined,
             inquiryType: type,
-            message: message ? String(message).trim() : ''
+            message: requestMessage
         });
 
         await lead.save();
         res.status(201).json({ success: true, message: 'Your request has been sent to the dealership.' });
     } catch (err) {
         console.error('postLead error:', err);
-        res.status(500).json({ error: 'Failed to record lead: ' + err.message });
+        res.status(500).json({ error: 'Failed to record your request. Please try again later.' });
     }
 };

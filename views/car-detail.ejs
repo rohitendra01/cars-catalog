@@ -16,6 +16,7 @@
         ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(car.manufacturedDate))
         : '';
     const legacyFeatureNames = { sunroof: 'Sunroof', alloyWheels: 'Alloy wheels', touchscreen: 'Touchscreen', reverseCamera: 'Rear parking camera' };
+    const safeJson = value => JSON.stringify(value).replace(/</g, '\\u003c');
     const equipmentItems = Array.from(new Map([
         ...(Array.isArray(car.equipment) ? car.equipment : []),
         ...Object.entries(car.features || {}).filter(([key, enabled]) => enabled && legacyFeatureNames[key]).map(([key]) => legacyFeatureNames[key])
@@ -66,7 +67,7 @@
             price: currentPrice,
             priceCurrency: 'INR',
             availability: car.status === 'Sold' || car.reservation_status === 'Reserved' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
-            url: typeof canonicalUrl !== 'undefined' ? canonicalUrl : `/inventory/${car.slug || car._id}`,
+            url: typeof absoluteCarUrl !== 'undefined' ? absoluteCarUrl : `/inventory/${car.slug || car._id}`,
             seller: {
                 '@type': 'AutoDealer',
                 name: 'The Auto Choice',
@@ -85,7 +86,7 @@
 <%- include('partials/head-public', {
     pageTitle: `${vehicleName} | The Auto Choice`,
     metaDescription: `Explore this ${vehicleName}: ${mileageLabel} km, ${car.fuelType || 'fuel details on request'}, ${car.transmission || 'transmission details on request'}. View photos, specifications and equipment.`,
-    canonicalUrl: `/inventory/${car.slug || car._id}`,
+    canonicalUrl: typeof absoluteCarUrl !== 'undefined' ? absoluteCarUrl : `/inventory/${car.slug || car._id}`,
     ogImage: galleryImages[0] || car.primaryImage,
     pageStylesheet: '/css/car-detail.css'
 }) %>
@@ -101,7 +102,7 @@
                 <li><a href="/inventory">Cars for sale</a></li>
                 <% if (car.bodyType) { %>
                     <li aria-hidden="true">/</li>
-                    <li><a href="/inventory?body=<%= encodeURIComponent(car.bodyType) %>"><%= car.bodyType %>s</a></li>
+                    <li><a href="/inventory?bodyType=<%= encodeURIComponent(car.bodyType) %>"><%= car.bodyType %>s</a></li>
                 <% } %>
                 <li aria-hidden="true">/</li>
                 <li aria-current="page"><%= car.make %> <%= car.model %></li>
@@ -463,13 +464,13 @@
                         <%
                             const similarImage = similarCar.images && similarCar.images.length
                                 ? (typeof similarCar.images[0] === 'string' ? similarCar.images[0] : similarCar.images[0].url)
-                                : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+                                : '/pictures/hero1.jpeg';
                             const similarTitle = [similarCar.year, similarCar.make, similarCar.model].filter(Boolean).join(' ');
                         %>
                         <article class="similar-car-card">
                             <a class="similar-car-link" href="/inventory/<%= similarCar.slug || similarCar._id %>">
                                 <div class="similar-car-image-wrap">
-                                    <img src="<%= similarImage %>" alt="<%= similarTitle %>" loading="lazy">
+                                    <img src="<%= similarImage %>" alt="<%= similarCar.images && similarCar.images.length ? similarTitle : 'The Auto Choice showroom forecourt' %>" loading="lazy">
                                     <% if (similarCar.bodyType) { %><span class="similar-car-type"><%= similarCar.bodyType %></span><% } %>
                                 </div>
                                 <div class="similar-car-copy">
@@ -528,11 +529,11 @@
 
     /* ── WhatsApp Enquiry ─────────────────────────────────────── */
     const COMPANY_PHONE  = '919516486666';
-    const CAR_MAKE       = '<%= car.make  %>';
-    const CAR_MODEL      = '<%= car.model %>';
-    const CAR_YEAR       = '<%= car.year  %>';
-    const CAR_REF        = '<%= referenceLabel %>';
-    const CAR_LISTED_PRICE = '<%= rupeePrice %>';
+    const CAR_MAKE       = <%- safeJson(car.make || '') %>;
+    const CAR_MODEL      = <%- safeJson(car.model || '') %>;
+    const CAR_YEAR       = <%- safeJson(car.year || '') %>;
+    const CAR_REF        = <%- safeJson(referenceLabel) %>;
+    const CAR_LISTED_PRICE = <%- safeJson(rupeePrice) %>;
     const CAR_PAGE_URL   = (typeof absoluteCarUrl !== 'undefined' && absoluteCarUrl)
                              ? absoluteCarUrl
                              : window.location.href;

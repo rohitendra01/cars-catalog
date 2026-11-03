@@ -11,9 +11,6 @@ const {
     getSitemap,
     getRobotsTxt,
     postLead,
-    getAddCarForm,
-    postAddCar,
-    deleteCar,
     getAdminLogin,
     postAdminLogin,
     postAdminLogout,
@@ -44,13 +41,6 @@ router.post('/api/leads', postLead);
 
 router.get('/api/cars/:id/pricing', getCarPricing);
 router.get('/api/google-review-summary', getGoogleReviewSummary);
-
-// ─── Legacy Admin Form Routes (kept for backward compatibility) ────────────────
-router.get('/admin/add', requireAdmin, getAddCarForm);
-router.post('/admin/add', requireAdmin, upload.array('images', 10), postAddCar);
-
-// Legacy delete route (POST because HTML forms don't support DELETE)
-router.post('/admin/delete/:id', requireAdmin, deleteCar);
 
 // ─── Admin Dashboard (SPA Shell) ──────────────────────────────────────────────
 router.get('/admin/login', getAdminLogin);

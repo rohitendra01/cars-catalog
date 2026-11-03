@@ -153,12 +153,12 @@
                     <%
                         const imgSrc = (car.images && car.images.length > 0)
                             ? car.images[0].url
-                            : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80';
+                            : '/pictures/hero1.jpeg';
                     %>
                     <article class="car-card" id="car-card-<%= car._id %>">
                         <a href="/inventory/<%= car.slug || car._id %>" class="card-link">
                             <div class="car-img-wrapper">
-                                <img src="<%= imgSrc %>" alt="<%= car.year %> <%= car.make %> <%= car.model %>" loading="lazy">
+                                <img src="<%= imgSrc %>" alt="<%= car.images && car.images.length ? `${car.year} ${car.make} ${car.model}` : 'The Auto Choice showroom forecourt' %>" loading="lazy">
                                 <div class="cpo-tag">
                                     <svg class="badge-icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <polyline points="20 6 9 17 4 12"></polyline>

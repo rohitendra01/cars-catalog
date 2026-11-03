@@ -162,7 +162,7 @@
     var mel = document.getElementById('mobile-shortlist-count');
     function update() {
       try {
-        var sl = JSON.parse(localStorage.getItem('shortlist') || '[]');
+        var sl = JSON.parse(localStorage.getItem('autovault_shortlist') || '[]');
         var n = Array.isArray(sl) ? sl.length : 0;
         [el, mel].forEach(function(e) {
           if (!e) return;

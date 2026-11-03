@@ -24,6 +24,7 @@ var _state = {
     newFiles: [],           // File objects staged for upload
     imagesToDelete: [],         // Cloudinary public_ids marked for removal
     searchTimer: null,
+    loadRequestId: 0,
     deleteTargetId: null,
 };
 
@@ -65,7 +66,7 @@ function showToast(message, type) {
         ' px-4 py-3 flex items-start gap-3 shadow-2xl min-w-[260px] max-w-xs';
     div.innerHTML =
         '<div class="shrink-0 w-2 h-2 rounded-full mt-1.5 ' + (dots[type] || dots.info) + '"></div>' +
-        '<p class="font-mono text-xs uppercase tracking-widest leading-relaxed flex-1">' + message + '</p>' +
+        '<p class="font-mono text-xs uppercase tracking-widest leading-relaxed flex-1">' + escapeHtml(message) + '</p>' +
         '<button onclick="removeToast(\'' + id + '\')" class="shrink-0 opacity-50 hover:opacity-100 transition-opacity text-xs leading-none mt-0.5">✕</button>';
 
     container.appendChild(div);
@@ -111,7 +112,7 @@ function buildQuery(extra) {
 }
 
 async function loadCars(page) {
-    if (_state.isLoading) return;
+    var requestId = ++_state.loadRequestId;
     _state.isLoading = true;
 
     if (page) _state.pagination.page = page;
@@ -123,6 +124,7 @@ async function loadCars(page) {
             headers: { 'Accept': 'application/json' }
         });
 
+        if (requestId !== _state.loadRequestId) return;
         if (res.status === 401) {
             window.location.replace('/admin/login');
             return;
@@ -140,11 +142,12 @@ async function loadCars(page) {
         renderPagination();
         updateStats();
     } catch (err) {
+        if (requestId !== _state.loadRequestId) return;
         console.error('loadCars error:', err);
         showToast('Failed to load cars: ' + err.message, 'error');
         showTableEmpty('Error loading data. Check console.');
     } finally {
-        _state.isLoading = false;
+        if (requestId === _state.loadRequestId) _state.isLoading = false;
     }
 }
 
@@ -183,7 +186,8 @@ function renderTable() {
     tb.innerHTML = _state.cars.map(function (car) {
         var img = car.primaryImage || '';
         var price = formatINR(car.price);
-        var carUrl = '/inventory/' + (car.slug || car._id);
+        var carUrl = '/inventory/' + encodeURIComponent(car.slug || car._id);
+        var carLabel = [car.make, car.model, car.year ? '(' + car.year + ')' : ''].filter(Boolean).join(' ');
         var featured = car.isFeatured
             ? '<span class="inline-block px-2 py-0.5 bg-brand/10 text-brand font-mono text-[9px] uppercase tracking-widest border border-brand/30">Featured</span>'
             : '<span class="inline-block px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-mono text-[9px] uppercase tracking-widest">Standard</span>';
@@ -191,22 +195,22 @@ function renderTable() {
         return '<tr class="car-row" data-id="' + car._id + '">' +
             // Photo
             '<td class="px-4 py-3">' +
-            '<a href="' + carUrl + '" target="_blank" class="block w-14 h-10 bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0 group">' +
-            (img ? '<img src="' + img + '" alt="' + car.make + ' ' + car.model + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform"/>' :
+            '<a href="' + escapeHtml(carUrl) + '" target="_blank" rel="noopener noreferrer" class="block w-14 h-10 bg-zinc-100 dark:bg-zinc-900 overflow-hidden shrink-0 group">' +
+            (img ? '<img src="' + escapeHtml(img) + '" alt="' + escapeHtml((car.make || '') + ' ' + (car.model || '')) + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform"/>' :
                 '<div class="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700">' +
                 '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
                 '</div>') +
             '</a></td>' +
             // Brand
-            '<td class="px-4 py-3"><a href="' + carUrl + '" target="_blank" class="font-bold text-zinc-950 dark:text-white text-sm hover:text-brand transition-colors">' + (car.make || '—') + '</a></td>' +
+            '<td class="px-4 py-3"><a href="' + escapeHtml(carUrl) + '" target="_blank" rel="noopener noreferrer" class="font-bold text-zinc-950 dark:text-white text-sm hover:text-brand transition-colors">' + escapeHtml(car.make || '—') + '</a></td>' +
             // Model
-            '<td class="px-4 py-3"><a href="' + carUrl + '" target="_blank" class="font-mono text-zinc-700 dark:text-zinc-300 text-xs hover:text-brand transition-colors">' + (car.model || '—') + '</a></td>' +
+            '<td class="px-4 py-3"><a href="' + escapeHtml(carUrl) + '" target="_blank" rel="noopener noreferrer" class="font-mono text-zinc-700 dark:text-zinc-300 text-xs hover:text-brand transition-colors">' + escapeHtml(car.model || '—') + '</a></td>' +
             // Year
-            '<td class="px-4 py-3 hidden md:table-cell"><span class="font-mono text-zinc-500 text-xs">' + (car.year || '—') + '</span></td>' +
+            '<td class="px-4 py-3 hidden md:table-cell"><span class="font-mono text-zinc-500 text-xs">' + escapeHtml(car.year || '—') + '</span></td>' +
             // Fuel
-            '<td class="px-4 py-3 hidden lg:table-cell"><span class="font-mono text-xs">' + fuelEmoji(car.fuelType) + ' ' + (car.fuelType || '—') + '</span></td>' +
+            '<td class="px-4 py-3 hidden lg:table-cell"><span class="font-mono text-xs">' + fuelEmoji(car.fuelType) + ' ' + escapeHtml(car.fuelType || '—') + '</span></td>' +
             // Body
-            '<td class="px-4 py-3 hidden lg:table-cell"><span class="font-mono text-zinc-500 text-[11px] uppercase tracking-wider">' + (car.bodyType || '—') + '</span></td>' +
+            '<td class="px-4 py-3 hidden lg:table-cell"><span class="font-mono text-zinc-500 text-[11px] uppercase tracking-wider">' + escapeHtml(car.bodyType || '—') + '</span></td>' +
             // Price
             '<td class="px-4 py-3"><span class="font-bold text-zinc-950 dark:text-white font-mono text-sm">' + price + '</span></td>' +
             // Status
@@ -214,15 +218,15 @@ function renderTable() {
             // Actions
             '<td class="px-4 py-3 text-right">' +
             '<div class="flex items-center justify-end gap-2">' +
-            '<a href="' + carUrl + '" target="_blank" title="View Listing" ' +
+            '<a href="' + escapeHtml(carUrl) + '" target="_blank" rel="noopener noreferrer" title="View Listing" ' +
             'class="p-2 text-zinc-500 hover:text-brand border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-colors">' +
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>' +
             '</a>' +
-            '<button onclick="openPanel(\'' + car._id + '\')" title="Edit" ' +
+            '<button onclick="openPanel(' + escapeHtml(JSON.stringify(String(car._id))) + ')" title="Edit" ' +
             'class="p-2 text-zinc-500 hover:text-brand border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-colors">' +
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>' +
             '</button>' +
-            '<button onclick="openDeleteModal(\'' + car._id + '\', \'' + escapeHtml(car.make + ' ' + car.model + ' (' + car.year + ')') + '\')" title="Delete" ' +
+            '<button onclick="openDeleteModal(' + escapeHtml(JSON.stringify(String(car._id))) + ', ' + escapeHtml(JSON.stringify(carLabel)) + ')" title="Delete" ' +
             'class="p-2 text-zinc-500 hover:text-red-600 border border-transparent hover:border-red-200 dark:hover:border-red-900 transition-colors">' +
             '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
             '</button>' +
@@ -311,7 +315,10 @@ async function fetchAllStatsOnce() {
 
     try {
         var res = await fetch('/admin/cars?limit=100&page=1', { headers: { Accept: 'application/json' } });
-        if (!res.ok) return;
+        if (!res.ok) {
+            _statsFetched = false;
+            return;
+        }
         var data = await res.json();
         var all = data.cars || [];
 
@@ -342,6 +349,7 @@ async function fetchAllStatsOnce() {
             if (statTopBodyCount) statTopBodyCount.textContent = bodyCount[topBody] + ' vehicles';
         }
     } catch (e) {
+        _statsFetched = false;
         console.warn('Stats fetch failed:', e);
     }
 }
@@ -458,9 +466,9 @@ function populateForm(car) {
         el('existingImgsSection').classList.remove('hidden');
         var grid = el('existingImgsGrid');
         grid.innerHTML = car.images.map(function (img) {
-            return '<div class="img-thumb" data-pid="' + img.public_id + '">' +
-                '<img src="' + img.url + '" alt="car image"/>' +
-                '<button type="button" class="remove-btn" onclick="markImageForDelete(this, \'' + img.public_id + '\')" title="Remove image">✕</button>' +
+            return '<div class="img-thumb" data-pid="' + escapeHtml(img.public_id || '') + '">' +
+                '<img src="' + escapeHtml(img.url || '') + '" alt="car image"/>' +
+                '<button type="button" class="remove-btn" onclick="markImageForDelete(this, ' + escapeHtml(JSON.stringify(String(img.public_id || ''))) + ')" title="Remove image">✕</button>' +
                 '</div>';
         }).join('');
     }
@@ -478,9 +486,10 @@ function handleImagePick(input) {
         _state.newFiles.push(file);
         var reader = new FileReader();
         reader.onload = function (e) {
+            var idx = _state.newFiles.indexOf(file);
+            if (idx < 0) return;
             var div = document.createElement('div');
             div.className = 'img-thumb';
-            var idx = _state.newFiles.indexOf(file);
             div.innerHTML =
                 '<img src="' + e.target.result + '" alt="preview"/>' +
                 '<button type="button" class="remove-btn" onclick="removeNewImage(this, ' + idx + ')" title="Remove">✕</button>';
