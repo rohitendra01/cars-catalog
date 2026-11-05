@@ -1,839 +1,1290 @@
 <!DOCTYPE html>
 <html lang="en">
-<%
-    const vehicleName = [car.year, car.make, car.model, car.variant].filter(Boolean).join(' ');
+<% const vehicleName=[car.year, car.make, car.model, car.variant].filter(Boolean).join(' ');
     const rawMileage = car.mileage !== undefined && car.mileage !== null ? car.mileage : car.odometer;
     const hasMileage = rawMileage !== undefined && rawMileage !== null && String(rawMileage).trim() !== '' && Number.isFinite(Number(rawMileage));
-    const mileageLabel = hasMileage ? Number(rawMileage).toLocaleString('en-IN') : '';
-    const referenceLabel = car.referenceId || (car._id ? `AC${String(car._id).slice(-8).toUpperCase()}` : '—');
-    const registrationLabel = car.registrationState || car.rtoLocation || car.rto || '';
-    const galleryImages = (car.images || []).map(image => typeof image === 'string' ? image : image.url).filter(Boolean);
+    const mileageLabel = hasMileage ? Number(rawMileage).toLocaleString('en-IN') : '' ; const
+    referenceLabel=car.referenceId || (car._id ? `AC${String(car._id).slice(-8).toUpperCase()}` : '—' ); const
+    registrationLabel=car.registrationState || car.rtoLocation || car.rto || '' ; const galleryImages=(car.images ||
+    []).map(image=> typeof image === 'string' ? image : image.url).filter(Boolean);
     const listedPrice = Number(car.price);
     const hasPrice = Number.isFinite(listedPrice) && listedPrice > 0;
     const croPrice = Number(car.croPricing && car.croPricing.current_price);
     const currentPrice = hasPrice ? (Number.isFinite(croPrice) && croPrice > 0 ? croPrice : listedPrice) : 0;
     const savingsAmount = hasPrice ? Number(car.croPricing && car.croPricing.savings_amount || 0) : 0;
-    const anchorPrice = hasPrice ? Number(car.croPricing && car.croPricing.anchor_price || car.market_value || listedPrice) : 0;
+    const anchorPrice = hasPrice ? Number(car.croPricing && car.croPricing.anchor_price || car.market_value ||
+    listedPrice) : 0;
     const anchorLabel = car.croPricing && car.croPricing.anchor_label || 'Market Value';
     const lakhPrice = hasPrice ? (currentPrice / 100000).toFixed(2) : '';
     const rupeePrice = hasPrice ? currentPrice.toLocaleString('en-IN') : '';
     const manufactureDate = car.manufacturedDate && !Number.isNaN(new Date(car.manufacturedDate).getTime())
-        ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(car.manufacturedDate))
-        : '';
+    ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(car.manufacturedDate))
+    : '';
     const vehicleDescription = String(car.description || '').trim();
-    const vehicleSublineItems = [['Odometer', hasMileage ? mileageLabel + ' km' : ''], ['Fuel', car.fuelType], ['Transmission', car.transmission], ['Seats', car.seats ? car.seats + ' seats' : ''], ['Ownership', car.ownership]].filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '');
-    const quickItems = [['Odometer', hasMileage ? mileageLabel + ' km' : ''], ['Year', car.year], ['Fuel', car.fuelType], ['Gearbox', car.transmission], ['Seats', car.seats], ['Owner', car.ownership]].filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '');
-    const legacyFeatureNames = { sunroof: 'Sunroof', alloyWheels: 'Alloy wheels', touchscreen: 'Touchscreen', reverseCamera: 'Rear parking camera' };
-    const safeJson = value => JSON.stringify(value).replace(/</g, '\\u003c');
-    const equipmentItems = Array.from(new Map([
-        ...(Array.isArray(car.equipment) ? car.equipment : []),
-        ...Object.entries(car.features || {}).filter(([key, enabled]) => enabled && legacyFeatureNames[key]).map(([key]) => legacyFeatureNames[key])
+    const vehicleSublineItems = [['Odometer', hasMileage ? mileageLabel + ' km' : ''], ['Fuel', car.fuelType],
+    ['Transmission', car.transmission], ['Seats', car.seats ? car.seats + ' seats' : ''], ['Ownership',
+    car.ownership]].filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '');
+    const quickItems = [['Odometer', hasMileage ? mileageLabel + ' km' : ''], ['Year', car.year], ['Fuel',
+    car.fuelType], ['Gearbox', car.transmission], ['Seats', car.seats], ['Owner', car.ownership]].filter(([, v]) => v
+    !== undefined && v !== null && String(v).trim() !== '');
+    const legacyFeatureNames = { sunroof: 'Sunroof', alloyWheels: 'Alloy wheels', touchscreen: 'Touchscreen',
+    reverseCamera: 'Rear parking camera' };
+    const safeJson = value => JSON.stringify(value).replace(/</g, '\\u003c' ); const equipmentItems=Array.from(new Map([
+        ...(Array.isArray(car.equipment) ? car.equipment : []), ...Object.entries(car.features || {}).filter(([key,
+        enabled])=> enabled && legacyFeatureNames[key]).map(([key]) => legacyFeatureNames[key])
     ].map(item => String(item || '').trim()).filter(Boolean).map(item => [item.toLowerCase(), item])).values());
     const highlightItems = [
-        car.ownership || '',
-        car.seats ? `${car.seats} seats` : '',
-        car.insuranceType ? `${car.insuranceType} insurance` : '',
-        car.engine || '',
-        ...equipmentItems.slice(0, 2)
+    car.ownership || '',
+    car.seats ? `${car.seats} seats` : '',
+    car.insuranceType ? `${car.insuranceType} insurance` : '',
+    car.engine || '',
+    ...equipmentItems.slice(0, 2)
     ].filter(Boolean).slice(0, 4);
     const specificationItems = [
-        ['Make', car.make],
-        ['Model', car.model],
-        ['Variant', car.variant],
-        ['Model year', car.year],
-        ['Manufactured', manufactureDate],
-        ['Odometer', hasMileage ? `${mileageLabel} km` : ''],
-        ['Fuel', car.fuelType],
-        ['Transmission', car.transmission],
-        ['Engine', car.engine],
-        ['Body type', car.bodyType],
-        ['Seats', car.seats],
-        ['Colour', car.extColor],
-        ['Interior colour', car.intColor],
-        ['Ownership', car.ownership],
-        ['Registration', registrationLabel],
-        ['Insurance', car.insuranceType],
-        ['Photographs', galleryImages.length || ''],
-        ['Reference', referenceLabel]
+    ['Make', car.make],
+    ['Model', car.model],
+    ['Variant', car.variant],
+    ['Model year', car.year],
+    ['Manufactured', manufactureDate],
+    ['Odometer', hasMileage ? `${mileageLabel} km` : ''],
+    ['Fuel', car.fuelType],
+    ['Transmission', car.transmission],
+    ['Engine', car.engine],
+    ['Body type', car.bodyType],
+    ['Seats', car.seats],
+    ['Colour', car.extColor],
+    ['Interior colour', car.intColor],
+    ['Ownership', car.ownership],
+    ['Registration', registrationLabel],
+    ['Insurance', car.insuranceType],
+    ['Photographs', galleryImages.length || ''],
+    ['Reference', referenceLabel]
     ].filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '');
-    const whatsappMessage = encodeURIComponent('Hi The Auto Choice, I’m interested in the ' + vehicleName + (hasPrice ? ' listed for ₹' + rupeePrice : '') + ' (ref ' + referenceLabel + '). Could you please share more details? ' + (typeof absoluteCarUrl !== 'undefined' ? absoluteCarUrl : ''));
+    const whatsappMessage = encodeURIComponent('Hi The Auto Choice, I’m interested in the ' + vehicleName + (hasPrice ?
+    ' listed for ₹' + rupeePrice : '') + ' (ref ' + referenceLabel + '). Could you please share more details? ' +
+    (typeof absoluteCarUrl !== 'undefined' ? absoluteCarUrl : ''));
     const whatsappUrl = 'https://wa.me/919516486666?text=' + whatsappMessage;
     const structuredData = {
-        '@context': 'https://schema.org',
-        '@type': 'Car',
-        name: vehicleName,
-        image: galleryImages.length ? galleryImages : undefined,
-        description: car.description || `${vehicleName} listed by The Auto Choice. Contact the showroom to confirm current availability and arrange a viewing.`,
-        brand: { '@type': 'Brand', name: car.make },
-        model: car.model,
-        vehicleModelDate: String(car.year),
-        mileageFromOdometer: hasMileage ? { '@type': 'QuantitativeValue', value: Number(rawMileage), unitCode: 'KMT' } : undefined,
-        fuelType: car.fuelType,
-        vehicleTransmission: car.transmission,
-        offers: hasPrice ? {
-            '@type': 'Offer',
-            price: currentPrice,
-            priceCurrency: 'INR',
-            availability: car.status === 'Sold' || car.reservation_status === 'Reserved' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
-            url: typeof absoluteCarUrl !== 'undefined' ? absoluteCarUrl : `/inventory/${car.slug || car._id}`,
-            seller: {
-                '@type': 'AutoDealer',
-                name: 'The Auto Choice',
-                address: {
-                    '@type': 'PostalAddress',
-                    streetAddress: 'Plot no. 43 Infront of Flyover Over Pillar no. 123, Madan Mahal Station Road, Ranital Chowk',
-                    addressLocality: 'Jabalpur',
-                    addressRegion: 'M.P.',
-                    postalCode: '482001',
-                    addressCountry: 'IN'
-                }
-            }
-        } : undefined
+    '@context': 'https://schema.org',
+    '@type': 'Car',
+    name: vehicleName,
+    image: galleryImages.length ? galleryImages : undefined,
+    description: car.description || `${vehicleName} listed by The Auto Choice. Contact the showroom to confirm current
+    availability and arrange a viewing.`,
+    brand: { '@type': 'Brand', name: car.make },
+    model: car.model,
+    vehicleModelDate: String(car.year),
+    mileageFromOdometer: hasMileage ? { '@type': 'QuantitativeValue', value: Number(rawMileage), unitCode: 'KMT' } :
+    undefined,
+    fuelType: car.fuelType,
+    vehicleTransmission: car.transmission,
+    offers: hasPrice ? {
+    '@type': 'Offer',
+    price: currentPrice,
+    priceCurrency: 'INR',
+    availability: car.status === 'Sold' || car.reservation_status === 'Reserved' ? 'https://schema.org/SoldOut' :
+    'https://schema.org/InStock',
+    url: typeof absoluteCarUrl !== 'undefined' ? absoluteCarUrl : `/inventory/${car.slug || car._id}`,
+    seller: {
+    '@type': 'AutoDealer',
+    name: 'The Auto Choice',
+    address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Plot no. 43 Infront of Flyover Over Pillar no. 123, Madan Mahal Station Road, Ranital Chowk',
+    addressLocality: 'Jabalpur',
+    addressRegion: 'M.P.',
+    postalCode: '482001',
+    addressCountry: 'IN'
+    }
+    }
+    } : undefined
     };
-%>
-<%- include('partials/head-public', {
-    pageTitle: `${vehicleName} | The Auto Choice`,
-    metaDescription: `Explore this ${vehicleName}: ${mileageLabel} km, ${car.fuelType || 'fuel details on request'}, ${car.transmission || 'transmission details on request'}. View photos, specifications and equipment.`,
-    canonicalUrl: typeof absoluteCarUrl !== 'undefined' ? absoluteCarUrl : `/inventory/${car.slug || car._id}`,
-    ogImage: galleryImages[0] || car.primaryImage,
-    pageStylesheet: '/css/car-detail.css'
-}) %>
-<body data-vehicle-id="<%= car._id %>">
-<%- include('partials/navbar', { isAdmin: typeof isAdmin !== 'undefined' && isAdmin }) %>
+    %>
+    <%- include('partials/head-public', { pageTitle: `${vehicleName} | The Auto Choice`, metaDescription: `Explore this
+        ${vehicleName}: ${mileageLabel} km, ${car.fuelType || 'fuel details on request' }, ${car.transmission
+        || 'transmission details on request' }. View photos, specifications and equipment.`, canonicalUrl: typeof
+        absoluteCarUrl !=='undefined' ? absoluteCarUrl : `/inventory/${car.slug || car._id}`, ogImage: galleryImages[0]
+        || car.primaryImage, pageStylesheet: '/css/car-detail.css' }) %>
 
-<main class="vehicle-detail-page" id="main">
-    <div class="container vehicle-detail-container">
-        <nav class="vehicle-breadcrumbs" aria-label="Breadcrumb">
-            <ol>
-                <li><a href="/">Home</a></li>
-                <li aria-hidden="true">/</li>
-                <li><a href="/inventory">Cars for sale</a></li>
-                <% if (car.bodyType) { %>
-                    <li aria-hidden="true">/</li>
-                    <li><a href="/inventory?bodyType=<%= encodeURIComponent(car.bodyType) %>"><%= car.bodyType %>s</a></li>
-                <% } %>
-                <li aria-hidden="true">/</li>
-                <li aria-current="page"><%= car.make %> <%= car.model %></li>
-            </ol>
-        </nav>
+        <body data-vehicle-id="<%= car._id %>">
+            <%- include('partials/navbar', { isAdmin: typeof isAdmin !=='undefined' && isAdmin }) %>
 
-        <header class="vehicle-heading">
-            <div class="vehicle-heading-copy">
-                <div class="vehicle-kicker-row">
-                    <span class="vehicle-make"><%= car.make %></span>
-                    <span class="vehicle-year"><%= car.year %></span>
-                    <span class="vehicle-reference">Ref <strong><%= referenceLabel %></strong></span>
-                </div>
-                <h1><%= vehicleName %></h1>
-                <% if (vehicleSublineItems.length) { %><p class="vehicle-subline"><% vehicleSublineItems.forEach(([, value]) => { %><span><%= value %></span><% }) %></p><% } %>
-            </div>
-            <% if (hasPrice) { %>
-            <div class="vehicle-heading-price" aria-label="Vehicle price">
-                <% if (savingsAmount > 0) { %>
-                <span class="cro-market-price-label"><%= anchorLabel %></span>
-                <span class="cro-market-price">₹<%= (anchorPrice / 100000).toFixed(2) %> Lakh</span>
-                <span class="cro-today-label">Today's Exclusive Price</span>
-                <% } else { %>
-                <span class="price-caption">Asking price</span>
-                <% } %>
-                <strong>₹<%= lakhPrice %> <small>Lakh</small></strong>
-                <span class="exact-price">₹<%= rupeePrice %></span>
-                <% if (savingsAmount > 0) { %>
-                <div class="cro-savings-badge">↓ ₹<%= savingsAmount.toLocaleString('en-IN') %> Below Market Value</div>
-                <% } %>
-                <% if (car.discount_tag) { %>
-                <div class="cro-deal-badge" style="margin-top: 6px;">
-                    <% if (car.discount_tag && !isNaN(Number(car.discount_tag))) { %>
-                        ↓ ₹<%= Number(car.discount_tag).toLocaleString('en-IN') %> Discount
-                    <% } else { %>
-                        <%= car.discount_tag || 'Featured Deal' %>
-                    <% } %>
-                </div>
-                <% } %>
-            </div>
-            <% } %>
-        </header>
-
-        <div class="vehicle-page-grid <%= galleryImages.length ? 'has-gallery' : 'no-gallery' %>">
-    <% if (galleryImages.length) { %>
-<div class="vehicle-main-column">
-        <section class="vehicle-gallery card-surface" aria-label="Vehicle photographs">
-    <div class="gallery-stage">
-        <img id="pdp-main-img" class="gallery-main-image" src="<%= galleryImages[0] %>" alt="<%= vehicleName %> — photo 1 of <%= galleryImages.length %>" fetchpriority="high">
-        <span class="gallery-count"><%= String(1).padStart(2, '0') %> / <%= String(galleryImages.length).padStart(2, '0') %></span>
-    </div>
-    <% if (galleryImages.length > 1) { %>
-    <div class="gallery-thumbnails" aria-label="Choose a vehicle photo">
-        <% galleryImages.forEach((imageUrl, index) => { %><button type="button" class="thumbnail <%= index === 0 ? 'active' : '' %>" onclick="selectVehiclePhoto(this)" data-full-src="<%= imageUrl %>" aria-label="Show photo <%= index + 1 %> of <%= galleryImages.length %>"><img src="<%= imageUrl %>" alt="" loading="lazy"></button><% }) %>
-    </div>
-    <% } %>
-</section>
-    </div>
-<% } %>
-<aside class="vehicle-sidebar" aria-label="<%= hasPrice ? 'Price and enquiry' : 'Enquiry and test drive' %>">
-    <div class="vehicle-action-card card-surface <%= hasPrice ? 'has-price' : 'no-price' %>">
-        <%
-            const emiAmount = Number(car.croPricing && car.croPricing.monthly_estimate || 0);
-            const isSold = car.status === 'Sold';
-            const isReserved = car.reservation_status === 'Reserved';
-            const canContact = !isSold && !isReserved;
-            const canReserve = hasPrice && canContact;
-            const hasDealInfo = (hasPrice && emiAmount > 0) || canReserve || isReserved;
-        %>
-        <% if (hasPrice || isSold || isReserved) { %>
-        <div class="sidebar-vehicle-summary">
-            <div class="sidebar-status <%= isSold ? 'is-sold' : isReserved ? 'is-reserved' : '' %>"><span></span><%= isSold ? 'Recently sold' : isReserved ? 'Currently reserved' : 'Enquire about this car' %></div>
-            <% if (hasPrice) { %>
-            <div class="sidebar-price">
-                <% if (savingsAmount > 0) { %><span class="cro-market-price-label"><%= anchorLabel %></span><span class="cro-market-price">₹<%= anchorPrice.toLocaleString('en-IN') %></span><span class="cro-today-label">Today's Exclusive Price</span><% } else { %><span>Price</span><% } %>
-                <strong>₹<%= lakhPrice %> <small>Lakh</small></strong><span class="exact-price">₹<%= rupeePrice %></span>
-                <% if (savingsAmount > 0 || car.discount_tag) { %>
-                <div class="sidebar-deal-badges">
-                    <% if (savingsAmount > 0) { %><div class="cro-savings-badge">↓ ₹<%= savingsAmount.toLocaleString('en-IN') %> Below Market</div><% } %>
-                    <% if (car.discount_tag) { %><div class="cro-deal-badge"><% if (!isNaN(Number(car.discount_tag))) { %>↓ ₹<%= Number(car.discount_tag).toLocaleString('en-IN') %> Discount<% } else { %><%= car.discount_tag %><% } %></div><% } %>
-                </div>
-                <% } %>
-            </div>
-            <% } %>
-        </div>
-        <% } %>
-
-        <% if (hasDealInfo) { %>
-        <div class="vehicle-deal-info">
-            <% if (hasPrice && emiAmount > 0) { %><div class="cro-emi-teaser">As low as <strong>₹<%= emiAmount.toLocaleString('en-IN') %>/mo</strong> with zero down<button class="cro-calc-link" type="button" onclick="document.querySelector('.finance-calc')?.scrollIntoView({behavior:'smooth'});document.querySelector('.finance-calc')?.setAttribute('open','')">Calculate Financing →</button></div><% } %>
-            <% if (canReserve) { %><button class="cro-reserve-btn" type="button" data-reserve-button onclick="handleReservation()">🔒 Request to Lock In This Deal<span class="cro-reserve-sub">₹9,999 refundable deposit · collected only after confirmation</span></button><% } else if (isReserved) { %><p class="cro-reservation-state" role="status">This vehicle is currently reserved.</p><% } %>
-        </div>
-        <% } %>
-
-        <div class="vehicle-contact-actions <%= hasPrice ? 'has-price' : 'no-price' %>">
-            <% if (hasPrice && referenceLabel) { %><p class="sidebar-reference">Quote reference <strong><%= referenceLabel %></strong> when you call.</p><% } %>
-            <% if (canContact) { %><a class="button button-test-drive sidebar-test-drive" href="#enquiry-form" onclick="requestTestDrive(event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h3M8 17h6"/></svg>Book a Test Drive</a><% } %>
-            <div class="sidebar-actions">
-                <a class="button button-drive" href="#enquiry-form">Send Enquiry</a>
-                <div class="sidebar-contact-links"><a class="button button-minimal" href="#enquiry-form" id="whatsapp-btn" onclick="mobileWhatsAppClick(event)">WhatsApp</a><%- include('partials/call-picker', { variant: 'is-car-sidebar', callLabel: 'Call us', buttonClass: 'button button-minimal' }) %></div>
-            </div>
-            <button class="shortlist-button" type="button" data-car-id="<%= car._id %>" data-full-label="true" onclick="toggleShortlist('<%= car._id %>', this)" aria-label="Save <%= vehicleName %> to shortlist" style="margin-top: 0;"><svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg><span class="save-text">Save to shortlist</span></button>
-        </div>
-        <details class="cro-trust-disclosure">
-                            <summary>
-                                <span class="trust-summary-title">Buying with confidence</span>
-                                <span class="trust-summary-points">150-point check · 7-day return · 1-year warranty</span>
-                                <span class="disclosure-chevron" aria-hidden="true"></span>
-                            </summary>
-                            <div class="cro-trust-content">
-                            <div class="cro-trust-strip" style="margin-top: 0; padding-top: 0; border-top: none; gap: 12px; align-items: start;">
-                                <div class="cro-trust-item" style="flex-direction: column; text-align: center; gap: 8px; padding: 0;">
-                                    <span class="cro-trust-icon" style="color: var(--detail-ink); display: flex;">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
-                                    </span>
-                                    <span>150-Point<br>Inspection</span>
-                                </div>
-                                <div class="cro-trust-item" style="flex-direction: column; text-align: center; gap: 8px; padding: 0;">
-                                    <span class="cro-trust-icon" style="color: var(--detail-ink); display: flex;">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                                    </span>
-                                    <span>7-Day<br>Money-Back</span>
-                                </div>
-                                <div class="cro-trust-item" style="flex-direction: column; text-align: center; gap: 8px; padding: 0;">
-                                    <span class="cro-trust-icon" style="color: var(--detail-ink); display: flex;">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                                    </span>
-                                    <span>1-Year<br>Warranty</span>
-                                </div>
-                            </div>
-                            <a class="cro-history-badge" href="#enquiry-form" onclick="requestCarHistoryReport(event)" style="margin-top: 4px; justify-content: center;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                                Request a Free Vehicle History Report
-                            </a>
-                            <p class="showroom-note" style="text-align: center; margin-top: 0;">The Auto Choice · Plot no. 43 Infront of Flyover Over Pillar no. 123, Madan Mahal Station Road, Ranital Chowk, Jabalpur M.P. 482001</p>
-                            </div>
-                        </details>
-    </div>
-    <% if (hasPrice) { %>
-    <details class="finance-calc card-surface">
-        <summary>Plan a down payment</summary>
-        <div class="finance-calc-content">
-            <label for="calc-down">Down payment (₹)</label>
-            <input type="number" id="calc-down" value="<%= Math.min(200000, Math.round(currentPrice * 0.1)) %>" step="25000" min="0" max="<%= currentPrice %>" oninput="calculateEMI()">
-            <label for="calc-term">Loan tenure</label>
-            <select id="calc-term" onchange="calculateEMI()"><option value="36">3 years</option><option value="48">4 years</option><option value="60" selected>5 years</option><option value="84">7 years</option></select>
-            <p class="finance-estimate"><strong id="calc-result">₹0</strong><span>Estimated monthly EMI</span></p>
-            <p class="finance-note">Estimate at 9% annual interest. Final terms depend on lender approval.</p>
-        </div>
-    </details>
-    <% } %>
-</aside>
-    <div class="vehicle-detail-content">
-        <% if (quickItems.length) { %>
-<section class="quick-overview card-surface" aria-label="Key vehicle details">
-    <% quickItems.forEach(([label, value]) => { %><div class="quick-item"><span class="quick-label"><%= label %></span><strong><%= value %></strong></div><% }) %>
-</section>
-<% } %>
-
-<% if (vehicleDescription || highlightItems.length) { %>
-<section class="detail-section vehicle-overview-section card-surface" aria-labelledby="about-title">
-    <div class="section-heading"><span class="section-eyebrow">Vehicle overview</span><h2 id="about-title">About this car</h2></div>
-    <% if (vehicleDescription) { %><p class="vehicle-description"><%= vehicleDescription %></p><% } %>
-    <% if (highlightItems.length) { %><ul class="highlight-list" aria-label="Vehicle highlights"><% highlightItems.forEach(item => { %><li><span class="highlight-check" aria-hidden="true">✓</span><%= item %></li><% }) %></ul><% } %>
-</section>
-<% } %>
-
-<% if (specificationItems.length) { %>
-<details class="detail-disclosure specifications-section card-surface">
-                            <summary aria-controls="vehicle-specifications">
-                                <span class="disclosure-heading">
-                                    <span class="section-eyebrow">Full vehicle details</span>
-                                    <span class="disclosure-title" id="specifications-title">Specifications</span>
-                                </span>
-                                <span class="disclosure-meta"><%= specificationItems.length %> details</span>
-                                <span class="disclosure-chevron" aria-hidden="true"></span>
-                            </summary>
-                            <div class="disclosure-content" id="vehicle-specifications">
-                                <dl class="specification-grid">
-                                    <% specificationItems.forEach(([label, value]) => { %>
-                                        <div class="specification-item">
-                                            <dt><%= label %></dt>
-                                            <dd><%= value %><%= label === 'Photographs' ? ' photos' : '' %></dd>
-                                        </div>
-                                    <% }) %>
-                                </dl>
-                                <p class="specification-note">Details are provided as listed by The Auto Choice. Please confirm anything important when you see the car.</p>
-                            </div>
-                        </details>
-<% } %>
-
-<% if (equipmentItems.length) { %>
-<details class="detail-disclosure equipment-section card-surface">
-    <summary aria-controls="vehicle-equipment"><span class="disclosure-heading"><span class="section-eyebrow">Included with this vehicle</span><span class="disclosure-title" id="equipment-title">Equipment</span></span><span class="disclosure-meta"><%= equipmentItems.length %> features</span><span class="disclosure-chevron" aria-hidden="true"></span></summary>
-    <div class="disclosure-content" id="vehicle-equipment"><ul class="equipment-grid"><% equipmentItems.forEach(item => { %><li><span class="equipment-check" aria-hidden="true">✓</span><%= item %></li><% }) %></ul></div>
-</details>
-<% } %>
-
-<section class="detail-section enquiry-section card-surface" id="enquiry-form" aria-labelledby="enquiry-title">
-                            <div class="section-heading">
-                                <span class="section-eyebrow">Get in touch instantly</span>
-                                <h2 id="enquiry-title">Send Enquiry</h2>
-                            </div>
-                            <p class="enquiry-intro">Share any details you like and we'll open WhatsApp with a ready-to-send message. All contact and message fields are optional.</p>
-                            <form class="enquiry-form" id="whatsapp-enquiry-form" onsubmit="handleEnquiry(event)" novalidate>
-                                <div class="enquiry-form-grid enquiry-primary-fields">
-                                    <div class="form-group">
-                                        <label for="enq-name">Your Name <span class="field-optional">(optional)</span></label>
-                                        <input type="text" id="enq-name" name="name" placeholder="Full name" autocomplete="name">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="enq-phone">Mobile Number <span class="field-optional">(optional)</span></label>
-                                        <input type="tel" id="enq-phone" name="phone" placeholder="+91 mobile number" autocomplete="tel">
-                                    </div>
-                                </div>
-                                <details class="enquiry-extras">
-                                    <summary><span><%= hasPrice ? 'Add budget, payment type or a message' : 'Add payment type or a message' %></span><span class="enquiry-extras-chevron" aria-hidden="true"></span></summary>
-                                    <div class="enquiry-extras-content">
-                                        <div class="enquiry-form-grid">
-                                            <% if (hasPrice) { %>
-<div class="form-group">
-                                                <label for="enq-budget">Your Budget (₹) <span class="field-optional">(optional)</span></label>
-                                                <div class="budget-input-wrap">
-                                                    <span class="budget-prefix">₹</span>
-                                                    <input type="number" id="enq-budget" name="budget" min="0" step="10000" value="<%= currentPrice %>" placeholder="Enter your budget">
-                                                </div>
-                                                <span class="form-hint">Pre-filled with the listed price — feel free to edit.</span>
-                                            </div>
+                <main class="vehicle-detail-page" id="main">
+                    <div class="container vehicle-detail-container">
+                        <nav class="vehicle-breadcrumbs" aria-label="Breadcrumb">
+                            <ol>
+                                <li><a href="/">Home</a></li>
+                                <li aria-hidden="true">/</li>
+                                <li><a href="/inventory">Cars for sale</a></li>
+                                <% if (car.bodyType) { %>
+                                    <li aria-hidden="true">/</li>
+                                    <li><a href="/inventory?bodyType=<%= encodeURIComponent(car.bodyType) %>">
+                                            <%= car.bodyType %>s
+                                        </a></li>
                                     <% } %>
-                                    <div class="form-group">
-                                                <label>Purchase Type <span class="field-optional">(optional)</span></label>
-                                                <div class="pt-toggle" role="radiogroup" aria-label="Purchase type">
-                                                    <label class="pt-option" for="enq-cash">
-                                                        <input type="radio" id="enq-cash" name="purchaseType" value="Cash">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-                                                        Cash
-                                                    </label>
-                                                    <label class="pt-option" for="enq-finance">
-                                                        <input type="radio" id="enq-finance" name="purchaseType" value="Finance">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 22V12M3 12l9-9 9 9M3 12h18"/><rect x="9" y="14" width="6" height="8"/></svg>
-                                                        Finance
-                                                    </label>
-                                                </div>
+                                        <li aria-hidden="true">/</li>
+                                        <li aria-current="page">
+                                            <%= car.make %>
+                                                <%= car.model %>
+                                        </li>
+                            </ol>
+                        </nav>
+
+                        <header class="vehicle-heading">
+                            <div class="vehicle-heading-copy">
+                                <div class="vehicle-kicker-row">
+                                    <span class="vehicle-make">
+                                        <%= car.make %>
+                                    </span>
+                                    <span class="vehicle-year">
+                                        <%= car.year %>
+                                    </span>
+                                    <span class="vehicle-reference">Ref <strong>
+                                            <%= referenceLabel %>
+                                        </strong></span>
+                                </div>
+                                <h1>
+                                    <%= vehicleName %>
+                                </h1>
+                                <% if (vehicleSublineItems.length) { %>
+                                    <p class="vehicle-subline">
+                                        <% vehicleSublineItems.forEach(([, value])=> { %><span>
+                                                <%= value %>
+                                            </span>
+                                            <% }) %>
+                                    </p>
+                                    <% } %>
+                            </div>
+                            <% if (hasPrice) { %>
+                                <div class="vehicle-heading-price" aria-label="Vehicle price">
+                                    <% if (savingsAmount> 0) { %>
+                                        <span class="cro-market-price-label">
+                                            <%= anchorLabel %>
+                                        </span>
+                                        <span class="cro-market-price">₹<%= (anchorPrice / 100000).toFixed(2) %>
+                                                Lakh</span>
+                                        <span class="cro-today-label">Today's Exclusive Price</span>
+                                        <% } else { %>
+                                            <span class="price-caption">Asking price</span>
+                                            <% } %>
+                                                <strong>₹<%= lakhPrice %> <small>Lakh</small></strong>
+                                                <span class="exact-price">₹<%= rupeePrice %></span>
+                                                <% if (savingsAmount> 0) { %>
+                                                    <div class="cro-savings-badge">↓ ₹<%=
+                                                            savingsAmount.toLocaleString('en-IN') %> Below Market Value
+                                                    </div>
+                                                    <% } %>
+                                                        <% if (car.discount_tag) { %>
+                                                            <div class="cro-deal-badge" style="margin-top: 6px;">
+                                                                <% if (car.discount_tag &&
+                                                                    !isNaN(Number(car.discount_tag))) { %>
+                                                                    ↓ ₹<%=
+                                                                        Number(car.discount_tag).toLocaleString('en-IN')
+                                                                        %> Discount
+                                                                        <% } else { %>
+                                                                            <%= car.discount_tag || 'Featured Deal' %>
+                                                                                <% } %>
+                                                            </div>
+                                                            <% } %>
+                                </div>
+                                <% } %>
+                        </header>
+
+                        <div class="vehicle-page-grid <%= galleryImages.length ? 'has-gallery' : 'no-gallery' %>">
+                                <div class="vehicle-main-column">
+                                    <% if (galleryImages.length) { %>
+                                    <section class="vehicle-gallery card-surface" aria-label="Vehicle photographs">
+                                        <div class="gallery-stage">
+                                            <img id="pdp-main-img" class="gallery-main-image"
+                                                src="<%= galleryImages[0] %>"
+                                                alt="<%= vehicleName %> — photo 1 of <%= galleryImages.length %>"
+                                                fetchpriority="high">
+                                            <span class="gallery-count">
+                                                <%= String(1).padStart(2, '0' ) %> / <%=
+                                                        String(galleryImages.length).padStart(2, '0' ) %>
+                                            </span>
+                                        </div>
+                                        <% if (galleryImages.length> 1) { %>
+                                            <div class="gallery-thumbnails" aria-label="Choose a vehicle photo">
+                                                <% galleryImages.forEach((imageUrl, index)=> { %><button type="button"
+                                                        class="thumbnail <%= index === 0 ? 'active' : '' %>"
+                                                        onclick="selectVehiclePhoto(this)"
+                                                        data-full-src="<%= imageUrl %>"
+                                                        aria-label="Show photo <%= index + 1 %> of <%= galleryImages.length %>"><img
+                                                            src="<%= imageUrl %>" alt="" loading="lazy"></button>
+                                                    <% }) %>
                                             </div>
+                                            <% } %>
+                                    </section>
+                                    <% } else { %>
+                                    <section class="vehicle-gallery gallery-empty card-surface" aria-label="Vehicle photographs">
+                                        <svg class="gallery-empty-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <rect x="5" y="8" width="38" height="32" rx="5" />
+                                            <circle cx="18" cy="21" r="4" />
+                                            <path d="m8 36 11-11 7 7 5-5 9 9" />
+                                        </svg>
+                                        <strong>Photos are coming soon</strong>
+                                        <span>Contact our showroom to arrange a viewing.</span>
+                                    </section>
+                                    <% } %>
+                                </div>
+                                    <aside class="vehicle-sidebar"
+                                        aria-label="<%= hasPrice ? 'Price and enquiry' : 'Enquiry and test drive' %>">
+                                        <div
+                                            class="vehicle-action-card card-surface <%= hasPrice ? 'has-price' : 'no-price' %>">
+                                            <% const emiAmount=Number(car.croPricing && car.croPricing.monthly_estimate
+                                                || 0); const isSold=car.status==='Sold' ; const
+                                                isReserved=car.reservation_status==='Reserved' ; const
+                                                canContact=!isSold && !isReserved; const canReserve=hasPrice &&
+                                                canContact; const hasDealInfo=(hasPrice && emiAmount> 0) || canReserve
+                                                || isReserved;
+                                                %>
+                                                <% if (hasPrice || isSold || isReserved) { %>
+                                                    <div class="sidebar-vehicle-summary">
+                                                        <div
+                                                            class="sidebar-status <%= isSold ? 'is-sold' : isReserved ? 'is-reserved' : '' %>">
+                                                            <span></span>
+                                                            <%= isSold ? 'Recently sold' : isReserved
+                                                                ? 'Currently reserved' : 'Enquire about this car' %>
+                                                        </div>
+                                                        <% if (hasPrice) { %>
+                                                            <div class="sidebar-price">
+                                                                <% if (savingsAmount> 0) { %><span
+                                                                        class="cro-market-price-label">
+                                                                        <%= anchorLabel %>
+                                                                    </span><span class="cro-market-price">₹<%=
+                                                                            anchorPrice.toLocaleString('en-IN') %>
+                                                                            </span><span class="cro-today-label">Today's
+                                                                        Exclusive Price</span>
+                                                                    <% } else { %><span>Price</span>
+                                                                        <% } %>
+                                                                            <strong>₹<%= lakhPrice %>
+                                                                                    <small>Lakh</small></strong><span
+                                                                                class="exact-price">₹<%= rupeePrice %>
+                                                                                    </span>
+                                                                            <% if (savingsAmount> 0 || car.discount_tag)
+                                                                                { %>
+                                                                                <div class="sidebar-deal-badges">
+                                                                                    <% if (savingsAmount> 0) { %><div
+                                                                                            class="cro-savings-badge">↓
+                                                                                            ₹<%= savingsAmount.toLocaleString('en-IN')
+                                                                                                %> Below Market</div>
+                                                                                        <% } %>
+                                                                                            <% if (car.discount_tag) {
+                                                                                                %>
+                                                                                                <div
+                                                                                                    class="cro-deal-badge">
+                                                                                                    <% if
+                                                                                                        (!isNaN(Number(car.discount_tag)))
+                                                                                                        { %>↓ ₹<%=
+                                                                                                            Number(car.discount_tag).toLocaleString('en-IN')
+                                                                                                            %> Discount
+                                                                                                            <% } else {
+                                                                                                                %>
+                                                                                                                <%= car.discount_tag
+                                                                                                                    %>
+                                                                                                                    <% }
+                                                                                                                        %>
+                                                                                                </div>
+                                                                                                <% } %>
+                                                                                </div>
+                                                                                <% } %>
+                                                            </div>
+                                                            <% } %>
+                                                    </div>
+                                                    <% } %>
+
+                                                        <% if (hasDealInfo) { %>
+                                                            <div class="vehicle-deal-info">
+                                                                <% if (hasPrice && emiAmount> 0) { %><div
+                                                                        class="cro-emi-teaser">As low as <strong>₹<%=
+                                                                                emiAmount.toLocaleString('en-IN') %>
+                                                                                /mo</strong> with zero down<button
+                                                                            class="cro-calc-link" type="button"
+                                                                            onclick="document.querySelector('.finance-calc')?.scrollIntoView({behavior:'smooth'});document.querySelector('.finance-calc')?.setAttribute('open','')">Calculate
+                                                                            Financing →</button></div>
+                                                                    <% } %>
+                                                                        <% if (canReserve) { %><button
+                                                                                class="cro-reserve-btn" type="button"
+                                                                                data-reserve-button
+                                                                                onclick="handleReservation()">🔒 Request
+                                                                                to Lock In This Deal<span
+                                                                                    class="cro-reserve-sub">₹9,999
+                                                                                    refundable deposit · collected only
+                                                                                    after confirmation</span></button>
+                                                                            <% } else if (isReserved) { %>
+                                                                                <p class="cro-reservation-state"
+                                                                                    role="status">This vehicle is
+                                                                                    currently reserved.</p>
+                                                                                <% } %>
+                                                            </div>
+                                                            <% } %>
+
+                                                                <div
+                                                                    class="vehicle-contact-actions <%= hasPrice ? 'has-price' : 'no-price' %>">
+                                                                    <% if (hasPrice && referenceLabel) { %>
+                                                                        <p class="sidebar-reference">Quote reference
+                                                                            <strong>
+                                                                                <%= referenceLabel %>
+                                                                            </strong> when you call.</p>
+                                                                        <% } %>
+                                                                            <% if (canContact) { %><a
+                                                                                    class="button button-test-drive sidebar-test-drive"
+                                                                                    href="#enquiry-form"
+                                                                                    onclick="requestTestDrive(event)"><svg
+                                                                                        viewBox="0 0 24 24" fill="none"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="1.9"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        aria-hidden="true">
+                                                                                        <rect x="3" y="4" width="18"
+                                                                                            height="17" rx="2" />
+                                                                                        <path
+                                                                                            d="M16 2v4M8 2v4M3 10h18M8 14h3M8 17h6" />
+                                                                                    </svg>Book a Test Drive</a>
+                                                                                <% } %>
+                                                                                    <div class="sidebar-actions">
+                                                                                        <a class="button button-drive"
+                                                                                            href="#enquiry-form">Send
+                                                                                            Enquiry</a>
+                                                                                        <div
+                                                                                            class="sidebar-contact-links">
+                                                                                            <a class="button button-minimal"
+                                                                                                href="#enquiry-form"
+                                                                                                id="whatsapp-btn"
+                                                                                                onclick="mobileWhatsAppClick(event)">WhatsApp</a><%-
+                                                                                                include('partials/call-picker',
+                                                                                                {
+                                                                                                variant: 'is-car-sidebar'
+                                                                                                , callLabel: 'Call us' ,
+                                                                                                buttonClass: 'button button-minimal'
+                                                                                                }) %></div>
+                                                                                    </div>
+                                                                                    <button class="shortlist-button"
+                                                                                        type="button"
+                                                                                        data-car-id="<%= car._id %>"
+                                                                                        data-full-label="true"
+                                                                                        onclick="toggleShortlist('<%= car._id %>', this)"
+                                                                                        aria-label="Save <%= vehicleName %> to shortlist"
+                                                                                        style="margin-top: 0;"><svg
+                                                                                            class="save-icon"
+                                                                                            viewBox="0 0 24 24"
+                                                                                            fill="none"
+                                                                                            stroke="currentColor"
+                                                                                            stroke-width="2"
+                                                                                            stroke-linecap="round"
+                                                                                            stroke-linejoin="round"
+                                                                                            aria-hidden="true">
+                                                                                            <path
+                                                                                                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                                                                        </svg><span
+                                                                                            class="save-text">Save to
+                                                                                            shortlist</span></button>
+                                                                </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="enq-notes">Additional Notes <span class="field-optional">(optional)</span></label>
-                                            <textarea id="enq-notes" name="notes" rows="3" placeholder="Any questions or special requests? (e.g. preferred test drive time, colour preference...)"></textarea>
-                                        </div>
+                                        <% if (hasPrice) { %>
+                                            <details class="finance-calc card-surface">
+                                                <summary>Plan a down payment</summary>
+                                                <div class="finance-calc-content">
+                                                    <label for="calc-down">Down payment (₹)</label>
+                                                    <input type="number" id="calc-down"
+                                                        value="<%= Math.min(200000, Math.round(currentPrice * 0.1)) %>"
+                                                        step="25000" min="0" max="<%= currentPrice %>"
+                                                        oninput="calculateEMI()">
+                                                    <label for="calc-term">Loan tenure</label>
+                                                    <select id="calc-term" onchange="calculateEMI()">
+                                                        <option value="36">3 years</option>
+                                                        <option value="48">4 years</option>
+                                                        <option value="60" selected>5 years</option>
+                                                        <option value="84">7 years</option>
+                                                    </select>
+                                                    <p class="finance-estimate"><strong
+                                                            id="calc-result">₹0</strong><span>Estimated monthly
+                                                            EMI</span></p>
+                                                </div>
+                                            </details>
+                                            <% } %>
+                                    </aside>
+                                    <div class="vehicle-detail-content">
+                                        <% if (quickItems.length) { %>
+                                            <section class="quick-overview card-surface"
+                                                aria-label="Key vehicle details">
+                                                <% quickItems.forEach(([label, value])=> { %><div class="quick-item">
+                                                        <span class="quick-label">
+                                                            <%= label %>
+                                                        </span><strong>
+                                                            <%= value %>
+                                                        </strong></div>
+                                                    <% }) %>
+                                            </section>
+                                            <% } %>
+
+                                                <% if (vehicleDescription || highlightItems.length) { %>
+                                                    <section
+                                                        class="detail-section vehicle-overview-section card-surface"
+                                                        aria-labelledby="about-title">
+                                                        <div class="section-heading"><span
+                                                                class="section-eyebrow">Vehicle overview</span>
+                                                            <h2 id="about-title">About this car</h2>
+                                                        </div>
+                                                        <% if (vehicleDescription) { %>
+                                                            <p class="vehicle-description">
+                                                                <%= vehicleDescription %>
+                                                            </p>
+                                                            <% } %>
+                                                                <% if (highlightItems.length) { %>
+                                                                    <ul class="highlight-list"
+                                                                        aria-label="Vehicle highlights">
+                                                                        <% highlightItems.forEach(item=> { %><li><span
+                                                                                    class="highlight-check"
+                                                                                    aria-hidden="true">✓</span>
+                                                                                <%= item %>
+                                                                            </li>
+                                                                            <% }) %>
+                                                                    </ul>
+                                                                    <% } %>
+                                                    </section>
+                                                    <% } %>
+
+                                                        <% if (specificationItems.length) { %>
+                                                            <details
+                                                                class="detail-disclosure specifications-section card-surface">
+                                                                <summary aria-controls="vehicle-specifications">
+                                                                    <span class="disclosure-heading">
+                                                                        <span class="section-eyebrow">Full vehicle
+                                                                            details</span>
+                                                                        <span class="disclosure-title"
+                                                                            id="specifications-title">Specifications</span>
+                                                                    </span>
+                                                                    <span class="disclosure-meta">
+                                                                        <%= specificationItems.length %> details
+                                                                    </span>
+                                                                    <span class="disclosure-chevron"
+                                                                        aria-hidden="true"></span>
+                                                                </summary>
+                                                                <div class="disclosure-content"
+                                                                    id="vehicle-specifications">
+                                                                    <dl class="specification-grid">
+                                                                        <% specificationItems.forEach(([label, value])=>
+                                                                            { %>
+                                                                            <div class="specification-item">
+                                                                                <dt>
+                                                                                    <%= label %>
+                                                                                </dt>
+                                                                                <dd>
+                                                                                    <%= value %>
+                                                                                        <%= label==='Photographs'
+                                                                                            ? ' photos' : '' %>
+                                                                                </dd>
+                                                                            </div>
+                                                                            <% }) %>
+                                                                    </dl>
+                                                                    <p class="specification-note">Details are provided
+                                                                        as listed by The Auto Choice. Please confirm
+                                                                        anything important when you see the car.</p>
+                                                                </div>
+                                                            </details>
+                                                            <% } %>
+
+                                                                <% if (equipmentItems.length) { %>
+                                                                    <details
+                                                                        class="detail-disclosure equipment-section card-surface">
+                                                                        <summary aria-controls="vehicle-equipment"><span
+                                                                                class="disclosure-heading"><span
+                                                                                    class="section-eyebrow">Included
+                                                                                    with this vehicle</span><span
+                                                                                    class="disclosure-title"
+                                                                                    id="equipment-title">Equipment</span></span><span
+                                                                                class="disclosure-meta">
+                                                                                <%= equipmentItems.length %> features
+                                                                            </span><span class="disclosure-chevron"
+                                                                                aria-hidden="true"></span></summary>
+                                                                        <div class="disclosure-content"
+                                                                            id="vehicle-equipment">
+                                                                            <ul class="equipment-grid">
+                                                                                <% equipmentItems.forEach(item=> { %>
+                                                                                    <li><span class="equipment-check"
+                                                                                            aria-hidden="true">✓</span>
+                                                                                        <%= item %>
+                                                                                    </li>
+                                                                                    <% }) %>
+                                                                            </ul>
+                                                                        </div>
+                                                                    </details>
+                                                                    <% } %>
+
+                                                                        <section
+                                                                            class="detail-section enquiry-section card-surface"
+                                                                            id="enquiry-form"
+                                                                            aria-labelledby="enquiry-title">
+                                                                            <div class="section-heading">
+                                                                                <span class="section-eyebrow">Get in
+                                                                                    touch instantly</span>
+                                                                                <h2 id="enquiry-title">Send Enquiry</h2>
+                                                                            </div>
+                                                                            <p class="enquiry-intro">Share any details
+                                                                                you like and we'll open WhatsApp with a
+                                                                                ready-to-send message. All contact and
+                                                                                message fields are optional.</p>
+                                                                            <form class="enquiry-form"
+                                                                                id="whatsapp-enquiry-form"
+                                                                                onsubmit="handleEnquiry(event)"
+                                                                                novalidate>
+                                                                                <div
+                                                                                    class="enquiry-form-grid enquiry-primary-fields">
+                                                                                    <div class="form-group">
+                                                                                        <label for="enq-name">Your Name
+                                                                                            <span
+                                                                                                class="field-optional">(optional)</span></label>
+                                                                                        <input type="text" id="enq-name"
+                                                                                            name="name"
+                                                                                            placeholder="Full name"
+                                                                                            autocomplete="name">
+                                                                                    </div>
+                                                                                    <div class="form-group">
+                                                                                        <label for="enq-phone">Mobile
+                                                                                            Number <span
+                                                                                                class="field-optional">(optional)</span></label>
+                                                                                        <input type="tel" id="enq-phone"
+                                                                                            name="phone"
+                                                                                            placeholder="+91 mobile number"
+                                                                                            autocomplete="tel">
+                                                                                    </div>
+                                                                                </div>
+                                                                                <details class="enquiry-extras">
+                                                                                    <summary><span>
+                                                                                            <%= hasPrice
+                                                                                                ? 'Add budget, payment type or a message'
+                                                                                                : 'Add payment type or a message'
+                                                                                                %>
+                                                                                        </span><span
+                                                                                            class="enquiry-extras-chevron"
+                                                                                            aria-hidden="true"></span>
+                                                                                    </summary>
+                                                                                    <div class="enquiry-extras-content">
+                                                                                        <div class="enquiry-form-grid">
+                                                                                            <% if (hasPrice) { %>
+                                                                                                <div class="form-group">
+                                                                                                    <label
+                                                                                                        for="enq-budget">Your
+                                                                                                        Budget (₹) <span
+                                                                                                            class="field-optional">(optional)</span></label>
+                                                                                                    <div
+                                                                                                        class="budget-input-wrap">
+                                                                                                        <span
+                                                                                                            class="budget-prefix">₹</span>
+                                                                                                        <input
+                                                                                                            type="number"
+                                                                                                            id="enq-budget"
+                                                                                                            name="budget"
+                                                                                                            min="0"
+                                                                                                            step="10000"
+                                                                                                            value="<%= currentPrice %>"
+                                                                                                            placeholder="Enter your budget">
+                                                                                                    </div>
+                                                                                                    <span
+                                                                                                        class="form-hint">Pre-filled
+                                                                                                        with the listed
+                                                                                                        price — feel
+                                                                                                        free to
+                                                                                                        edit.</span>
+                                                                                                </div>
+                                                                                                <% } %>
+                                                                                                    <div
+                                                                                                        class="form-group">
+                                                                                                        <label>Purchase
+                                                                                                            Type <span
+                                                                                                                class="field-optional">(optional)</span></label>
+                                                                                                        <div class="pt-toggle"
+                                                                                                            role="radiogroup"
+                                                                                                            aria-label="Purchase type">
+                                                                                                            <label
+                                                                                                                class="pt-option"
+                                                                                                                for="enq-cash">
+                                                                                                                <input
+                                                                                                                    type="radio"
+                                                                                                                    id="enq-cash"
+                                                                                                                    name="purchaseType"
+                                                                                                                    value="Cash">
+                                                                                                                <svg viewBox="0 0 24 24"
+                                                                                                                    fill="none"
+                                                                                                                    stroke="currentColor"
+                                                                                                                    stroke-width="2"
+                                                                                                                    stroke-linecap="round"
+                                                                                                                    stroke-linejoin="round"
+                                                                                                                    aria-hidden="true">
+                                                                                                                    <rect
+                                                                                                                        x="2"
+                                                                                                                        y="5"
+                                                                                                                        width="20"
+                                                                                                                        height="14"
+                                                                                                                        rx="2" />
+                                                                                                                    <path
+                                                                                                                        d="M2 10h20" />
+                                                                                                                </svg>
+                                                                                                                Cash
+                                                                                                            </label>
+                                                                                                            <label
+                                                                                                                class="pt-option"
+                                                                                                                for="enq-finance">
+                                                                                                                <input
+                                                                                                                    type="radio"
+                                                                                                                    id="enq-finance"
+                                                                                                                    name="purchaseType"
+                                                                                                                    value="Finance">
+                                                                                                                <svg viewBox="0 0 24 24"
+                                                                                                                    fill="none"
+                                                                                                                    stroke="currentColor"
+                                                                                                                    stroke-width="2"
+                                                                                                                    stroke-linecap="round"
+                                                                                                                    stroke-linejoin="round"
+                                                                                                                    aria-hidden="true">
+                                                                                                                    <path
+                                                                                                                        d="M3 22V12M3 12l9-9 9 9M3 12h18" />
+                                                                                                                    <rect
+                                                                                                                        x="9"
+                                                                                                                        y="14"
+                                                                                                                        width="6"
+                                                                                                                        height="8" />
+                                                                                                                </svg>
+                                                                                                                Finance
+                                                                                                            </label>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                        </div>
+                                                                                        <div class="form-group">
+                                                                                            <label
+                                                                                                for="enq-notes">Additional
+                                                                                                Notes <span
+                                                                                                    class="field-optional">(optional)</span></label>
+                                                                                            <textarea id="enq-notes"
+                                                                                                name="notes" rows="3"
+                                                                                                placeholder="Any questions or special requests? (e.g. preferred test drive time, colour preference...)"></textarea>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </details>
+                                                                                <button
+                                                                                    class="button enquiry-submit-btn"
+                                                                                    type="submit"
+                                                                                    id="enquiry-submit-btn">
+                                                                                    <svg viewBox="0 0 24 24" fill="none"
+                                                                                        stroke="currentColor"
+                                                                                        stroke-width="2"
+                                                                                        stroke-linecap="round"
+                                                                                        stroke-linejoin="round"
+                                                                                        aria-hidden="true"
+                                                                                        style="width:22px;height:22px;flex-shrink:0;">
+                                                                                        <path
+                                                                                            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                                                                                        </path>
+                                                                                    </svg>
+                                                                                    <span>Send Enquiry via
+                                                                                        WhatsApp</span>
+                                                                                </button>
+                                                                            </form>
+                                                                        </section>
                                     </div>
-                                </details>
-                                <button class="button enquiry-submit-btn" type="submit" id="enquiry-submit-btn">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:22px;height:22px;flex-shrink:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                                    <span>Send Enquiry via WhatsApp</span>
-                                </button>
-                            </form>
-                        </section>
-    </div>
-</div>
+                        </div>
 
-        <% if (similarCars && similarCars.length) { %>
-<section class="similar-cars-section" aria-labelledby="similar-cars-title">
-            <div class="similar-cars-heading">
-                <div>
-                    <span class="section-eyebrow">More to explore</span>
-                    <h2 id="similar-cars-title">Similar cars</h2>
-                    <p>Other cars you may want to take a look at.</p>
-                </div>
-                <a class="similar-more-link" href="/inventory">View more cars <span aria-hidden="true">→</span></a>
-            </div>
+                        <% if (similarCars && similarCars.length) { %>
+                            <section class="similar-cars-section" aria-labelledby="similar-cars-title">
+                                <div class="similar-cars-heading">
+                                    <div>
+                                        <span class="section-eyebrow">More to explore</span>
+                                        <h2 id="similar-cars-title">Similar cars</h2>
+                                        <p>Other cars you may want to take a look at.</p>
+                                    </div>
+                                    <a class="similar-more-link" href="/inventory">View more cars <span
+                                            aria-hidden="true">→</span></a>
+                                </div>
 
-            <div class="similar-cars-grid">
-                    <% similarCars.forEach(similarCar => { %>
-                        <%
-                            const similarImage = similarCar.images && similarCar.images.length
-                                ? (typeof similarCar.images[0] === 'string' ? similarCar.images[0] : similarCar.images[0].url)
-                                : '/pictures/hero1.jpeg';
-                            const similarTitle = [similarCar.year, similarCar.make, similarCar.model].filter(Boolean).join(' ');
+                                <div class="similar-cars-grid">
+                                    <% similarCars.forEach(similarCar=> { %>
+                                        <% const similarImage=similarCar.images && similarCar.images.length ? (typeof
+                                            similarCar.images[0]==='string' ? similarCar.images[0] :
+                                            similarCar.images[0].url) : '/pictures/hero1.jpeg' ; const
+                                            similarTitle=[similarCar.year, similarCar.make,
+                                            similarCar.model].filter(Boolean).join(' ');
                         %>
                         <article class="similar-car-card">
                             <a class="similar-car-link" href="/inventory/<%= similarCar.slug || similarCar._id %>">
                                 <div class="similar-car-image-wrap">
                                     <img src="<%= similarImage %>" alt="<%= similarCar.images && similarCar.images.length ? similarTitle : 'The Auto Choice showroom forecourt' %>" loading="lazy">
-                                    <% if (similarCar.bodyType) { %><span class="similar-car-type"><%= similarCar.bodyType %></span><% } %>
+                                            <% if (similarCar.bodyType) { %><span class="similar-car-type">
+                                                    <%= similarCar.bodyType %>
+                                                </span>
+                                                <% } %>
                                 </div>
                                 <div class="similar-car-copy">
-                                    <span class="similar-car-make"><%= similarCar.make %></span>
-                                    <h3><%= similarTitle %></h3>
-                                    <% if (similarCar.variant) { %><p class="similar-car-variant"><%= similarCar.variant %></p><% } %>
-                                    <% const similarSpecs = [similarCar.mileage != null ? Number(similarCar.mileage).toLocaleString('en-IN') + ' km' : '', similarCar.fuelType || '', similarCar.transmission || ''].filter(Boolean); %>
-                                    <% if (similarSpecs.length) { %><p class="similar-car-specs"><%= similarSpecs.join(' · ') %></p><% } %>
+                                    <span class="similar-car-make">
+                                        <%= similarCar.make %>
+                                    </span>
+                                    <h3>
+                                        <%= similarTitle %>
+                                    </h3>
+                                    <% if (similarCar.variant) { %>
+                                        <p class="similar-car-variant">
+                                            <%= similarCar.variant %>
+                                        </p>
+                                        <% } %>
+                                            <% const similarSpecs=[similarCar.mileage !=null ?
+                                                Number(similarCar.mileage).toLocaleString('en-IN') + ' km' : '' ,
+                                                similarCar.fuelType || '' , similarCar.transmission || ''
+                                                ].filter(Boolean); %>
+                                                <% if (similarSpecs.length) { %>
+                                                    <p class="similar-car-specs">
+                                                        <%= similarSpecs.join(' · ') %></p><% } %>
                                     <% if (similarCar.croPricing && similarCar.croPricing.current_price > 0) { %><strong class="similar-car-price"><%= formatPrice(similarCar.croPricing.current_price) %></strong><% } %>
                                 </div>
                             </a>
                             <div class="similar-car-actions">
                                 <a href="/inventory/<%= similarCar.slug || similarCar._id %>" class="similar-details-link">View details</a>
-                                <button class="similar-save-button" type="button" data-car-id="<%= similarCar._id %>" onclick="toggleShortlist('<%= similarCar._id %>', this)" aria-label="Save <%= similarTitle %> to shortlist">
-                                    <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                    </svg>
-                                    <span class="save-text">Save</span>
-                                </button>
-                            </div>
-                        </article>
-                    <% }) %>
-            </div>
-            <a class="similar-more-link similar-more-link-mobile" href="/inventory">View more cars <span aria-hidden="true">→</span></a>
-        </section>
-        <% } %>
-    </div>
+                                <button class="similar-save-button" type="button" data-car-id="<%= similarCar._id %>" onclick="toggleShortlist('
+                                                            <%=similarCar._id %>', this)" aria-label="Save <%=
+                                                                similarTitle %> to shortlist">
+                                                                <svg class="save-icon" viewBox="0 0 24 24" fill="none"
+                                                                    stroke="currentColor" stroke-width="2"
+                                                                    stroke-linecap="round" stroke-linejoin="round"
+                                                                    aria-hidden="true">
+                                                                    <path
+                                                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                                                </svg>
+                                                                <span class="save-text">Save</span>
+                                                                </button>
+                                </div>
+                                </article>
+                                <% }) %>
+                    </div>
+                    <a class="similar-more-link similar-more-link-mobile" href="/inventory">View more cars <span
+                            aria-hidden="true">→</span></a>
+                    </section>
+                    <% } %>
+                        </div>
 
-    <nav class="mobile-vehicle-actions <%= hasPrice ? 'has-price' : 'no-price' %>" aria-label="Quick actions">
-        <% if (hasPrice) { %><div class="mobile-price"><strong>₹<%= lakhPrice %> Lakh</strong><span><%= car.year %> · <%= car.model %></span></div><% } %>
-        <%- include('partials/call-picker', { variant: 'is-vehicle-mobile', callLabel: 'Call' }) %>
-        <a href="#enquiry-form" id="mobile-whatsapp-btn" onclick="mobileWhatsAppClick(event)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 20px; height: 20px;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-            WhatsApp
-        </a>
-    </nav>
-</main>
+                        <nav class="mobile-vehicle-actions <%= hasPrice ? 'has-price' : 'no-price' %>"
+                            aria-label="Quick actions">
+                            <% if (hasPrice) { %>
+                                <div class="mobile-price"><strong>₹<%= lakhPrice %> Lakh</strong><span>
+                                        <%= car.year %> · <%= car.model %>
+                                    </span></div>
+                                <% } %>
+                                    <%- include('partials/call-picker', { variant: 'is-vehicle-mobile' ,
+                                        callLabel: 'Call' }) %>
+                                        <a href="#enquiry-form" id="mobile-whatsapp-btn"
+                                            onclick="mobileWhatsAppClick(event)">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                                                style="width: 20px; height: 20px;">
+                                                <path
+                                                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                                                </path>
+                                            </svg>
+                                            WhatsApp
+                                        </a>
+                        </nav>
+                </main>
 
-<script>
-    const CAR_PRICE = <%= hasPrice ? currentPrice : 0 %>;
-    const CAR_HAS_PRICE = <%= hasPrice ? 'true' : 'false' %>;
+                <script>
+                    const CAR_PRICE = <%= hasPrice ?currentPrice: 0 %>;
+                    const CAR_HAS_PRICE = <%= hasPrice ? 'true' : 'false' %>;
 
-    /* ── Gallery ─────────────────────────────────────────────── */
-    function selectVehiclePhoto(button) {
-        const thumbnails = Array.from(document.querySelectorAll('.gallery-thumbnails .thumbnail'));
-        const index = thumbnails.indexOf(button);
-        switchImage(button.dataset.fullSrc, button);
-        const counter = document.querySelector('.gallery-count');
-        if (counter && index >= 0) {
-            counter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(thumbnails.length).padStart(2, '0')}`;
-        }
-        const mainImage = document.getElementById('pdp-main-img');
-        const title = document.querySelector('.vehicle-heading h1')?.textContent || '';
-        if (mainImage && index >= 0) mainImage.alt = `${title} — photo ${index + 1} of ${thumbnails.length}`;
-    }
+                    /* ── Gallery ─────────────────────────────────────────────── */
+                    function selectVehiclePhoto(button) {
+                        const thumbnails = Array.from(document.querySelectorAll('.gallery-thumbnails .thumbnail'));
+                        const index = thumbnails.indexOf(button);
+                        switchImage(button.dataset.fullSrc, button);
+                        const counter = document.querySelector('.gallery-count');
+                        if (counter && index >= 0) {
+                            counter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(thumbnails.length).padStart(2, '0')}`;
+                        }
+                        const mainImage = document.getElementById('pdp-main-img');
+                        const title = document.querySelector('.vehicle-heading h1')?.textContent || '';
+                        if (mainImage && index >= 0) mainImage.alt = `${title} — photo ${index + 1} of ${thumbnails.length}`;
+                    }
 
-    /* ── WhatsApp Enquiry ─────────────────────────────────────── */
-    const COMPANY_PHONE  = '919516486666';
-    const CAR_MAKE       = <%- safeJson(car.make || '') %>;
-    const CAR_MODEL      = <%- safeJson(car.model || '') %>;
-    const CAR_YEAR       = <%- safeJson(car.year || '') %>;
-    const CAR_REF        = <%- safeJson(referenceLabel) %>;
-    const CAR_PAGE_URL   = (typeof absoluteCarUrl !== 'undefined' && absoluteCarUrl)
-                             ? absoluteCarUrl
-                             : window.location.href;
+                    /* ── WhatsApp Enquiry ─────────────────────────────────────── */
+                    const COMPANY_PHONE = '919516486666';
+                    const CAR_MAKE = <%- safeJson(car.make || '') %>;
+                    const CAR_MODEL = <%- safeJson(car.model || '') %>;
+                    const CAR_YEAR = <%- safeJson(car.year || '') %>;
+                    const CAR_REF = <%- safeJson(referenceLabel) %>;
+                    const CAR_PAGE_URL = (typeof absoluteCarUrl !== 'undefined' && absoluteCarUrl)
+                        ? absoluteCarUrl
+                        : window.location.href;
 
-    function buildWhatsAppUrl() {
-        const name         = (document.getElementById('enq-name')?.value  || '').trim();
-        const phone        = (document.getElementById('enq-phone')?.value || '').trim();
-        const budgetRaw    = document.getElementById('enq-budget')?.value;
-        const budget       = budgetRaw ? Number(budgetRaw).toLocaleString('en-IN') : '';
-        const purchaseType = document.querySelector('input[name="purchaseType"]:checked')?.value || '';
-        const customer     = [name, phone].filter(Boolean).join(' · ');
-        const notes        = (document.getElementById('enq-notes')?.value || '').trim();
+                    function buildWhatsAppUrl() {
+                        const name = (document.getElementById('enq-name')?.value || '').trim();
+                        const phone = (document.getElementById('enq-phone')?.value || '').trim();
+                        const budgetRaw = document.getElementById('enq-budget')?.value;
+                        const budget = budgetRaw ? Number(budgetRaw).toLocaleString('en-IN') : '';
+                        const purchaseType = document.querySelector('input[name="purchaseType"]:checked')?.value || '';
+                        const customer = [name, phone].filter(Boolean).join(' · ');
+                        const notes = (document.getElementById('enq-notes')?.value || '').trim();
 
-        const lines = [
-            `Hi The Auto Choice! I'm interested in the following car:`,
-            ``,
-            `🚗 *Car:* ${CAR_MAKE} ${CAR_MODEL} (${CAR_YEAR})`,
-            `🔖 *Ref:* ${CAR_REF}`,
-            `🔗 *Link:* ${CAR_PAGE_URL}`,
-            ``,
-            budget ? `💰 *Budget:* ₹${budget}` : null,
-            purchaseType ? `💳 *Payment Type:* ${purchaseType}` : null,
-            customer ? `👤 *Customer:* ${customer}` : null,
-            notes ? `📝 *Notes:* ${notes}` : null
-        ].filter(l => l !== null).join('\n');
+                        const lines = [
+                            `Hi The Auto Choice! I'm interested in the following car:`,
+                            ``,
+                            `🚗 *Car:* ${CAR_MAKE} ${CAR_MODEL} (${CAR_YEAR})`,
+                            `🔖 *Ref:* ${CAR_REF}`,
+                            `🔗 *Link:* ${CAR_PAGE_URL}`,
+                            ``,
+                            budget ? `💰 *Budget:* ₹${budget}` : null,
+                            purchaseType ? `💳 *Payment Type:* ${purchaseType}` : null,
+                            customer ? `👤 *Customer:* ${customer}` : null,
+                            notes ? `📝 *Notes:* ${notes}` : null
+                        ].filter(l => l !== null).join('\n');
 
-        return `https://wa.me/${COMPANY_PHONE}?text=${encodeURIComponent(lines)}`;
-    }
+                        return `https://wa.me/${COMPANY_PHONE}?text=${encodeURIComponent(lines)}`;
+                    }
 
-    function handleEnquiry(event) {
-        event.preventDefault();
-        window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
-    }
+                    function handleEnquiry(event) {
+                        event.preventDefault();
+                        window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
+                    }
 
-    function mobileWhatsAppClick(event) {
-        event.preventDefault();
-        window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
-    }
+                    function mobileWhatsAppClick(event) {
+                        event.preventDefault();
+                        window.open(buildWhatsAppUrl(), '_blank', 'noopener,noreferrer');
+                    }
 
-    /* Vehicle history helper – now targets enquiry form */
-    function requestCarHistoryReport(event) {
-        event.preventDefault();
-        document.querySelector('.enquiry-extras')?.setAttribute('open', '');
-        const notesEl = document.getElementById('enq-notes');
-        if (notesEl && !notesEl.value.includes('Vehicle History')) {
-            notesEl.value = (notesEl.value ? notesEl.value + '\n' : '') + 'Please share the Vehicle History Report.';
-        }
-        const form = document.getElementById('enquiry-form');
-        if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    /* Vehicle history helper – now targets enquiry form */
+                    function requestCarHistoryReport(event) {
+                        event.preventDefault();
+                        document.querySelector('.enquiry-extras')?.setAttribute('open', '');
+                        const notesEl = document.getElementById('enq-notes');
+                        if (notesEl && !notesEl.value.includes('Vehicle History')) {
+                            notesEl.value = (notesEl.value ? notesEl.value + '\n' : '') + 'Please share the Vehicle History Report.';
+                        }
+                        const form = document.getElementById('enquiry-form');
+                        if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    }
+                    }
 
-    function requestTestDrive(event) {
-        event.preventDefault();
-        document.querySelector('.enquiry-extras')?.setAttribute('open', '');
-        const notesEl = document.getElementById('enq-notes');
-        if (notesEl && !notesEl.value.toLowerCase().includes('test drive')) {
-            notesEl.value = (notesEl.value ? notesEl.value + '\n' : '') + 'I would like to book a test drive.';
-        }
-        const form = document.getElementById('enquiry-form');
-        if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    function requestTestDrive(event) {
+                        event.preventDefault();
+                        document.querySelector('.enquiry-extras')?.setAttribute('open', '');
+                        const notesEl = document.getElementById('enq-notes');
+                        if (notesEl && !notesEl.value.toLowerCase().includes('test drive')) {
+                            notesEl.value = (notesEl.value ? notesEl.value + '\n' : '') + 'I would like to book a test drive.';
+                        }
+                        const form = document.getElementById('enquiry-form');
+                        if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    }
+                    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        if (CAR_HAS_PRICE) calculateEMI();
-        initShortlistButtons();
-    });
-</script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        if (CAR_HAS_PRICE) calculateEMI();
+                        initShortlistButtons();
+                    });
+                </script>
 
-<style>
-/* ── Send Enquiry Form ─────────────────────────────────────────── */
-.enquiry-intro {
-    margin: 0 0 20px;
-    font-size: 0.95rem;
-    opacity: 0.8;
-    line-height: 1.55;
-}
-.enquiry-form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-}
-@media (max-width: 560px) {
-    .enquiry-form-grid { grid-template-columns: 1fr; }
-}
-.budget-input-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-.budget-prefix {
-    position: absolute;
-    left: 13px;
-    font-weight: 600;
-    color: var(--detail-ink);
-    pointer-events: none;
-    font-size: 1rem;
-}
-.budget-input-wrap input {
-    padding-left: 28px;
-    width: 100%;
-}
-.form-hint {
-    display: block;
-    font-size: 0.78rem;
-    opacity: 0.6;
-    margin-top: 4px;
-}
-.field-required {
-    color: #f04;
-    font-size: 0.85em;
-}
-/* Purchase Type segmented toggle */
-.pt-toggle {
-    display: flex;
-    gap: 0;
-    border: 1.5px solid var(--detail-line);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-top: 2px;
-}
-.pt-option {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    padding: 10px 14px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.88rem;
-    transition: color 0.18s, background 0.18s;
-    user-select: none;
-    position: relative;
-    color: inherit;
-    opacity: 0.65;
-}
-.pt-option + .pt-option {
-    border-left: 1.5px solid var(--detail-line);
-}
-.pt-option input[type="radio"] { display: none; }
-.pt-option svg {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-    transition: stroke 0.18s;
-}
-.pt-option:has(input:checked) {
-    background: var(--detail-accent, #2563eb);
-    color: #fff;
-    opacity: 1;
-}
-.pt-option:not(:has(input:checked)):hover {
-    opacity: 1;
-    background: color-mix(in srgb, var(--detail-accent, #2563eb) 8%, transparent);
-}
-/* Submit button */
-.enquiry-submit-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    padding: 15px 24px;
-    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-    color: #fff;
-    font-weight: 700;
-    font-size: 1rem;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    letter-spacing: 0.01em;
-    box-shadow: 0 4px 18px rgba(37,211,102,0.32);
-    transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
-    margin-top: 4px;
-}
-.enquiry-submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(37,211,102,0.4);
-    filter: brightness(1.05);
-}
-.enquiry-submit-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 10px rgba(37,211,102,0.25);
-}
-/* Error state */
-.input-error {
-    border-color: #f04 !important;
-    box-shadow: 0 0 0 3px rgba(255,0,68,0.12) !important;
-    animation: shake 0.35s ease;
-}
-@keyframes shake {
-    0%,100% { transform: translateX(0); }
-    20%      { transform: translateX(-6px); }
-    40%      { transform: translateX(6px); }
-    60%      { transform: translateX(-4px); }
-    80%      { transform: translateX(4px); }
-}
-</style>
-<script type="application/ld+json"><%- JSON.stringify(structuredData).replace(/</g, '\\u003c') %></script>
+                <style>
+                    /* ── Send Enquiry Form ─────────────────────────────────────────── */
+                    .enquiry-intro {
+                        margin: 0 0 20px;
+                        font-size: 0.95rem;
+                        opacity: 0.8;
+                        line-height: 1.55;
+                    }
 
-<!-- Fullscreen Image Slider Overlay -->
-<style>
-/* Fullscreen Overlay Styles */
-.fs-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.fs-backdrop {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    cursor: pointer;
-}
-.fs-close {
-    position: absolute;
-    top: 20px; right: 20px;
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: white;
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    z-index: 100000;
-    transition: background 0.2s, transform 0.2s;
-}
-.fs-close:hover { 
-    background: rgba(255,255,255,0.25); 
-    transform: scale(1.05);
-}
-.fs-close svg { width: 24px; height: 24px; }
+                    .enquiry-form-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 16px;
+                        margin-bottom: 16px;
+                    }
 
-.fs-content {
-    position: relative;
-    z-index: 100000;
-    max-width: 90%;
-    max-height: 90%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.fs-content img {
-    max-width: 100vw;
-    max-height: 90vh;
-    object-fit: contain;
-    user-select: none;
-    border-radius: 4px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-.fs-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: white;
-    width: 54px; height: 54px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-}
-.fs-nav:hover { 
-    background: rgba(255,255,255,0.25); 
-    transform: translateY(-50%) scale(1.05);
-}
-.fs-nav svg { width: 32px; height: 32px; }
-.fs-prev { left: -70px; }
-.fs-next { right: -70px; }
+                    @media (max-width: 560px) {
+                        .enquiry-form-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
 
-@media (max-width: 992px) {
-    .fs-prev { left: 10px; background: rgba(0,0,0,0.5); }
-    .fs-next { right: 10px; background: rgba(0,0,0,0.5); }
-    .fs-close { top: 10px; right: 10px; background: rgba(0,0,0,0.5); }
-    .fs-content { max-width: 100%; max-height: 100%; }
-    .fs-content img { max-height: 100vh; border-radius: 0; box-shadow: none; }
-}
+                    .budget-input-wrap {
+                        position: relative;
+                        display: flex;
+                        align-items: center;
+                    }
 
-/* Make main image clickable */
-#pdp-main-img {
-    cursor: zoom-in;
-    transition: transform 0.2s ease;
-}
-#pdp-main-img:hover {
-    transform: scale(1.01);
-}
-</style>
+                    .budget-prefix {
+                        position: absolute;
+                        left: 13px;
+                        font-weight: 600;
+                        color: var(--detail-ink);
+                        pointer-events: none;
+                        font-size: 1rem;
+                    }
 
-<div id="fs-overlay" class="fs-overlay" style="display: none;">
-    <div class="fs-backdrop" onclick="closeFullscreen()"></div>
-    <button class="fs-close" onclick="closeFullscreen()" aria-label="Close fullscreen">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-    </button>
-    <div class="fs-content">
-        <button class="fs-nav fs-prev" onclick="prevFsImage(event)" aria-label="Previous image">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-        </button>
-        <img id="fs-main-img" src="" alt="Fullscreen Image">
-        <button class="fs-nav fs-next" onclick="nextFsImage(event)" aria-label="Next image">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-        </button>
-    </div>
-</div>
+                    .budget-input-wrap input {
+                        padding-left: 28px;
+                        width: 100%;
+                    }
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const fsImages = <%- JSON.stringify(galleryImages && galleryImages.length > 0 ? galleryImages : [car.primaryImage]) %>;
-    const uniqueFsImages = [...new Set(fsImages.filter(Boolean))];
-    
-    let currentFsIndex = 0;
-    const fsOverlay = document.getElementById('fs-overlay');
-    const fsMainImg = document.getElementById('fs-main-img');
-    const pdpMainImg = document.getElementById('pdp-main-img');
+                    .form-hint {
+                        display: block;
+                        font-size: 0.78rem;
+                        opacity: 0.6;
+                        margin-top: 4px;
+                    }
 
-    if(uniqueFsImages.length > 0 && pdpMainImg) {
-        pdpMainImg.addEventListener('click', () => {
-            const currentSrc = pdpMainImg.getAttribute('src');
-            currentFsIndex = uniqueFsImages.indexOf(currentSrc);
-            if(currentFsIndex === -1) currentFsIndex = 0;
-            
-            fsMainImg.src = uniqueFsImages[currentFsIndex];
-            fsOverlay.style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // prevent scrolling
+                    .field-required {
+                        color: #f04;
+                        font-size: 0.85em;
+                    }
 
-            const prevBtn = document.querySelector('.fs-prev');
-            const nextBtn = document.querySelector('.fs-next');
-            if(uniqueFsImages.length <= 1) {
-                if(prevBtn) prevBtn.style.display = 'none';
-                if(nextBtn) nextBtn.style.display = 'none';
-            } else {
-                if(prevBtn) prevBtn.style.display = 'flex';
-                if(nextBtn) nextBtn.style.display = 'flex';
-            }
-        });
-    }
+                    /* Purchase Type segmented toggle */
+                    .pt-toggle {
+                        display: flex;
+                        gap: 0;
+                        border: 1.5px solid var(--detail-line);
+                        border-radius: 10px;
+                        overflow: hidden;
+                        margin-top: 2px;
+                    }
 
-    window.closeFullscreen = function() {
-        fsOverlay.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    };
+                    .pt-option {
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 7px;
+                        padding: 10px 14px;
+                        cursor: pointer;
+                        font-weight: 500;
+                        font-size: 0.88rem;
+                        transition: color 0.18s, background 0.18s;
+                        user-select: none;
+                        position: relative;
+                        color: inherit;
+                        opacity: 0.65;
+                    }
 
-    window.prevFsImage = function(e) {
-        if(e) e.stopPropagation();
-        if(uniqueFsImages.length <= 1) return;
-        currentFsIndex = (currentFsIndex - 1 + uniqueFsImages.length) % uniqueFsImages.length;
-        fsMainImg.src = uniqueFsImages[currentFsIndex];
-    };
+                    .pt-option+.pt-option {
+                        border-left: 1.5px solid var(--detail-line);
+                    }
 
-    window.nextFsImage = function(e) {
-        if(e) e.stopPropagation();
-        if(uniqueFsImages.length <= 1) return;
-        currentFsIndex = (currentFsIndex + 1) % uniqueFsImages.length;
-        fsMainImg.src = uniqueFsImages[currentFsIndex];
-    };
+                    .pt-option input[type="radio"] {
+                        display: none;
+                    }
 
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (fsOverlay.style.display === 'flex') {
-            if (e.key === 'Escape') closeFullscreen();
-            else if (e.key === 'ArrowLeft') prevFsImage();
-            else if (e.key === 'ArrowRight') nextFsImage();
-        }
-    });
-});
-</script>
+                    .pt-option svg {
+                        width: 15px;
+                        height: 15px;
+                        flex-shrink: 0;
+                        transition: stroke 0.18s;
+                    }
 
-<%- include('partials/footer') %>
+                    .pt-option:has(input:checked) {
+                        background: var(--detail-accent, #2563eb);
+                        color: #fff;
+                        opacity: 1;
+                    }
+
+                    .pt-option:not(:has(input:checked)):hover {
+                        opacity: 1;
+                        background: color-mix(in srgb, var(--detail-accent, #2563eb) 8%, transparent);
+                    }
+
+                    /* Submit button */
+                    .enquiry-submit-btn {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 12px;
+                        width: 100%;
+                        padding: 15px 24px;
+                        background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+                        color: #fff;
+                        font-weight: 700;
+                        font-size: 1rem;
+                        border: none;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        letter-spacing: 0.01em;
+                        box-shadow: 0 4px 18px rgba(37, 211, 102, 0.32);
+                        transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
+                        margin-top: 4px;
+                    }
+
+                    .enquiry-submit-btn:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 28px rgba(37, 211, 102, 0.4);
+                        filter: brightness(1.05);
+                    }
+
+                    .enquiry-submit-btn:active {
+                        transform: translateY(0);
+                        box-shadow: 0 2px 10px rgba(37, 211, 102, 0.25);
+                    }
+
+                    /* Error state */
+                    .input-error {
+                        border-color: #f04 !important;
+                        box-shadow: 0 0 0 3px rgba(255, 0, 68, 0.12) !important;
+                        animation: shake 0.35s ease;
+                    }
+
+                    @keyframes shake {
+
+                        0%,
+                        100% {
+                            transform: translateX(0);
+                        }
+
+                        20% {
+                            transform: translateX(-6px);
+                        }
+
+                        40% {
+                            transform: translateX(6px);
+                        }
+
+                        60% {
+                            transform: translateX(-4px);
+                        }
+
+                        80% {
+                            transform: translateX(4px);
+                        }
+                    }
+                </style>
+                <script
+                    type="application/ld+json"><%- JSON.stringify(structuredData).replace(/</g, '\\u003c') %></script>
+
+                <!-- Fullscreen Image Slider Overlay -->
+                <style>
+                    /* Fullscreen Overlay Styles */
+                    .fs-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        z-index: 99999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .fs-backdrop {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.9);
+                        cursor: pointer;
+                    }
+
+                    .fs-close {
+                        position: absolute;
+                        top: 20px;
+                        right: 20px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: none;
+                        color: white;
+                        width: 44px;
+                        height: 44px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        z-index: 100000;
+                        transition: background 0.2s, transform 0.2s;
+                    }
+
+                    .fs-close:hover {
+                        background: rgba(255, 255, 255, 0.25);
+                        transform: scale(1.05);
+                    }
+
+                    .fs-close svg {
+                        width: 24px;
+                        height: 24px;
+                    }
+
+                    .fs-content {
+                        position: relative;
+                        z-index: 100000;
+                        max-width: 90%;
+                        max-height: 90%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .fs-content img {
+                        max-width: 100vw;
+                        max-height: 90vh;
+                        object-fit: contain;
+                        user-select: none;
+                        border-radius: 4px;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                    }
+
+                    .fs-nav {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: rgba(255, 255, 255, 0.1);
+                        border: none;
+                        color: white;
+                        width: 54px;
+                        height: 54px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        transition: background 0.2s, transform 0.2s;
+                    }
+
+                    .fs-nav:hover {
+                        background: rgba(255, 255, 255, 0.25);
+                        transform: translateY(-50%) scale(1.05);
+                    }
+
+                    .fs-nav svg {
+                        width: 32px;
+                        height: 32px;
+                    }
+
+                    .fs-prev {
+                        left: -70px;
+                    }
+
+                    .fs-next {
+                        right: -70px;
+                    }
+
+                    @media (max-width: 992px) {
+                        .fs-prev {
+                            left: 10px;
+                            background: rgba(0, 0, 0, 0.5);
+                        }
+
+                        .fs-next {
+                            right: 10px;
+                            background: rgba(0, 0, 0, 0.5);
+                        }
+
+                        .fs-close {
+                            top: 10px;
+                            right: 10px;
+                            background: rgba(0, 0, 0, 0.5);
+                        }
+
+                        .fs-content {
+                            max-width: 100%;
+                            max-height: 100%;
+                        }
+
+                        .fs-content img {
+                            max-height: 100vh;
+                            border-radius: 0;
+                            box-shadow: none;
+                        }
+                    }
+
+                    /* Make main image clickable */
+                    #pdp-main-img {
+                        cursor: zoom-in;
+                        transition: transform 0.2s ease;
+                    }
+
+                    #pdp-main-img:hover {
+                        transform: scale(1.01);
+                    }
+                </style>
+
+                <div id="fs-overlay" class="fs-overlay" style="display: none;">
+                    <div class="fs-backdrop" onclick="closeFullscreen()"></div>
+                    <button class="fs-close" onclick="closeFullscreen()" aria-label="Close fullscreen">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="fs-content">
+                        <button class="fs-nav fs-prev" onclick="prevFsImage(event)" aria-label="Previous image">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <img id="fs-main-img" src="" alt="Fullscreen Image">
+                        <button class="fs-nav fs-next" onclick="nextFsImage(event)" aria-label="Next image">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const fsImages = <%- JSON.stringify(galleryImages && galleryImages.length > 0 ? galleryImages : [car.primaryImage]) %>;
+                        const uniqueFsImages = [...new Set(fsImages.filter(Boolean))];
+
+                        let currentFsIndex = 0;
+                        const fsOverlay = document.getElementById('fs-overlay');
+                        const fsMainImg = document.getElementById('fs-main-img');
+                        const pdpMainImg = document.getElementById('pdp-main-img');
+
+                        if (uniqueFsImages.length > 0 && pdpMainImg) {
+                            pdpMainImg.addEventListener('click', () => {
+                                const currentSrc = pdpMainImg.getAttribute('src');
+                                currentFsIndex = uniqueFsImages.indexOf(currentSrc);
+                                if (currentFsIndex === -1) currentFsIndex = 0;
+
+                                fsMainImg.src = uniqueFsImages[currentFsIndex];
+                                fsOverlay.style.display = 'flex';
+                                document.body.style.overflow = 'hidden'; // prevent scrolling
+
+                                const prevBtn = document.querySelector('.fs-prev');
+                                const nextBtn = document.querySelector('.fs-next');
+                                if (uniqueFsImages.length <= 1) {
+                                    if (prevBtn) prevBtn.style.display = 'none';
+                                    if (nextBtn) nextBtn.style.display = 'none';
+                                } else {
+                                    if (prevBtn) prevBtn.style.display = 'flex';
+                                    if (nextBtn) nextBtn.style.display = 'flex';
+                                }
+                            });
+                        }
+
+                        window.closeFullscreen = function () {
+                            fsOverlay.style.display = 'none';
+                            document.body.style.overflow = 'auto';
+                        };
+
+                        window.prevFsImage = function (e) {
+                            if (e) e.stopPropagation();
+                            if (uniqueFsImages.length <= 1) return;
+                            currentFsIndex = (currentFsIndex - 1 + uniqueFsImages.length) % uniqueFsImages.length;
+                            fsMainImg.src = uniqueFsImages[currentFsIndex];
+                        };
+
+                        window.nextFsImage = function (e) {
+                            if (e) e.stopPropagation();
+                            if (uniqueFsImages.length <= 1) return;
+                            currentFsIndex = (currentFsIndex + 1) % uniqueFsImages.length;
+                            fsMainImg.src = uniqueFsImages[currentFsIndex];
+                        };
+
+                        // Keyboard navigation
+                        document.addEventListener('keydown', (e) => {
+                            if (fsOverlay.style.display === 'flex') {
+                                if (e.key === 'Escape') closeFullscreen();
+                                else if (e.key === 'ArrowLeft') prevFsImage();
+                                else if (e.key === 'ArrowRight') nextFsImage();
+                            }
+                        });
+                    });
+                </script>
+
+                <%- include('partials/footer') %>

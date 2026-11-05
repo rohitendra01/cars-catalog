@@ -639,26 +639,125 @@
           </div>
         </section>
 
-        <div id="sellModal" class="rw-modal"
-          style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
-          <div class="rw-modal-content"
-            style="background:#fff; margin:10% auto; padding:20px; width:80%; max-width:400px; position:relative;">
-            <span id="closeModal"
-              style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:24px;">&times;</span>
-            <h3>Sell Your Car</h3>
-            <form id="sellForm">
-              <label>Name: <input type="text" name="name" required></label><br />
-              <label>Phone: <input type="tel" name="phone" required></label><br />
-              <label>Car Model: <input type="text" name="model" required></label><br />
-              <button type="submit" class="rw-btn rw-btn--dark">Send via WhatsApp</button>
+        <div id="sellModal" class="rw-sell-modal" style="display:none;">
+          <div class="rw-sell-modal__backdrop" id="sellBackdrop"></div>
+          <div class="rw-sell-modal__dialog">
+            <button id="closeModal" class="rw-sell-modal__close" aria-label="Close">&times;</button>
+            <h3 class="rw-sell-modal__title">Sell Your Car</h3>
+            <p class="rw-sell-modal__subtitle">Fill in your details and we'll reach out on WhatsApp.</p>
+            <form id="sellForm" class="rw-sell-modal__form">
+              <div class="rw-sell-modal__field">
+                <label for="sell-name">Name</label>
+                <input id="sell-name" type="text" name="name" placeholder="Your full name" required>
+              </div>
+              <div class="rw-sell-modal__field">
+                <label for="sell-phone">Phone</label>
+                <input id="sell-phone" type="tel" name="phone" placeholder="e.g. 98765 43210" required>
+              </div>
+              <div class="rw-sell-modal__field">
+                <label for="sell-model">Car Model</label>
+                <input id="sell-model" type="text" name="model" placeholder="e.g. Swift VXI 2019" required>
+              </div>
+              <button type="submit" class="rw-btn rw-btn--wa rw-sell-modal__submit">
+                <svg aria-hidden="true" focusable="false" width="20" height="20"><use href="#ni-wa"/></svg>
+                Send via WhatsApp
+              </button>
             </form>
           </div>
         </div>
+
+        <style>
+          /* ── Sell Modal ── */
+          .rw-sell-modal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+          }
+          .rw-sell-modal__backdrop {
+            position: absolute; inset: 0;
+            background: rgba(0, 0, 0, .55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+          }
+          .rw-sell-modal__dialog {
+            position: relative;
+            background: #fff; color: #1a1a1a;
+            border-radius: 16px;
+            width: 100%; max-width: 420px;
+            padding: 32px 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.25);
+            animation: sellSlideUp .3s ease;
+          }
+          @keyframes sellSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          .rw-sell-modal__close {
+            position: absolute; top: 12px; right: 14px;
+            background: none; border: none; cursor: pointer;
+            font-size: 28px; line-height: 1; color: #888;
+            transition: color .2s;
+          }
+          .rw-sell-modal__close:hover { color: #333; }
+          .rw-sell-modal__title {
+            margin: 0 0 4px; font-size: 1.4rem; font-weight: 700;
+          }
+          .rw-sell-modal__subtitle {
+            margin: 0 0 20px; font-size: .9rem; color: #666;
+          }
+          .rw-sell-modal__form {
+            display: flex; flex-direction: column; gap: 14px;
+          }
+          .rw-sell-modal__field {
+            display: flex; flex-direction: column; gap: 4px;
+          }
+          .rw-sell-modal__field label {
+            font-size: .8rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .04em; color: #555;
+          }
+          .rw-sell-modal__field input {
+            width: 100%; padding: 10px 14px;
+            font-size: 1rem; border: 1.5px solid #ddd;
+            border-radius: 10px; outline: none;
+            transition: border-color .2s, box-shadow .2s;
+            box-sizing: border-box;
+          }
+          .rw-sell-modal__field input:focus {
+            border-color: #25d366;
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, .15);
+          }
+          .rw-sell-modal__submit {
+            margin-top: 6px; width: 100%;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px; font-size: 1rem; font-weight: 600;
+            border: none; border-radius: 12px; cursor: pointer;
+          }
+
+          /* ── Mobile tweaks ── */
+          @media (max-width: 600px) {
+            .rw-sell-modal {
+              align-items: flex-end; padding: 0;
+            }
+            .rw-sell-modal__dialog {
+              max-width: 100%;
+              border-radius: 20px 20px 0 0;
+              padding: 28px 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+              animation: sellSlideUpMobile .3s ease;
+            }
+            @keyframes sellSlideUpMobile {
+              from { opacity: 0; transform: translateY(100%); }
+              to   { opacity: 1; transform: translateY(0); }
+            }
+          }
+        </style>
         <script>
           document.getElementById('sellBtn').addEventListener('click', function () {
-            document.getElementById('sellModal').style.display = 'block';
+            document.getElementById('sellModal').style.display = 'flex';
           });
           document.getElementById('closeModal').addEventListener('click', function () {
+            document.getElementById('sellModal').style.display = 'none';
+          });
+          document.getElementById('sellBackdrop').addEventListener('click', function () {
             document.getElementById('sellModal').style.display = 'none';
           });
           document.getElementById('sellForm').addEventListener('submit', function (e) {
