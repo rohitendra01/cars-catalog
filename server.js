@@ -5,6 +5,11 @@ const path = require('path');
 const session = require('express-session');
 const MongoStore = require('connect-mongo').default || require('connect-mongo');
 const carRoutes = require('./routes/carRoutes');
+const { logError, logRequestFailures, logWarning, requestContext } = require('./utils/logger');
+
+process.on('uncaughtExceptionMonitor', (error, origin) => {
+    logError('process.uncaught_exception', error, null, { origin });
+});
 
 // ─── Guard: fail fast if SESSION_SECRET is missing ────────────────────────────
 if (!process.env.SESSION_SECRET) {
@@ -33,6 +38,8 @@ if (!mongoUri || mongoUri.includes('<user>') || mongoUri.includes('<password>'))
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.disable('x-powered-by');
+app.use(requestContext);
+app.use(logRequestFailures);
 if (process.env.NODE_ENV === 'production') {
     // The deployment should terminate HTTPS at a single trusted reverse proxy.
     app.set('trust proxy', 1);
@@ -57,6 +64,13 @@ app.use(express.json());
 
 // ─── Session Store (MongoDB-backed, persisted across restarts) ────────────────
 const SESSION_TTL_SECONDS = 60 * 60 * 2; // 2-hour idle timeout
+const sessionStore = MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+    collectionName: 'sessions',
+    ttl: SESSION_TTL_SECONDS,
+    autoRemove: 'native'
+});
+sessionStore.on('error', error => logError('session.store_error', error, null));
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -64,12 +78,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     rolling: true,                    // reset TTL on every request (idle timeout)
-    store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI,
-        collectionName: 'sessions',
-        ttl: SESSION_TTL_SECONDS,     // auto-expire old sessions in MongoDB
-        autoRemove: 'native'          // use MongoDB TTL index for cleanup
-    }),
+    store: sessionStore,
     cookie: {
         httpOnly: true,               // JS cannot read the cookie (XSS protection)
         sameSite: 'strict',           // CSRF protection
@@ -97,7 +106,8 @@ app.use((req, res) => {
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-    console.error('Request failed:', err);
+    logError('http.unhandled_error', err, req);
+    if (res.headersSent) return next(err);
     res.status(500).send('<h1>500 - Server Error</h1><p>Please try again later.</p>');
 });
 
@@ -105,6 +115,9 @@ app.use((err, req, res, next) => {
 mongoose.connect(mongoUri)
     .then(async () => {
         console.log('✅ MongoDB Connected');
+        mongoose.connection.on('error', error => logError('database.runtime_error', error, null));
+        mongoose.connection.on('disconnected', () => logWarning('database.disconnected', 'MongoDB connection was lost.', null));
+        mongoose.connection.on('reconnected', () => logWarning('database.reconnected', 'MongoDB connection was restored.', null));
         try {
             const Car = require('./models/Car');
             const carsWithoutSlug = await Car.find({ $or: [{ slug: { $exists: false } }, { slug: null }, { slug: '' }] });
@@ -116,7 +129,7 @@ mongoose.connect(mongoUri)
                 console.log('✅ SEO slugs populated successfully.');
             }
         } catch (slugErr) {
-            console.warn('⚠️ Warning during slug population:', slugErr.message);
+            logWarning('startup.slug_population_failed', slugErr.message, null);
         }
 
         app.listen(PORT, () => {
@@ -124,6 +137,6 @@ mongoose.connect(mongoUri)
         });
     })
     .catch(err => {
-        console.error('❌ MongoDB connection failed:', err.message);
+        logError('startup.mongodb_connection_failed', err, null);
         process.exit(1);
     });

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <%- include('partials/head-public', { pageTitle: 'The Auto Choice | Certified Pre-Owned Cars in Jabalpur' }) %>
-    <script type="application/ld+json">
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "AutoDealer",
@@ -136,7 +136,10 @@
                           <%= car.model %>
                       </div>
                       <div class="rw-spot__meta">
-                        <%= car.year %> · <%= formatPrice(car.croPricing.current_price) %>
+                        <%= car.year %>
+                          <% if (car.croPricing && car.croPricing.current_price> 0) { %> · <%=
+                              formatPrice(car.croPricing.current_price) %>
+                              <% } %>
                       </div>
                     </div>
                     <svg class="rw-spot__arrow" aria-hidden="true" focusable="false">
@@ -163,50 +166,6 @@
             }, 8000);
           })();
         </script>
-
-        <!-- ── Stats cluster ── -->
-        <div class="rw-cluster" aria-label="The Auto Choice at a glance">
-          <div class="rw-cluster__in">
-            <div class="rw-cluster__item" id="google-rating-summary" aria-busy="true">
-              <span class="rw-cluster__label">Google Maps rating</span>
-              <div class="rw-cluster__val">
-                <span class="rw-cluster__num" id="google-rating-value">—</span>
-                <span class="rw-cluster__stars" id="google-rating-stars" role="img" aria-label="Google rating is loading">
-                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
-                  </svg>
-                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
-                  </svg>
-                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
-                  </svg>
-                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="m12 2.6 2.9 6 6.6.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
-                  </svg>
-                  <svg class="rw-cluster__star" aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="m12 2.6 2.9 6 6.6-.8-4.9 4.6 1.3 6.5L12 17.2l-5.9 3.3 1.3-6.5-4.9-4.6 6.6-.8z" />
-                  </svg>
-                </span>
-                <a class="rw-cluster__small rw-cluster__small-link" id="google-review-count"
-                   href="https://search.google.com/local/writereview?placeid=<%= encodeURIComponent(googlePlaceId) %>"
-                   target="_blank" rel="noopener noreferrer">Loading reviews…</a>
-                <a class="rw-cluster__google-maps" href="https://www.google.com/maps/search/?api=1&amp;query_place_id=<%= encodeURIComponent(googlePlaceId) %>"
-                   target="_blank" rel="noopener noreferrer">Google Maps</a>
-              </div>
-            </div>
-
-            <div class="rw-cluster__item">
-              <span class="rw-cluster__label">On the forecourt</span>
-              <div class="rw-cluster__val">
-                <span class="rw-cluster__num">
-                  <%= featuredCars ? featuredCars.length : '—' %>
-                </span>
-                <span class="rw-cluster__small">cars · multiple makes</span>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <script>
           (function () {
@@ -245,7 +204,10 @@
                 });
                 summary.setAttribute('aria-busy', 'false');
               })
-              .catch(showUnavailable);
+              .catch(function (error) {
+                if (typeof window.reportClientError === 'function') window.reportClientError('home.google_reviews.load_failed', error);
+                showUnavailable();
+              });
           })();
         </script>
 
@@ -448,6 +410,8 @@
           </div>
         </section>
 
+
+
         <!-- ══════════════════════════════════════════════════════════
        FEATURED CARS
   ══════════════════════════════════════════════════════════ -->
@@ -491,7 +455,9 @@
                     <!-- Media -->
                     <div class="rw-car__media">
                       <a href="/inventory/<%= car.slug || car._id %>">
-                        <img src="<%= imgSrc %>" alt="<%= car.images && car.images.length ? `${car.year} ${car.make} ${car.model}` : 'The Auto Choice showroom forecourt' %>" loading="lazy">
+                        <img src="<%= imgSrc %>"
+                          alt="<%= car.images && car.images.length ? `${car.year} ${car.make} ${car.model}` : 'The Auto Choice showroom forecourt' %>"
+                          loading="lazy">
                       </a>
 
                       <!-- Certified tag -->
@@ -545,34 +511,44 @@
                       </h3>
 
                       <!-- Price -->
-                      <div class="rw-car__price">
-                        <span class="rw-car__price-cur">₹</span>
-                        <%= formatPrice(car.croPricing.current_price) %>
-                          <% if (car.croPricing.savings_amount> 0) { %>
-                            <span class="rw-car__mkt">₹<%= Number(car.croPricing.anchor_price).toLocaleString('en-IN')
-                                %></span>
-                            <span class="rw-car__save-tag">Save ₹<%=
-                                Number(car.croPricing.savings_amount).toLocaleString('en-IN') %></span>
-                            <% } %>
-                      </div>
+                      <% if (car.croPricing && car.croPricing.current_price> 0) { %>
+                        <div class="rw-car__price">
+                          <span class="rw-car__price-cur">₹</span>
+                          <%= formatPrice(car.croPricing.current_price) %>
+                            <% if (car.croPricing.savings_amount> 0) { %>
+                              <span class="rw-car__mkt">₹<%= Number(car.croPricing.anchor_price).toLocaleString('en-IN')
+                                  %></span>
+                              <span class="rw-car__save-tag">Save ₹<%=
+                                  Number(car.croPricing.savings_amount).toLocaleString('en-IN') %></span>
+                              <% } %>
+                        </div>
+                        <% } %>
 
-                      <!-- Specs -->
-                      <ul class="rw-specline">
-                        <li class="rw-num">
-                          <%= car.mileage.toLocaleString('en-IN') %> km
-                        </li>
-                        <li>
-                          <%= car.fuelType %>
-                        </li>
-                        <li>
-                          <%= car.transmission %>
-                        </li>
-                        <% if (car.rtoLocation) { %>
-                          <li>
-                            <%= car.rtoLocation %>
-                          </li>
-                          <% } %>
-                      </ul>
+                          <!-- Specs -->
+                          <% if (car.mileage !=null || car.fuelType || car.transmission || car.rtoLocation) { %>
+                            <ul class="rw-specline">
+                              <% if (car.mileage !==undefined && car.mileage !==null) { %>
+                                <li class="rw-num">
+                                  <%= Number(car.mileage).toLocaleString('en-IN') %> km
+                                </li>
+                                <% } %>
+                                  <% if (car.fuelType) { %>
+                                    <li>
+                                      <%= car.fuelType %>
+                                    </li>
+                                    <% } %>
+                                      <% if (car.transmission) { %>
+                                        <li>
+                                          <%= car.transmission %>
+                                        </li>
+                                        <% } %>
+                                          <% if (car.rtoLocation) { %>
+                                            <li>
+                                              <%= car.rtoLocation %>
+                                            </li>
+                                            <% } %>
+                            </ul>
+                            <% } %>
                     </a>
 
                     <!-- Actions -->
@@ -647,6 +623,55 @@
             </div>
           </div>
         </section>
+
+        <!-- New Sell CTA -->
+        <section class="rw-sec rw-sec--mid" aria-labelledby="sell-h">
+          <div class="rw-wrap">
+            <div class="rw-cta-banner" data-rv>
+              <div>
+                <h2 class="rw-cta-banner__title" id="sell-h">Want to sell your car?</h2>
+                <p class="rw-cta-banner__sub">Enter your details and we’ll connect you via WhatsApp.</p>
+              </div>
+              <div class="rw-cta-banner__btns">
+                <button id="sellBtn" class="rw-btn rw-btn--dark">Sell my car</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div id="sellModal" class="rw-modal"
+          style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+          <div class="rw-modal-content"
+            style="background:#fff; margin:10% auto; padding:20px; width:80%; max-width:400px; position:relative;">
+            <span id="closeModal"
+              style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:24px;">&times;</span>
+            <h3>Sell Your Car</h3>
+            <form id="sellForm">
+              <label>Name: <input type="text" name="name" required></label><br />
+              <label>Phone: <input type="tel" name="phone" required></label><br />
+              <label>Car Model: <input type="text" name="model" required></label><br />
+              <button type="submit" class="rw-btn rw-btn--dark">Send via WhatsApp</button>
+            </form>
+          </div>
+        </div>
+        <script>
+          document.getElementById('sellBtn').addEventListener('click', function () {
+            document.getElementById('sellModal').style.display = 'block';
+          });
+          document.getElementById('closeModal').addEventListener('click', function () {
+            document.getElementById('sellModal').style.display = 'none';
+          });
+          document.getElementById('sellForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var name = e.target.name.value;
+            var phone = e.target.phone.value;
+            var model = e.target.model.value;
+            var text = `Hi, I would like to sell my car. Name: ${name}, Phone: ${phone}, Model: ${model}`;
+            var url = 'https://wa.me/919516486666?text=' + encodeURIComponent(text);
+            window.open(url, '_blank');
+            document.getElementById('sellModal').style.display = 'none';
+          });
+        </script>
 
       </main>
 

@@ -173,21 +173,19 @@
                                         <span>Electric</span>
                                     </div>
                                 <% } %>
-                                <% if (car.discount_tag) { %>
+                                <% if (car.discount_tag && car.croPricing && car.croPricing.current_price > 0) { %>
                                     <div class="cro-card-badge"><%= car.discount_tag %></div>
                                 <% } %>
                             </div>
                             <div class="car-details">
                                 <div class="car-title"><%= car.year %> <%= car.make %> <%= car.model %></div>
-                                <div class="car-specs">
-                                    <%= car.mileage.toLocaleString('en-IN') %> km &nbsp;|&nbsp;
-                                    <%= car.fuelType %> &nbsp;|&nbsp;
-                                    <%= car.transmission %>
-                                </div>
+                                <% const carSpecs = [car.mileage != null ? Number(car.mileage).toLocaleString('en-IN') + ' km' : '', car.fuelType || '', car.transmission || ''].filter(Boolean); %>
+                                <% if (carSpecs.length) { %><div class="car-specs"><%= carSpecs.join(' | ') %></div><% } %>
                                 <% if (car.variant) { %><div class="car-variant"><%= car.variant %></div><% } %>
-                                <% if (car.rtoLocation) { %>
-                                    <div class="car-location"><%= car.rtoLocation %><% if (car.ownership) { %> · <%= car.ownership %><% } %></div>
+                                <% if (car.rtoLocation || car.ownership) { %>
+                                    <div class="car-location"><%= car.rtoLocation || car.ownership %><% if (car.rtoLocation && car.ownership) { %> · <%= car.ownership %><% } %></div>
                                 <% } %>
+                                <% if (car.croPricing && car.croPricing.current_price > 0) { %>
                                 <div class="car-price">
                                     <%= formatPrice(car.croPricing.current_price) %>
                                     <% if (car.croPricing.savings_amount > 0) { %>
@@ -195,6 +193,7 @@
                                     <div class="cro-card-savings">Save ₹<%= Number(car.croPricing.savings_amount).toLocaleString('en-IN') %></div>
                                     <% } %>
                                 </div>
+                                <% } %>
                             </div>
                         </a>
                         <div class="card-actions">

@@ -303,14 +303,12 @@ function openShortlist(e) {
 // ── Test Drive Form ───────────────────────────────────────────────
 async function handleTestDrive(e) {
     e.preventDefault();
-    const name = document.getElementById('td-name')?.value.trim();
-    const phone = document.getElementById('td-phone')?.value.trim();
-    const city = document.getElementById('td-city')?.value.trim();
+    const name = document.getElementById('td-name')?.value.trim() || '';
+    const phone = document.getElementById('td-phone')?.value.trim() || '';
+    const city = document.getElementById('td-city')?.value.trim() || '';
     const carId = document.body.dataset.vehicleId;
     const submitBtn = document.getElementById('schedule-btn');
     const submitBtnLabel = submitBtn?.querySelector('.test-drive-button-label');
-
-    if (!name || !phone || !city) return;
 
     if (submitBtn) {
         submitBtn.disabled = true;
@@ -326,7 +324,7 @@ async function handleTestDrive(e) {
                 customerName: name,
                 phone: phone,
                 inquiryType: document.getElementById('td-inquiry-type')?.value || 'Schedule Visit',
-                message: [document.getElementById('td-message')?.value, `City / Pincode: ${city}`].filter(Boolean).join(' · '),
+                message: [document.getElementById('td-message')?.value, city ? `City / Pincode: ${city}` : ''].filter(Boolean).join(' · '),
                 carId: carId || undefined
             })
         });
@@ -335,6 +333,7 @@ async function handleTestDrive(e) {
         showToast('Your request has been sent. The dealership will contact you shortly.');
         e.target.reset();
     } catch (err) {
+        if (typeof window.reportClientError === 'function') window.reportClientError('lead.submit_failed', err);
         showToast(err.message || 'Could not submit your request. Please try again.');
     } finally {
         if (submitBtn) {
@@ -497,10 +496,10 @@ document.addEventListener('DOMContentLoaded', () => {
 async function handleReservation() {
     const carId = document.body.dataset.vehicleId;
     const button = document.querySelector('[data-reserve-button]');
-    const name = prompt('Enter your name to request a reservation for this vehicle:');
-    if (!name) return;
-    const phone = prompt('Enter your mobile number:');
-    if (!phone) return;
+    const name = prompt('Enter your name (optional) to request a reservation for this vehicle:');
+    if (name === null) return;
+    const phone = prompt('Enter your mobile number (optional):');
+    if (phone === null) return;
 
     try {
         if (button) button.disabled = true;
@@ -519,6 +518,7 @@ async function handleReservation() {
         if (!response.ok) throw new Error(data.error || 'Could not submit your reservation request.');
         showToast('Reservation request sent. The dealership will contact you to confirm availability and deposit terms.');
     } catch (err) {
+        if (typeof window.reportClientError === 'function') window.reportClientError('reservation.submit_failed', err);
         showToast(err.message || 'Could not submit your reservation request. Please try again.');
     } finally {
         if (button) button.disabled = false;

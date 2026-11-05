@@ -8,6 +8,7 @@
 
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const { logError } = require('../utils/logger');
 
 const ADMIN_USER = process.env.ADMIN_USERNAME || '';
 const ADMIN_PASS = process.env.ADMIN_PASSWORD || '';
@@ -151,7 +152,7 @@ function destroyStaleSession(req, res, response) {
 
     if (!req.session) return complete();
     req.session.destroy(err => {
-        if (err) console.error('Failed to destroy stale admin session:', err.message);
+        if (err) logError('admin.session.stale_session_cleanup_failed', err, req);
         complete();
     });
 }
@@ -172,7 +173,7 @@ async function requireAdmin(req, res, next) {
             return next();
         }
     } catch (err) {
-        console.error('Admin session verification failed:', err.message);
+        logError('admin.session.verification_failed', err, req);
         return res.status(503).send('Admin authentication is temporarily unavailable.');
     }
 

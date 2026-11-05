@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const leadSchema = new mongoose.Schema({
     carId: { type: mongoose.Schema.Types.ObjectId, ref: 'Car' },
-    customerName: { type: String, required: true, trim: true },
-    phone: { type: String, required: true, trim: true },
+    customerName: { type: String, trim: true, default: '' },
+    phone: { type: String, trim: true, default: '' },
     email: { type: String, trim: true },
     inquiryType: {
         type: String,

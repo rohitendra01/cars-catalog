@@ -2,213 +2,139 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 const mongoose = require('mongoose');
 const Car = require('../models/Car');
 
+// Demo listings use stable reference IDs so this script can be run repeatedly.
+// It only inserts missing demo records and never deletes or overwrites listings.
+// Images are intentionally omitted so they can be added through the admin form.
 const seedCars = [
     {
-        make: 'Mahindra',
-        model: 'Scorpio-N',
-        variant: 'Z8 L 4WD',
-        year: 2023,
-        price: 2150000,
-        mileage: 18500,
-        fuelType: 'Diesel',
-        transmission: 'Automatic',
-        seats: 7,
-        bodyType: 'SUV',
-        extColor: 'Napoli Black',
-        intColor: 'Coffee Black & Rich Tan',
-        ownership: '1st Owner',
-        rtoLocation: 'MH-02 (Mumbai)',
+        referenceId: 'DEMO-IND-001',
+        make: 'Hyundai', model: 'Creta', variant: 'SX (O) IVT', year: 2022,
+        price: 1540000, market_value: 1640000, mileage: 32500,
+        fuelType: 'Petrol', transmission: 'Automatic', seats: 5, bodyType: 'SUV',
+        extColor: 'Phantom Black', intColor: 'Black', ownership: '1st Owner',
+        rtoLocation: 'MP-20 (Jabalpur)', isFeatured: true,
+        description: 'Well-kept Creta with panoramic sunroof, touchscreen infotainment and rear camera.',
+        equipment: ['Panoramic sunroof', 'Rear parking camera', 'Alloy wheels'],
+        features: { sunroof: true, alloyWheels: true, touchscreen: true, reverseCamera: true }
+    },
+    {
+        referenceId: 'DEMO-IND-002',
+        make: 'Kia', model: 'Seltos', variant: 'GTX Plus 1.5 Diesel AT', year: 2021,
+        price: 1480000, mileage: 42800, fuelType: 'Diesel', transmission: 'Automatic',
+        seats: 5, bodyType: 'SUV', extColor: 'Gravity Grey', intColor: 'Black',
+        ownership: '1st Owner', rtoLocation: 'MH-12 (Pune)',
+        description: 'Seltos with automatic transmission, ventilated front seats and a panoramic sunroof.',
+        equipment: ['Ventilated front seats', 'Sunroof', 'Alloy wheels'],
+        features: { sunroof: true, alloyWheels: true, touchscreen: true, reverseCamera: true }
+    },
+    {
+        referenceId: 'DEMO-IND-003',
+        make: 'Maruti Suzuki', model: 'Baleno', variant: 'Alpha', year: 2023,
+        price: 875000, market_value: 910000, mileage: 18200, fuelType: 'Petrol',
+        transmission: 'Manual', seats: 5, bodyType: 'Hatchback', extColor: 'Nexa Blue',
+        intColor: 'Black and Blue', ownership: '1st Owner', rtoLocation: 'DL-8C (Delhi)',
         isFeatured: true,
-        features: {
-            sunroof: true,
-            alloyWheels: true,
-            touchscreen: true,
-            reverseCamera: true
-        },
-        description: 'Top-of-the-line Scorpio-N with 4WD, electric sunroof, Sony 12-speaker audio and 360-degree camera. Full company service history available.',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1200&q=80',
-                public_id: 'autovault-cars/seed-scorpio-n'
-            }
-        ]
+        description: 'Top-trim Baleno with touchscreen infotainment, rear camera and connected features.',
+        equipment: ['Touchscreen infotainment', 'Rear parking camera'],
+        features: { alloyWheels: true, touchscreen: true, reverseCamera: true }
     },
     {
-        make: 'Tata',
-        model: 'Harrier',
-        variant: 'Fearless Plus Dark Edition',
-        year: 2023,
-        price: 1980000,
-        mileage: 14000,
-        fuelType: 'Diesel',
-        transmission: 'Automatic',
-        seats: 5,
-        bodyType: 'SUV',
-        extColor: 'Oberon Black',
-        intColor: 'Carnelian Red',
-        ownership: '1st Owner',
-        rtoLocation: 'DL-3C (Delhi)',
-        isFeatured: true,
-        features: {
-            sunroof: true,
-            alloyWheels: true,
-            touchscreen: true,
-            reverseCamera: true
-        },
-        description: 'Premium Dark Edition Harrier with panoramic sunroof, ventilated leatherette seats, and ADAS Level 2 safety suite. Accident-free.',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=1200&q=80',
-                public_id: 'autovault-cars/seed-harrier'
-            }
-        ]
+        referenceId: 'DEMO-IND-004',
+        make: 'Honda', model: 'City', variant: 'VX CVT', year: 2020,
+        price: 1165000, mileage: 48100, fuelType: 'Petrol', transmission: 'Automatic',
+        seats: 5, bodyType: 'Sedan', extColor: 'Radiant Red', intColor: 'Beige',
+        ownership: '2nd Owner', rtoLocation: 'KA-03 (Bengaluru)',
+        description: 'Comfortable City sedan with automatic transmission, sunroof and Honda Sensing features.',
+        equipment: ['Sunroof', 'Cruise control', 'Rear camera'],
+        features: { sunroof: true, touchscreen: true, reverseCamera: true }
     },
     {
-        make: 'Tata',
-        model: 'Nexon EV',
-        variant: 'Empowered Plus',
-        year: 2023,
-        price: 1475000,
-        mileage: 12500,
-        fuelType: 'Electric',
-        transmission: 'Automatic',
-        seats: 5,
-        bodyType: 'EV',
-        extColor: 'Empowered Oxide',
-        intColor: 'Dual-Tone Grey',
-        ownership: '1st Owner',
-        rtoLocation: 'KA-01 (Bengaluru)',
-        isFeatured: true,
-        features: {
-            sunroof: true,
-            alloyWheels: true,
-            touchscreen: true,
-            reverseCamera: true
-        },
-        description: '40.5 kWh battery with 465km claimed range. V2V and V2L fast charging capable. Balance 6.5 years battery warranty intact.',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&q=80',
-                public_id: 'autovault-cars/seed-nexon-ev'
-            }
-        ]
+        referenceId: 'DEMO-IND-005',
+        make: 'Toyota', model: 'Innova Crysta', variant: 'ZX 2.4 Diesel', year: 2019,
+        price: 1790000, mileage: 69200, fuelType: 'Diesel', transmission: 'Manual',
+        seats: 7, bodyType: 'MUV', extColor: 'Silver', intColor: 'Black',
+        ownership: '1st Owner', rtoLocation: 'UP-16 (Noida)',
+        description: 'Seven-seat Innova Crysta with a spacious cabin and a full service record.',
+        equipment: ['Alloy wheels', 'Rear parking camera'],
+        features: { alloyWheels: true, touchscreen: true, reverseCamera: true }
     },
     {
-        make: 'Mahindra',
-        model: 'Thar',
-        variant: 'LX 4x4 Hard Top',
-        year: 2022,
-        price: 1420000,
-        mileage: 26000,
-        fuelType: 'Diesel',
-        transmission: 'Manual',
-        seats: 4,
-        bodyType: 'SUV',
-        extColor: 'Red Rage',
-        intColor: 'All-Black',
-        ownership: '1st Owner',
-        rtoLocation: 'HR-26 (Gurugram)',
-        isFeatured: true,
-        features: {
-            sunroof: false,
-            alloyWheels: true,
-            touchscreen: true,
-            reverseCamera: false
-        },
-        description: 'Iconic Thar in Red Rage. 4x4 with low-range transfer case and mechanical locking differential. Equipped with all-terrain tyres.',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1520031441872-265e4ff70366?w=1200&q=80',
-                public_id: 'autovault-cars/seed-thar'
-            }
-        ]
+        referenceId: 'DEMO-IND-006',
+        make: 'Tata', model: 'Punch', variant: 'Creative AMT', year: 2022,
+        price: 810000, mileage: 26700, fuelType: 'Petrol', transmission: 'Automatic',
+        seats: 5, bodyType: 'SUV', extColor: 'Atomic Orange', intColor: 'Black',
+        ownership: '1st Owner', rtoLocation: 'RJ-14 (Jaipur)', isFeatured: true,
+        description: 'Compact Punch with automatic transmission, touchscreen and rear camera.',
+        equipment: ['Touchscreen infotainment', 'Rear parking camera'],
+        features: { alloyWheels: true, touchscreen: true, reverseCamera: true }
     },
     {
-        make: 'Maruti Suzuki',
-        model: 'Grand Vitara',
-        variant: 'Alpha+ Strong Hybrid',
-        year: 2023,
-        price: 1680000,
-        mileage: 16000,
-        fuelType: 'Hybrid',
-        transmission: 'Automatic',
-        seats: 5,
-        bodyType: 'SUV',
-        extColor: 'Nexa Blue',
-        intColor: 'Bordeaux & Black',
-        ownership: '1st Owner',
-        rtoLocation: 'TS-09 (Hyderabad)',
-        isFeatured: false,
-        features: {
-            sunroof: true,
-            alloyWheels: true,
-            touchscreen: true,
-            reverseCamera: true
-        },
-        description: 'Intelligent electric hybrid technology delivering 27.97 km/l fuel efficiency. Panoramic sunroof, HUD, 360-view camera, and wireless Apple CarPlay.',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1617814076367-b75f4fd15328?w=1200&q=80',
-                public_id: 'autovault-cars/seed-grand-vitara'
-            }
-        ]
+        referenceId: 'DEMO-IND-007',
+        make: 'Mahindra', model: 'XUV700', variant: 'AX7 Diesel AT', year: 2023,
+        price: 2120000, market_value: 2240000, mileage: 22100, fuelType: 'Diesel',
+        transmission: 'Automatic', seats: 7, bodyType: 'SUV', extColor: 'Everest White',
+        intColor: 'Coffee Black', ownership: '1st Owner', rtoLocation: 'HR-26 (Gurugram)',
+        description: 'Seven-seat XUV700 with panoramic sunroof, ADAS and dual-screen infotainment.',
+        equipment: ['Panoramic sunroof', 'ADAS', 'Alloy wheels'],
+        features: { sunroof: true, alloyWheels: true, touchscreen: true, reverseCamera: true }
     },
     {
-        make: 'Maruti Suzuki',
-        model: 'Swift',
-        variant: 'ZXi Plus',
-        year: 2022,
-        price: 740000,
-        mileage: 29000,
-        fuelType: 'Petrol',
-        transmission: 'Manual',
-        seats: 5,
-        bodyType: 'Hatchback',
-        extColor: 'Solid Fire Red',
-        intColor: 'Sporty Black',
-        ownership: '1st Owner',
-        rtoLocation: 'MH-12 (Pune)',
-        isFeatured: false,
-        features: {
-            sunroof: false,
-            alloyWheels: true,
-            touchscreen: true,
-            reverseCamera: true
-        },
-        description: 'Top-spec Swift with SmartPlay Pro touchscreen, LED projector headlamps, cruise control, and precision-cut alloy wheels.',
-        images: [
-            {
-                url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1200&q=80',
-                public_id: 'autovault-cars/seed-swift'
-            }
-        ]
+        referenceId: 'DEMO-IND-008',
+        make: 'Skoda', model: 'Slavia', variant: 'Style 1.0 TSI', year: 2022,
+        price: 1325000, mileage: 30900, fuelType: 'Petrol', transmission: 'Manual',
+        seats: 5, bodyType: 'Sedan', extColor: 'Crystal Blue', intColor: 'Black',
+        ownership: '1st Owner', rtoLocation: 'TS-09 (Hyderabad)',
+        description: 'Slavia sedan with turbo-petrol engine, sunroof and touchscreen infotainment.',
+        equipment: ['Sunroof', 'Touchscreen infotainment', 'Alloy wheels'],
+        features: { sunroof: true, alloyWheels: true, touchscreen: true, reverseCamera: true }
+    },
+    {
+        referenceId: 'DEMO-IND-009',
+        make: 'Renault', model: 'Kwid', variant: 'RXT', year: 2021,
+        mileage: 38400, fuelType: 'Petrol', transmission: 'Manual', seats: 5,
+        bodyType: 'Hatchback', extColor: 'Zanskar Blue', ownership: '2nd Owner',
+        rtoLocation: 'GJ-01 (Ahmedabad)',
+        description: 'Compact city hatchback with touchscreen infotainment and a practical cabin.',
+        equipment: ['Touchscreen infotainment'],
+        features: { touchscreen: true }
+    },
+    {
+        referenceId: 'DEMO-IND-010',
+        make: 'MG', model: 'ZS EV', variant: 'Exclusive', year: 2022,
+        price: 1890000, market_value: 1980000, mileage: 21500, fuelType: 'Electric',
+        transmission: 'Automatic', seats: 5, bodyType: 'SUV', extColor: 'Starry Black',
+        intColor: 'Black', ownership: '1st Owner', rtoLocation: 'MH-02 (Mumbai)',
+        description: 'Electric SUV with panoramic sunroof, connected features and fast charging support.',
+        equipment: ['Panoramic sunroof', 'Alloy wheels', 'Rear parking camera'],
+        features: { sunroof: true, alloyWheels: true, touchscreen: true, reverseCamera: true }
     }
 ];
 
 async function seed() {
+    const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/autovault';
+    let inserted = 0;
+    let skipped = 0;
+
     try {
-        const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/autovault';
-
-        console.log('🔌 Connecting to MongoDB...');
+        console.log('Connecting to MongoDB...');
         await mongoose.connect(mongoUri);
-        console.log('✅ Connected');
 
-        // Clear existing documents
-        const deleted = await Car.deleteMany({});
-        console.log(`🗑  Cleared ${deleted.deletedCount} existing car(s)`);
+        for (const data of seedCars) {
+            const existing = await Car.findOne({ referenceId: data.referenceId }).select('_id').lean();
+            if (existing) {
+                skipped += 1;
+                continue;
+            }
 
-        // Insert fresh seed data using create() to trigger pre('save') slug hooks
-        const created = await Car.create(seedCars);
-        console.log(`🌱 Seeded ${created.length} car(s) successfully with SEO slugs:\n`);
-        created.forEach(c => {
-            console.log(`   • ${c.year} ${c.make} ${c.model} ${c.variant || ''}`);
-            console.log(`     Slug: /inventory/${c.slug}`);
-            console.log(`     Price: ₹${c.price.toLocaleString('en-IN')} | ID: ${c._id}\n`);
-        });
+            const car = await Car.create(data);
+            inserted += 1;
+            console.log(`Added ${car.year} ${car.make} ${car.model} (${car.referenceId})`);
+        }
 
-        console.log('🚀 Seed complete! Start the server with: npm run dev\n');
+        console.log(`Seed complete: ${inserted} added, ${skipped} already existed. No image records were added.`);
     } catch (err) {
-        console.error('❌ Seed failed:', err.message);
+        console.error('Seed failed:', err.message);
+        process.exitCode = 1;
     } finally {
         await mongoose.disconnect();
     }

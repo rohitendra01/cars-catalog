@@ -15,21 +15,19 @@ const carSchema = new mongoose.Schema({
     slug: { type: String, unique: true, sparse: true, trim: true, lowercase: true, index: true },
 
     // Keep price as the exact INR amount. priceInLakhs is a presentation virtual.
-    price: { type: Number, required: true, index: true, min: 1 },
-    mileage: { type: Number, required: true, index: true, min: 0 },
+    price: { type: Number, index: true, min: 1 },
+    mileage: { type: Number, index: true, min: 0 },
     fuelType: {
         type: String,
-        required: true,
         enum: ['Petrol', 'Diesel', 'CNG', 'Electric', 'Hybrid'],
         index: true
     },
     transmission: {
         type: String,
-        required: true,
         enum: ['Manual', 'Automatic'],
         index: true
     },
-    seats: { type: Number, required: true, default: 5, min: 2, max: 12 },
+    seats: { type: Number, default: 5, min: 2, max: 12 },
     ownership: {
         type: String,
         enum: ['1st Owner', '2nd Owner', '3rd Owner', '4th+ Owner'],
@@ -114,11 +112,13 @@ carSchema.virtual('priceInLakhs').get(function () {
 });
 
 carSchema.virtual('formattedPrice').get(function () {
+    const price = Number(this.price);
+    if (!Number.isFinite(price) || price <= 0) return '';
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
         currency: 'INR',
         maximumFractionDigits: 0
-    }).format(this.price);
+    }).format(price);
 });
 
 function slugify(text) {

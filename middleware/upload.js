@@ -43,7 +43,9 @@ const fileFilter = (req, file, cb) => {
     if (allowed.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Only image files (JPG, PNG, WebP, or AVIF) are allowed.'), false);
+        const error = new Error('Unsupported car image type.');
+        error.code = 'INVALID_IMAGE_TYPE';
+        cb(error, false);
     }
 };
 

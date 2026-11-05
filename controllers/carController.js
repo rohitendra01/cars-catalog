@@ -4,13 +4,20 @@ const Lead = require('../models/Lead');
 const cloudinary = require('cloudinary').v2;
 const { calculateCroPricing } = require('../utils/croPricing');
 const { GOOGLE_PLACE_ID } = require('../utils/googlePlace');
+const { logError, logWarning } = require('../utils/logger');
 
 function formatPrice(price) {
+    const amount = Number(price);
+    if (!Number.isFinite(amount) || amount <= 0) return '';
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
         currency: 'INR',
         maximumFractionDigits: 0
-    }).format(price);
+    }).format(amount);
+}
+
+function hasListedPrice(car) {
+    return Number.isFinite(Number(car && car.price)) && Number(car.price) > 0;
 }
 
 function parseEquipment(value) {
@@ -48,7 +55,7 @@ function getPublicBaseUrl(req) {
 exports.getHomePage = async (req, res) => {
     try {
         const featuredCars = await Car.find({ isFeatured: true, status: 'Available', reservation_status: { $ne: 'Reserved' } }).limit(3).lean();
-        featuredCars.forEach(car => { car.croPricing = calculateCroPricing(car); });
+        featuredCars.forEach(car => { car.croPricing = hasListedPrice(car) ? calculateCroPricing(car) : null; });
         res.render('index', {
             featuredCars,
             formatPrice,
@@ -57,7 +64,7 @@ exports.getHomePage = async (req, res) => {
             canonicalUrl: `${getPublicBaseUrl(req)}/`
         });
     } catch (err) {
-        console.error('getHomePage error:', err);
+        logError('page.home.failed', err, req);
         res.status(500).send('Server Error');
     }
 };
@@ -70,9 +77,12 @@ exports.getCarPricing = async (req, res) => {
         const car = await Car.findById(req.params.id).select('price market_value status reservation_status').lean();
         if (!car) return res.status(404).json({ error: 'Vehicle not found.' });
         res.set('Cache-Control', 'no-store');
+        if (!Number.isFinite(Number(car.price)) || Number(car.price) <= 0) {
+            return res.status(404).json({ error: 'Pricing is not available for this vehicle.' });
+        }
         res.json(calculateCroPricing(car));
     } catch (err) {
-        console.error('getCarPricing error:', err);
+        logError('api.car_pricing.failed', err, req);
         res.status(500).json({ error: 'Failed to calculate vehicle pricing.' });
     }
 };
@@ -161,7 +171,7 @@ exports.getInventory = async (req, res) => {
             cars = await Car.find(filter).sort(sortOption).skip(skip).limit(limit).lean();
         }
 
-        cars.forEach(car => { car.croPricing = calculateCroPricing(car); });
+        cars.forEach(car => { car.croPricing = hasListedPrice(car) ? calculateCroPricing(car) : null; });
         res.render('inventory', {
             cars, total, currentPage, totalPages,
             query: req.query, isShortlist, shortlistIds, formatPrice,
@@ -169,7 +179,7 @@ exports.getInventory = async (req, res) => {
             canonicalUrl: `${getPublicBaseUrl(req)}/inventory`
         });
     } catch (err) {
-        console.error('getInventory error:', err);
+        logError('page.inventory.failed', err, req);
         res.status(500).send('Server Error');
     }
 };
@@ -234,9 +244,14 @@ exports.getCarDetail = async (req, res) => {
         }
 
         car.primaryImage = (car.images && car.images.length > 0) ? car.images[0].url : `${getPublicBaseUrl(req)}/pictures/hero1.jpeg`;
-        car.croPricing = calculateCroPricing(car);
-        car.formattedPrice = formatPrice(car.croPricing.current_price);
-        similarCars.forEach(similarCar => { similarCar.croPricing = calculateCroPricing(similarCar); });
+        const hasPrice = Number.isFinite(Number(car.price)) && Number(car.price) > 0;
+        car.croPricing = hasPrice ? calculateCroPricing(car) : null;
+        car.formattedPrice = hasPrice ? formatPrice(car.croPricing.current_price) : '';
+        similarCars.forEach(similarCar => {
+            similarCar.croPricing = Number.isFinite(Number(similarCar.price)) && Number(similarCar.price) > 0
+                ? calculateCroPricing(similarCar)
+                : null;
+        });
         res.render('car-detail', {
             car,
             similarCars,
@@ -251,7 +266,7 @@ exports.getCarDetail = async (req, res) => {
             message: 'Car not found.',
             isAdmin: Boolean(req.session && req.session.isAdmin)
         });
-        console.error('getCarDetail error:', err);
+        logError('page.car_detail.failed', err, req);
         res.status(500).send('Server Error');
     }
 };
@@ -276,7 +291,7 @@ exports.getAdminLogin = async (req, res) => {
             return res.redirect('/admin');
         }
     } catch (err) {
-        console.error('Admin session verification failed:', err.message);
+        logError('admin.login.session_check_failed', err, req);
         return res.status(503).send('Admin authentication is temporarily unavailable.');
     }
 
@@ -293,6 +308,7 @@ exports.postAdminLogin = async (req, res) => {
 
     const rateLimit = getLoginRateLimit(req);
     if (rateLimit.limited) {
+        logWarning('admin.login.rate_limited', 'Admin sign-in attempts exceeded the configured limit.', req);
         res.set('Retry-After', String(rateLimit.retryAfterSeconds));
         return res.status(429).render('admin/login', {
             error: 'Too many unsuccessful sign-in attempts. Please try again later.'
@@ -300,6 +316,7 @@ exports.postAdminLogin = async (req, res) => {
     }
 
     if (!validateCredentials(username, password)) {
+        logWarning('admin.login.invalid_credentials', 'Admin sign-in credentials were rejected.', req);
         recordFailedLogin(req);
         return res.render('admin/login', { error: 'Invalid credentials.' });
     }
@@ -325,12 +342,12 @@ exports.postAdminLogin = async (req, res) => {
         await activateAdminSession(adminSessionToken);
         return res.redirect('/admin');
     } catch (err) {
-        console.error('Admin login session setup failed:', err.message);
+        logError('admin.login.session_setup_failed', err, req);
         if (!req.session) {
             return res.status(503).render('admin/login', { error: 'Login failed. Please try again.' });
         }
         req.session.destroy(destroyErr => {
-            if (destroyErr) console.error('Failed to clean up login session:', destroyErr.message);
+            if (destroyErr) logError('admin.login.session_cleanup_failed', destroyErr, req);
             res.clearCookie('av.sid', {
                 path: '/',
                 httpOnly: true,
@@ -348,7 +365,7 @@ exports.postAdminLogout = async (req, res) => {
         // A stale device must not revoke a newer device's active session.
         await revokeAdminSession(req.session && req.session.adminSessionToken);
     } catch (err) {
-        console.error('Admin session revocation failed:', err.message);
+        logError('admin.logout.session_revocation_failed', err, req);
     }
 
     if (!req.session) {
@@ -357,7 +374,7 @@ exports.postAdminLogout = async (req, res) => {
     }
 
     req.session.destroy(err => {
-        if (err) console.error('Session destroy error:', err.message);
+        if (err) logError('admin.logout.session_destroy_failed', err, req);
         res.clearCookie('av.sid', {
             path: '/',
             httpOnly: true,
@@ -412,6 +429,7 @@ exports.getAdminCars = async (req, res) => {
 
         res.json({ cars, pagination: { page, limit, total, totalPages: Math.ceil(total / limit), hasNext: page < Math.ceil(total / limit), hasPrev: page > 1 } });
     } catch (err) {
+        logError('admin.cars.list_failed', err, req);
         res.status(500).json({ error: 'Failed to fetch cars.' });
     }
 };
@@ -428,31 +446,78 @@ exports.getAdminCarById = async (req, res) => {
         if (!car) return res.status(404).json({ error: 'Car not found.' });
         res.json({ car });
     } catch (err) {
+        logError('admin.car.load_failed', err, req);
         res.status(500).json({ error: 'Failed to fetch car.' });
     }
 };
 
+const carFieldLabels = {
+    make: 'car name', model: 'model', variant: 'variant', year: 'year of manufacture', price: 'price',
+    mileage: 'mileage', fuelType: 'fuel type', transmission: 'transmission', seats: 'seating capacity',
+    bodyType: 'body type', ownership: 'ownership', status: 'listing status', reservation_status: 'reservation status',
+    manufacturedDate: 'manufactured date', referenceId: 'reference ID', market_value: 'market value'
+};
+
+function validationMessage(error) {
+    const field = error.path || 'car details';
+    const label = carFieldLabels[field] || 'car details';
+    if (error.kind === 'required') return 'Please enter or choose the ' + label + '.';
+    if (error.kind === 'enum') return 'Please choose a valid ' + label + '.';
+    if (error.kind === 'min') return 'The ' + label + ' is below the allowed value.';
+    if (error.kind === 'max') return 'The ' + label + ' is above the allowed value.';
+    if (error.name === 'CastError') return 'Please enter a valid ' + label + '.';
+    return 'Please check the ' + label + '.';
+}
+
+function sendCarSaveError(res, err, action, req) {
+    logError('admin.car.save_failed', err, req, { action });
+    if (err.code === 11000 && (err.keyPattern && err.keyPattern.referenceId || err.keyValue && err.keyValue.referenceId)) {
+        return res.status(409).json({ error: 'That reference ID is already in use. Please enter a different one.' });
+    }
+    if (err.name === 'ValidationError' || err.name === 'CastError') {
+        const errors = err.name === 'ValidationError' ? Object.values(err.errors) : [err];
+        const fields = errors.map(error => ({ field: error.path || '', message: validationMessage(error) }));
+        return res.status(400).json({ error: 'Please check the car details and try again.', fields });
+    }
+    return res.status(500).json({ error: 'We could not ' + action + ' right now. Please try again later.' });
+}
+
+async function removeUploadedImages(files, req) {
+    await Promise.all((files || []).map(file => file.filename
+        ? cloudinary.uploader.destroy(file.filename).catch(err => logWarning('admin.car.upload_cleanup_failed', err.message, req, { assetId: file.filename }))
+        : Promise.resolve()));
+}
+
 exports.postAdminCar = async (req, res) => {
+    let saved = false;
     try {
-        const {
-            make, model, variant, year, price, mileage, fuelType, transmission, seats,
+        const { make, model, variant, year, price, mileage, fuelType, transmission, seats,
             bodyType, extColor, intColor, ownership, rtoLocation, description, status,
             manufacturedDate, referenceId, engine, registrationState, insuranceType, equipment,
-            isFeatured, featSunroof, featAlloyWheels, featTouchscreen, featReverseCamera
-        } = req.body;
+            isFeatured, featSunroof, featAlloyWheels, featTouchscreen, featReverseCamera } = req.body;
 
-        if (!make || !model || !year || !price || !fuelType || !transmission) {
-            return res.status(400).json({ error: 'Required fields missing.' });
+        const required = [
+            ['make', make], ['model', model], ['year', year]
+        ];
+        const missing = required.filter(([, value]) => value == null || String(value).trim() === '');
+        if (missing.length) {
+            await removeUploadedImages(req.files, req);
+            return res.status(400).json({
+                error: 'Please complete the required car details.',
+                fields: missing.map(([field]) => ({ field, message: 'Please enter or choose the ' + carFieldLabels[field] + '.' }))
+            });
         }
 
         const images = (req.files || []).map(file => ({ url: file.path, public_id: file.filename }));
-
         const newCar = new Car({
             make: make.trim(), model: model.trim(), variant: variant ? variant.trim() : '',
-            year: Number(year), price: Number(price), mileage: Number(mileage),
+            year: Number(year),
+            price: price == null || String(price).trim() === '' ? undefined : Number(price),
+            mileage: mileage == null || String(mileage).trim() === '' ? undefined : Number(mileage),
             manufacturedDate: manufacturedDate ? new Date(manufacturedDate) : undefined,
             referenceId: referenceId ? referenceId.trim() : undefined,
-            fuelType, transmission, seats: Number(seats) || 5, bodyType: bodyType || 'Sedan',
+            fuelType: fuelType || undefined, transmission: transmission || undefined,
+            seats: Number(seats) || 5, bodyType: bodyType || 'Sedan',
             engine: engine || '', registrationState: registrationState || '', insuranceType: insuranceType || '',
             extColor: extColor || '', intColor: intColor || '', ownership: ownership || '1st Owner',
             rtoLocation: rtoLocation || '', description: description || '', equipment: parseEquipment(equipment),
@@ -461,52 +526,74 @@ exports.postAdminCar = async (req, res) => {
             discount_tag: req.body.discount_tag || '',
             reservation_status: req.body.reservation_status || '',
             features: {
-                sunroof: featSunroof === 'true',
-                alloyWheels: featAlloyWheels === 'true',
-                touchscreen: featTouchscreen === 'true',
-                reverseCamera: featReverseCamera === 'true'
+                sunroof: featSunroof === 'true', alloyWheels: featAlloyWheels === 'true',
+                touchscreen: featTouchscreen === 'true', reverseCamera: featReverseCamera === 'true'
             },
             images
         });
         await newCar.save();
+        saved = true;
         res.status(201).json({ success: true, car: newCar.toJSON() });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        if (!saved) await removeUploadedImages(req.files, req);
+        return sendCarSaveError(res, err, 'save this car', req);
     }
 };
 
 exports.putAdminCar = async (req, res) => {
+    let saved = false;
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            await removeUploadedImages(req.files, req);
+            return res.status(404).json({ error: 'This car listing could not be found.' });
+        }
         const car = await Car.findById(req.params.id);
-        if (!car) return res.status(404).json({ error: 'Car not found.' });
-
-        let imagesToDelete = req.body.imagesToDelete ? JSON.parse(req.body.imagesToDelete) : [];
-        if (imagesToDelete.length > 0) {
-            await Promise.all(imagesToDelete.map(pid => cloudinary.uploader.destroy(pid).catch(() => null)));
-            car.images = car.images.filter(img => !imagesToDelete.includes(img.public_id));
+        if (!car) {
+            await removeUploadedImages(req.files, req);
+            return res.status(404).json({ error: 'This car listing could not be found.' });
         }
 
+        let imagesToDelete = [];
+        if (req.body.imagesToDelete) {
+            try {
+                imagesToDelete = JSON.parse(req.body.imagesToDelete);
+            } catch (err) {
+                logWarning('admin.car.invalid_image_selection', err.message, req);
+                await removeUploadedImages(req.files, req);
+                return res.status(400).json({ error: 'Please refresh the listing and try selecting its images again.' });
+            }
+            if (!Array.isArray(imagesToDelete) || imagesToDelete.some(id => typeof id !== 'string')) {
+                await removeUploadedImages(req.files, req);
+                return res.status(400).json({ error: 'Please refresh the listing and try selecting its images again.' });
+            }
+        }
+
+        const currentImages = car.images || [];
+        const selectedIds = new Set(imagesToDelete);
+        const removedImages = currentImages.filter(image => selectedIds.has(image.public_id));
+        const retainedImages = currentImages.filter(image => !selectedIds.has(image.public_id));
         const newImages = (req.files || []).map(file => ({ url: file.path, public_id: file.filename }));
-        car.images.push(...newImages);
+        if (newImages.length && retainedImages.length + newImages.length > 10) {
+            await removeUploadedImages(req.files, req);
+            return res.status(400).json({ error: 'A car can have up to 10 images. Remove an image before adding another.' });
+        }
+        car.images = retainedImages.concat(newImages);
 
         const scalarFields = ['make', 'model', 'variant', 'year', 'price', 'mileage', 'manufacturedDate', 'referenceId', 'engine', 'fuelType', 'transmission', 'seats', 'bodyType', 'extColor', 'intColor', 'ownership', 'registrationState', 'rtoLocation', 'insuranceType', 'description', 'status', 'discount_tag', 'reservation_status'];
         scalarFields.forEach(field => {
             if (req.body[field] !== undefined) {
                 if (['year', 'price', 'mileage', 'seats'].includes(field)) {
-                    car[field] = Number(req.body[field]);
-                } else if (field === 'manufacturedDate') {
-                    car[field] = req.body[field] ? new Date(req.body[field]) : null;
-                } else {
-                    car[field] = req.body[field];
-                }
+                    const value = String(req.body[field]).trim();
+                    car[field] = value === '' && field === 'seats' ? 5 : value === '' && ['price', 'mileage'].includes(field) ? undefined : Number(value);
+                } else if (['fuelType', 'transmission'].includes(field) && String(req.body[field]).trim() === '') {
+                    car[field] = undefined;
+                } else if (field === 'manufacturedDate') car[field] = req.body[field] ? new Date(req.body[field]) : null;
+                else car[field] = req.body[field];
             }
         });
 
         if (req.body.equipment !== undefined) car.equipment = parseEquipment(req.body.equipment);
-
         if (req.body.isFeatured !== undefined) car.isFeatured = req.body.isFeatured === 'true';
-
-        // CRO fields
         if (req.body.market_value !== undefined) car.market_value = Number(req.body.market_value) || 0;
         if (req.body.featSunroof !== undefined) car.features.sunroof = req.body.featSunroof === 'true';
         if (req.body.featAlloyWheels !== undefined) car.features.alloyWheels = req.body.featAlloyWheels === 'true';
@@ -514,9 +601,14 @@ exports.putAdminCar = async (req, res) => {
         if (req.body.featReverseCamera !== undefined) car.features.reverseCamera = req.body.featReverseCamera === 'true';
 
         await car.save();
+        saved = true;
+        await Promise.all(removedImages.map(image => image.public_id
+            ? cloudinary.uploader.destroy(image.public_id).catch(err => logWarning('admin.car.image_remove_failed', err.message, req, { assetId: image.public_id }))
+            : Promise.resolve()));
         res.json({ success: true, car: car.toJSON() });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        if (!saved) await removeUploadedImages(req.files, req);
+        return sendCarSaveError(res, err, 'update this car', req);
     }
 };
 
@@ -524,11 +616,14 @@ exports.deleteAdminCar = async (req, res) => {
     try {
         const car = await Car.findById(req.params.id);
         if (!car) return res.status(404).json({ error: 'Car not found.' });
-        if (car.images) await Promise.all(car.images.map(img => cloudinary.uploader.destroy(img.public_id).catch(() => null)));
+        if (car.images) await Promise.all(car.images.map(img => img.public_id
+            ? cloudinary.uploader.destroy(img.public_id).catch(err => logWarning('admin.car.image_delete_failed', err.message, req, { assetId: img.public_id }))
+            : Promise.resolve()));
         await Car.findByIdAndDelete(req.params.id);
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        logError('admin.car.delete_failed', err, req);
+        res.status(500).json({ error: 'We could not delete this car right now. Please try again later.' });
     }
 };
 
@@ -563,7 +658,7 @@ exports.getSitemap = async (req, res) => {
         res.header('Content-Type', 'application/xml');
         res.send(xml);
     } catch (err) {
-        console.error('getSitemap error:', err);
+        logError('seo.sitemap.failed', err, req);
         res.status(500).send('Error generating sitemap');
     }
 };
@@ -591,9 +686,6 @@ exports.postLead = async (req, res) => {
         const phoneNumber = String(phone || '').trim();
         const emailAddress = String(email || '').trim();
         const requestMessage = String(message || '').trim();
-        if (!name || !phoneNumber) {
-            return res.status(400).json({ error: 'Customer name and phone number are required.' });
-        }
         if (name.length > 120 || phoneNumber.length > 30 || emailAddress.length > 254 || requestMessage.length > 1500) {
             return res.status(400).json({ error: 'One or more fields exceed the allowed length.' });
         }
@@ -634,7 +726,11 @@ exports.postLead = async (req, res) => {
         await lead.save();
         res.status(201).json({ success: true, message: 'Your request has been sent to the dealership.' });
     } catch (err) {
-        console.error('postLead error:', err);
+        logError('api.lead.submit_failed', {
+            name: err.name || 'Error',
+            code: err.code,
+            message: 'Lead submission could not be saved.'
+        }, req);
         res.status(500).json({ error: 'Failed to record your request. Please try again later.' });
     }
 };

@@ -26,13 +26,15 @@ var _state = {
     searchTimer: null,
     loadRequestId: 0,
     deleteTargetId: null,
+    panelLoadRequestId: 0,
 };
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 function formatINR(n) {
+    if (n == null || n === '' || !Number.isFinite(Number(n)) || Number(n) <= 0) return 'Not set';
     return new Intl.NumberFormat('en-IN', {
         style: 'currency', currency: 'INR', maximumFractionDigits: 0
-    }).format(n);
+    }).format(Number(n));
 }
 
 function fuelEmoji(f) {
@@ -144,6 +146,7 @@ async function loadCars(page) {
     } catch (err) {
         if (requestId !== _state.loadRequestId) return;
         console.error('loadCars error:', err);
+        if (typeof window.reportClientError === 'function') window.reportClientError('admin.cars.list_failed', err);
         showToast('Failed to load cars: ' + err.message, 'error');
         showTableEmpty('Error loading data. Check console.');
     } finally {
@@ -351,6 +354,7 @@ async function fetchAllStatsOnce() {
     } catch (e) {
         _statsFetched = false;
         console.warn('Stats fetch failed:', e);
+        if (typeof window.reportClientError === 'function') window.reportClientError('admin.stats.load_failed', e);
     }
 }
 
@@ -359,6 +363,7 @@ function openPanel(carId) {
     _state.editCarId = carId || null;
     _state.newFiles = [];
     _state.imagesToDelete = [];
+    var panelRequestId = ++_state.panelLoadRequestId;
 
     // Reset form
     var form = el('carForm');
@@ -376,7 +381,7 @@ function openPanel(carId) {
         if (el('panelTitle')) el('panelTitle').textContent = 'Edit Car';
         if (el('panelSubtitle')) el('panelSubtitle').textContent = 'Update existing listing';
         if (el('submitBtnText')) el('submitBtnText').textContent = 'Update Listing';
-        fetchAndPopulateForm(carId);
+        fetchAndPopulateForm(carId, panelRequestId);
     } else {
         // Create mode
         if (el('panelTitle')) el('panelTitle').textContent = 'Add New Car';
@@ -390,6 +395,7 @@ function openPanel(carId) {
 }
 
 function closePanel() {
+    _state.panelLoadRequestId += 1;
     if (el('slidePanel')) el('slidePanel').classList.remove('open');
     if (el('overlay')) el('overlay').classList.remove('active');
     document.body.style.overflow = '';
@@ -398,15 +404,31 @@ function closePanel() {
     _state.imagesToDelete = [];
 }
 
-async function fetchAndPopulateForm(carId) {
+async function fetchAndPopulateForm(carId, requestId) {
     try {
-        var res = await fetch('/admin/cars/' + carId, { headers: { Accept: 'application/json' } });
-        if (!res.ok) throw new Error('Failed to fetch car data');
-        var data = await res.json();
-        var car = data.car;
-        populateForm(car);
+        var res = await fetch('/admin/cars/' + encodeURIComponent(carId), { headers: { Accept: 'application/json' } });
+        if (requestId !== _state.panelLoadRequestId) return;
+        if (res.status === 401) {
+            window.location.replace('/admin/login');
+            return;
+        }
+        if (!res.ok) {
+            throw new Error(res.status === 404
+                ? 'This car listing could not be found. Refresh the page and try again.'
+                : 'Could not load this car right now. Please try again later.');
+        }
+        var data = await res.json().catch(function () { return null; });
+        if (!data || !data.car) throw new Error('Could not load this car right now. Please try again later.');
+        if (requestId === _state.panelLoadRequestId) populateForm(data.car);
     } catch (err) {
-        showToast('Could not load car details: ' + err.message, 'error');
+        if (requestId !== _state.panelLoadRequestId) return;
+        console.error('Edit car load failed:', err);
+        if (typeof window.reportClientError === 'function') window.reportClientError('admin.car.load_failed', err);
+        var message = err && (err.message === 'This car listing could not be found. Refresh the page and try again.'
+            || err.message === 'Could not load this car right now. Please try again later.')
+            ? err.message
+            : 'Could not load this car right now. Please try again later.';
+        showToast(message, 'error');
     }
 }
 
@@ -420,10 +442,10 @@ function populateForm(car) {
     if (el('fManufacturedDate')) el('fManufacturedDate').value = car.manufacturedDate ? String(car.manufacturedDate).slice(0, 10) : '';
     if (el('fReferenceId')) el('fReferenceId').value = car.referenceId || '';
     if (el('fBodyType')) el('fBodyType').value = car.bodyType || 'Sedan';
-    if (el('fFuelType')) el('fFuelType').value = car.fuelType || 'Petrol';
-    if (el('fTransmission')) el('fTransmission').value = car.transmission || 'Manual';
+    if (el('fFuelType')) el('fFuelType').value = car.fuelType || '';
+    if (el('fTransmission')) el('fTransmission').value = car.transmission || '';
     if (el('fSeats')) el('fSeats').value = car.seats || 5;
-    if (el('fMileage')) el('fMileage').value = car.mileage || '';
+    if (el('fMileage')) el('fMileage').value = car.mileage == null ? '' : car.mileage;
     if (el('fEngine')) el('fEngine').value = car.engine || '';
     if (el('fPrice')) el('fPrice').value = car.price || '';
     if (el('fOwnership')) el('fOwnership').value = car.ownership || '1st Owner';
@@ -435,6 +457,7 @@ function populateForm(car) {
     if (el('fDescription')) el('fDescription').value = car.description || '';
     if (el('fEquipment')) el('fEquipment').value = Array.isArray(car.equipment) ? car.equipment.join(', ') : '';
     if (el('fFeatured')) el('fFeatured').checked = !!car.isFeatured;
+    if (el('fStatus')) el('fStatus').value = car.status || 'Available';
 
     // Features
     var feats = car.features || {};
@@ -478,16 +501,37 @@ function populateForm(car) {
 
 /* ─── Image Handling ─────────────────────────────────────────────────────── */
 function handleImagePick(input) {
-    var existing = el('existingImgsGrid').children.length - _state.imagesToDelete.length;
-    var maxNew = 10 - existing - _state.newFiles.length;
-    var picked = Array.from(input.files).slice(0, Math.max(0, maxNew));
+    var selected = Array.from(input.files || []);
+    var allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+    var invalidTypeCount = 0;
+    var oversizedCount = 0;
+    var candidates = selected.filter(function (file) {
+        if (!allowedTypes.includes(file.type)) {
+            invalidTypeCount += 1;
+            return false;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            oversizedCount += 1;
+            return false;
+        }
+        return true;
+    });
+
+    if (invalidTypeCount) showToast('Use JPG, PNG, WebP, or AVIF images.', 'error');
+    if (oversizedCount) showToast('Each image must be 5 MB or smaller.', 'error');
+
+    var grid = el('existingImgsGrid');
+    var existing = grid ? grid.children.length - _state.imagesToDelete.length : 0;
+    var maxNew = Math.max(0, 10 - existing - _state.newFiles.length);
+    var picked = candidates.slice(0, maxNew);
+    if (candidates.length > picked.length) showToast('A car can have up to 10 images. Remove an image before adding another.', 'error');
 
     picked.forEach(function (file) {
         _state.newFiles.push(file);
         var reader = new FileReader();
         reader.onload = function (e) {
             var idx = _state.newFiles.indexOf(file);
-            if (idx < 0) return;
+            if (idx < 0 || !el('newImgsGrid')) return;
             var div = document.createElement('div');
             div.className = 'img-thumb';
             div.innerHTML =
@@ -498,7 +542,6 @@ function handleImagePick(input) {
         reader.readAsDataURL(file);
     });
 
-    // Reset input so same file can be re-picked if removed
     input.value = '';
     updateImgCounter();
 }
@@ -547,24 +590,61 @@ function updatePricePreview() {
     pp.textContent = v && !isNaN(v) ? '≈ ' + formatINR(v) : '';
 }
 
+function createCarFormError(message) {
+    var error = new Error(message);
+    error.userFacing = true;
+    return error;
+}
+
+function focusCarField(fieldName) {
+    var ids = {
+        make: 'fBrand', model: 'fModel', year: 'fYear', price: 'fPrice', mileage: 'fMileage',
+        fuelType: 'fFuelType', transmission: 'fTransmission', seats: 'fSeats', bodyType: 'fBodyType',
+        ownership: 'fOwnership', status: 'fStatus', reservation_status: 'fReservationStatus',
+        manufacturedDate: 'fManufacturedDate', referenceId: 'fReferenceId', market_value: 'fMarketValue'
+    };
+    var field = el(ids[fieldName] || fieldName);
+    if (!field || typeof field.focus !== 'function') return;
+    field.focus({ preventScroll: true });
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function getRequiredCarFieldError() {
+    var requiredFields = Array.from(_carForm.querySelectorAll('[required]'));
+    for (var i = 0; i < requiredFields.length; i += 1) {
+        var field = requiredFields[i];
+        var empty = String(field.value || '').trim() === '';
+        if (empty || !field.validity.valid) {
+            focusCarField(field.name || field.id);
+            var label = document.querySelector('label[for="' + field.id + '"]');
+            var fieldName = label ? label.textContent.replace(/\*/g, '').trim().toLowerCase() : 'this required field';
+            return empty ? 'Please complete ' + fieldName + '.' : 'Please enter a valid ' + fieldName + '.';
+        }
+    }
+    return '';
+}
+
 /* ─── Form Submit ────────────────────────────────────────────────────────── */
 var _carForm = el('carForm');
 if (_carForm) {
     _carForm.addEventListener('submit', async function (e) {
         e.preventDefault();
+        var requiredError = getRequiredCarFieldError();
+        if (requiredError) {
+            showToast(requiredError, 'error');
+            return;
+        }
+
+        var isEditing = Boolean(_state.editCarId);
         var btn = el('submitBtn');
         var txt = el('submitBtnText');
         var spn = el('submitSpinner');
-
-        // Disable + show spinner
         if (btn) btn.disabled = true;
         if (spn) spn.classList.remove('hidden');
-        if (txt) txt.textContent = _state.editCarId ? 'Updating…' : 'Saving…';
+        if (txt) txt.textContent = isEditing ? 'Updating…' : 'Saving…';
 
         try {
             var fd = new FormData();
-
-            // Scalar fields
             var fields = {
                 make: el('fBrand') ? el('fBrand').value.trim() : '',
                 model: el('fModel') ? el('fModel').value.trim() : '',
@@ -591,51 +671,51 @@ if (_carForm) {
                 market_value: el('fMarketValue') ? el('fMarketValue').value : '',
                 discount_tag: el('fDiscountTag') ? el('fDiscountTag').value.trim() : '',
                 reservation_status: el('fReservationStatus') ? el('fReservationStatus').value : '',
+                status: el('fStatus') ? el('fStatus').value : 'Available',
                 featSunroof: el('fFeatSunroof') && el('fFeatSunroof').checked ? 'true' : 'false',
                 featAlloyWheels: el('fFeatAlloys') && el('fFeatAlloys').checked ? 'true' : 'false',
                 featTouchscreen: el('fFeatTouchscreen') && el('fFeatTouchscreen').checked ? 'true' : 'false',
-                featReverseCamera: el('fFeatCamera') && el('fFeatCamera').checked ? 'true' : 'false',
+                featReverseCamera: el('fFeatCamera') && el('fFeatCamera').checked ? 'true' : 'false'
             };
-
-            Object.keys(fields).forEach(function (k) { fd.append(k, fields[k]); });
-
-            // Images to delete (edit mode)
-            if (_state.imagesToDelete.length > 0) {
-                fd.append('imagesToDelete', JSON.stringify(_state.imagesToDelete));
-            }
-
-            // New image files
+            Object.keys(fields).forEach(function (key) { fd.append(key, fields[key]); });
+            if (_state.imagesToDelete.length) fd.append('imagesToDelete', JSON.stringify(_state.imagesToDelete));
             _state.newFiles.forEach(function (file) { fd.append('images', file); });
 
-            var url = _state.editCarId ? '/admin/cars/' + _state.editCarId : '/admin/cars';
-            var method = _state.editCarId ? 'PUT' : 'POST';
-
-            var res = await fetch(url, { method: method, body: fd });
-            var data = await res.json();
-
+            var url = isEditing ? '/admin/cars/' + encodeURIComponent(_state.editCarId) : '/admin/cars';
+            var res = await fetch(url, { method: isEditing ? 'PUT' : 'POST', body: fd });
+            if (res.status === 401) {
+                window.location.replace('/admin/login');
+                return;
+            }
+            var data = await res.json().catch(function () { return {}; });
             if (!res.ok) {
-                var errMsg = data.error || 'Request failed.';
-                if (data.missing) errMsg += ' Missing: ' + data.missing.join(', ');
-                if (data.fields) errMsg += ' ' + data.fields.map(function (f) { return f.field + ': ' + f.message; }).join('. ');
-                throw new Error(errMsg);
+                if (Array.isArray(data.fields) && data.fields.length) {
+                    focusCarField(data.fields[0].field);
+                    throw createCarFormError(data.fields[0].message || data.error || 'Please check the car details and try again.');
+                }
+                if (res.status >= 500) throw createCarFormError('We could not ' + (isEditing ? 'update' : 'save') + ' this car right now. Please try again later.');
+                if (res.status === 404) throw createCarFormError('This car listing could not be found. Refresh the page and try again.');
+                throw createCarFormError(data.error || 'Please check the car details and try again.');
             }
 
-            showToast(
-                _state.editCarId ? 'Car updated successfully.' : 'New car added to inventory.',
-                'success'
-            );
+            showToast(isEditing ? 'Car updated successfully.' : 'New car added to inventory.', 'success');
             closePanel();
             _state.pagination.page = 1;
             _statsFetched = false;
             await loadCars(1);
-
         } catch (err) {
-            console.error('Form submit error:', err);
-            showToast('Error: ' + err.message, 'error');
+            console.error('Car form save failed:', err);
+            if (!(err && err.userFacing) && typeof window.reportClientError === 'function') {
+                window.reportClientError('admin.car.save_network_failed', err);
+            }
+            var message = err && err.userFacing
+                ? err.message
+                : 'We could not ' + (isEditing ? 'update' : 'save') + ' this car right now. Please try again later.';
+            showToast(message, 'error');
         } finally {
             if (btn) btn.disabled = false;
             if (spn) spn.classList.add('hidden');
-            if (txt) txt.textContent = _state.editCarId ? 'Update Listing' : 'Save Car Listing';
+            if (txt) txt.textContent = isEditing ? 'Update Listing' : 'Save Car Listing';
         }
     });
 }
@@ -682,6 +762,7 @@ if (_confirmDeleteBtn) {
             await loadCars(1);
         } catch (err) {
             console.error('Delete error:', err);
+            if (typeof window.reportClientError === 'function') window.reportClientError('admin.car.delete_failed', err);
             showToast('Delete failed: ' + err.message, 'error');
         } finally {
             if (btn) btn.disabled = false;
@@ -733,7 +814,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             if (res.status === 401) window.location.replace('/admin/login');
         } catch (err) {
-            // A transient network issue should not sign the admin out.
+            if (typeof window.reportClientError === 'function') window.reportClientError('admin.session.check_failed', err);
         } finally {
             checkInProgress = false;
         }
